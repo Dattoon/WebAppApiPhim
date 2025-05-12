@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Claims;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using WebAppApiPhim.Models;
 using WebAppApiPhim.Services;
@@ -13,107 +12,182 @@ namespace WebAppApiPhim.Controllers
     public class MovieController : Controller
     {
         private readonly IMovieApiService _movieApiService;
-        private readonly IUserService _userService;
 
-        public MovieController(IMovieApiService movieApiService, IUserService userService)
+        public MovieController(IMovieApiService movieApiService)
         {
             _movieApiService = movieApiService;
-            _userService = userService;
         }
 
         public async Task<IActionResult> Detail(string slug)
         {
-            if (string.IsNullOrEmpty(slug))
+            try
             {
-                return RedirectToAction("Index", "Home");
+                if (string.IsNullOrEmpty(slug))
+                {
+                    return NotFound();
+                }
+
+                var movieDetail = await _movieApiService.GetMovieDetailBySlugAsync(slug);
+
+                if (movieDetail == null)
+                {
+                    return NotFound();
+                }
+
+                // Lấy phim liên quan
+                var relatedMovies = await _movieApiService.GetRelatedMoviesAsync(slug, 6);
+
+                // Tạo view model
+                var viewModel = new MovieDetailViewModel
+                {
+                    Movie = new MovieDetail
+                    {
+                        Id = movieDetail.Id,
+                        Name = movieDetail.Name,
+                        OriginalName = movieDetail.OriginalName ?? movieDetail.OriginName,
+                        Slug = movieDetail.Slug ?? slug,
+                        Year = movieDetail.Year,
+                        Description = movieDetail.Description ?? movieDetail.Content,
+                        Type = movieDetail.Type,
+                        Status = movieDetail.Status,
+                        Genres = movieDetail.Genres ?? (string.IsNullOrEmpty(movieDetail.Categories)
+                            ? new List<string>()
+                            : movieDetail.Categories.Split(',').Select(c => c.Trim()).ToList()),
+                        Country = movieDetail.Country ?? movieDetail.Countries,
+                        PosterUrl = movieDetail.PosterUrl ?? movieDetail.ThumbUrl ?? movieDetail.SubPoster,
+                        BackdropUrl = movieDetail.BackdropUrl ?? movieDetail.ThumbUrl ?? movieDetail.SubThumb,
+                        Rating = movieDetail.Rating,
+                        // Các trường không có trong MovieDetailResponse, sử dụng giá trị mặc định
+                        Director = "",
+                        Actors = "",
+                        Duration = "",
+                        Quality = "",
+                        Language = ""
+                    },
+                    RelatedMovies = relatedMovies?.Data ?? new List<MovieItem>(),
+                    Comments = new List<CommentViewModel>()
+                };
+
+                // Xử lý episodes
+                if (movieDetail.Episodes != null && movieDetail.Episodes.Any())
+                {
+                    viewModel.Episodes = ParseEpisodes(movieDetail.Episodes);
+                }
+
+                return View(viewModel);
             }
-
-            var movieDetail = await _movieApiService.GetMovieDetailBySlugAsync(slug);
-
-            if (movieDetail?.Movie == null)
+            catch (Exception ex)
             {
-                return View(new MovieDetailViewModel());
+                return View("Error", new ErrorViewModel { RequestId = ex.Message });
             }
-
-            var viewModel = new MovieDetailViewModel
-            {
-                Movie = movieDetail.Movie,
-                Episodes = movieDetail.Episodes?.OfType<Episode>().ToList() ?? new List<Episode>(),
-                RelatedMovies = (await _movieApiService.GetRelatedMoviesAsync(slug))?.Data ?? new List<MovieItem>()
-            };
-
-            // Get user-specific data if logged in
-            if (User.Identity.IsAuthenticated)
-            {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
-                viewModel.IsFavorite = await _userService.IsFavoriteAsync(userId, slug);
-                viewModel.WatchHistory = await _userService.GetMovieWatchHistoryAsync(userId, slug);
-            }
-
-            // Get comments
-            viewModel.Comments = await _userService.GetMovieCommentsAsync(slug);
-
-            return View(viewModel);
         }
 
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateWatchProgress(string slug, string name, double percentage)
+        public async Task<IActionResult> Watch(string slug, string episode = null)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            await _userService.UpdateWatchProgressAsync(userId, slug, name, percentage);
-            return Json(new { success = true });
+            try
+            {
+                if (string.IsNullOrEmpty(slug))
+                {
+                    return NotFound();
+                }
+
+                var movieDetail = await _movieApiService.GetMovieDetailBySlugAsync(slug);
+
+                if (movieDetail == null)
+                {
+                    return NotFound();
+                }
+
+                // Tạo view model
+                var viewModel = new MovieDetailViewModel
+                {
+                    Movie = new MovieDetail
+                    {
+                        Id = movieDetail.Id,
+                        Name = movieDetail.Name,
+                        OriginalName = movieDetail.OriginalName ?? movieDetail.OriginName,
+                        Slug = movieDetail.Slug ?? slug,
+                        Year = movieDetail.Year,
+                        Description = movieDetail.Description ?? movieDetail.Content,
+                        Type = movieDetail.Type,
+                        Status = movieDetail.Status,
+                        Genres = movieDetail.Genres ?? (string.IsNullOrEmpty(movieDetail.Categories)
+                            ? new List<string>()
+                            : movieDetail.Categories.Split(',').Select(c => c.Trim()).ToList()),
+                        Country = movieDetail.Country ?? movieDetail.Countries,
+                        PosterUrl = movieDetail.PosterUrl ?? movieDetail.ThumbUrl ?? movieDetail.SubPoster,
+                        BackdropUrl = movieDetail.BackdropUrl ?? movieDetail.ThumbUrl ?? movieDetail.SubThumb,
+                        Rating = movieDetail.Rating,
+                        // Các trường không có trong MovieDetailResponse, sử dụng giá trị mặc định
+                        Director = "",
+                        Actors = "",
+                        Duration = "",
+                        Quality = "",
+                        Language = ""
+                    },
+                    Comments = new List<CommentViewModel>()
+                };
+
+                // Xử lý episodes
+                if (movieDetail.Episodes != null && movieDetail.Episodes.Any())
+                {
+                    viewModel.Episodes = ParseEpisodes(movieDetail.Episodes);
+
+                    // Nếu không có episode được chỉ định, mặc định là tập đầu tiên
+                    if (string.IsNullOrEmpty(episode) && viewModel.Episodes.Any())
+                    {
+                        episode = viewModel.Episodes.First().Slug;
+                    }
+                }
+
+                ViewBag.CurrentEpisode = episode;
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                return View("Error", new ErrorViewModel { RequestId = ex.Message });
+            }
         }
 
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ToggleFavorite(string slug, string name)
+        private List<Episode> ParseEpisodes(List<object> episodes)
         {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var favorite = await _userService.ToggleFavoriteAsync(userId, slug, name);
-            return Json(new { success = true, isFavorite = favorite != null });
-        }
+            var result = new List<Episode>();
 
-        [HttpPost]
-        [Authorize]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddComment(string slug, string content)
-        {
-            if (string.IsNullOrEmpty(content))
+            foreach (var episodeObj in episodes)
             {
-                return RedirectToAction("Detail", new { slug });
+                if (episodeObj is JsonElement jsonElement)
+                {
+                    if (jsonElement.TryGetProperty("server_name", out var _) &&
+                        jsonElement.TryGetProperty("items", out var items))
+                    {
+                        foreach (var item in items.EnumerateArray())
+                        {
+                            try
+                            {
+                                string name = item.GetProperty("name").GetString();
+                                string slug = item.GetProperty("slug").GetString();
+                                string embed = item.TryGetProperty("embed", out var embedProp) ? embedProp.GetString() : null;
+                                string m3u8 = item.TryGetProperty("m3u8", out var m3u8Prop) ? m3u8Prop.GetString() : null;
+
+                                result.Add(new Episode
+                                {
+                                    Name = name,
+                                    Slug = slug,
+                                    Filename = $"Tập {name}",
+                                    Link = embed ?? m3u8
+                                });
+                            }
+                            catch (Exception)
+                            {
+                                // Bỏ qua nếu không thể parse
+                            }
+                        }
+                    }
+                }
             }
 
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            await _userService.AddCommentAsync(userId, slug, content);
-            return RedirectToAction("Detail", new { slug });
-        }
-
-        public async Task<IActionResult> Watch(string slug, string episode)
-        {
-            if (string.IsNullOrEmpty(slug))
-            {
-                return RedirectToAction("Index", "Home");
-            }
-
-            var movieDetail = await _movieApiService.GetMovieDetailBySlugAsync(slug);
-
-            if (movieDetail?.Movie == null)
-            {
-                return RedirectToAction("Detail", new { slug });
-            }
-
-            // Track watch progress if user is logged in
-            if (User.Identity.IsAuthenticated)
-            {
-                var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                await _userService.UpdateWatchProgressAsync(userId, slug, movieDetail.Movie.Name, 0);
-            }
-
-            return View(movieDetail);
+            return result;
         }
     }
 }

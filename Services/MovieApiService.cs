@@ -30,60 +30,117 @@ namespace WebAppApiPhim.Services
             };
         }
 
+        /// <summary>
+        /// Hàm tổng quát để gọi API với phiên bản fallback (v3 -> v2 -> v1)
+        /// </summary>
+        /// <param name="endpoint">Endpoint cơ bản (ví dụ: /phim-moi)</param>
+        /// <param name="queryParams">Tham số query (ví dụ: ?page=1&limit=10)</param>
+        /// <param name="startVersion">Phiên bản bắt đầu (mặc định: v3)</param>
+        /// <returns>Kết quả hoặc default nếu thất bại</returns>
+        private async Task<T> CallApiWithVersionFallbackAsync<T>(string endpoint, string queryParams, string startVersion = "v3")
+        {
+            var versions = new List<string> { "v3", "v2", "v1" };
+            int startIndex = versions.IndexOf(startVersion);
+            if (startIndex == -1)
+            {
+                Debug.WriteLine($"Invalid start version: {startVersion}. Defaulting to v3.");
+                startIndex = 0; // Nếu phiên bản không hợp lệ, bắt đầu từ v3
+            }
+
+            T result = default;
+            string responseContent = null;
+            bool isValidResponse = false;
+
+            for (int i = startIndex; i < versions.Count; i++)
+            {
+                string version = versions[i];
+                string requestUrl = $"{_baseUrl}/{endpoint}/{version}{queryParams}";
+                Debug.WriteLine($"Requesting: {requestUrl}");
+
+                try
+                {
+                    var response = await _httpClient.GetAsync(requestUrl);
+                    Debug.WriteLine($"Response status: {response.StatusCode}");
+
+                    responseContent = await response.Content.ReadAsStringAsync();
+                    Debug.WriteLine($"Response content ({version}): {responseContent.Substring(0, Math.Min(500, responseContent.Length))}...");
+
+                    if (response.IsSuccessStatusCode)
+                    {
+                        try
+                        {
+                            result = JsonSerializer.Deserialize<T>(responseContent, _jsonOptions);
+                            if (result != null)
+                            {
+                                // Kiểm tra đặc biệt cho ImageResponse
+                                if (result is ImageResponse imageResponse)
+                                {
+                                    if (imageResponse.Success && (!string.IsNullOrEmpty(imageResponse.SubThumb) || !string.IsNullOrEmpty(imageResponse.SubPoster)))
+                                    {
+                                        isValidResponse = true;
+                                        Debug.WriteLine($"Successfully deserialized and validated response from {version}");
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        Debug.WriteLine($"ImageResponse from {version} is not valid (Success=false or both URLs empty).");
+                                    }
+                                }
+                                else
+                                {
+                                    // Đối với các loại khác (như MovieListResponse), chỉ cần result không null
+                                    isValidResponse = true;
+                                    Debug.WriteLine($"Successfully deserialized response from {version}");
+                                    break;
+                                }
+                            }
+                        }
+                        catch (JsonException ex)
+                        {
+                            Debug.WriteLine($"Deserialization failed for {version}: {ex.Message}, Raw response: {responseContent}");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Error calling {version} endpoint: {ex.Message}");
+                }
+
+                Debug.WriteLine($"Failed to get valid data from {version}. Trying next version...");
+            }
+
+            if (!isValidResponse)
+            {
+                Debug.WriteLine("All API versions failed to return valid data.");
+                return default;
+            }
+
+            return result;
+        }
+
         public async Task<MovieListResponse> GetNewMoviesAsync(int page = 1, int limit = 10)
         {
             try
             {
-                // Try v3 endpoint first (most recent)
-                string requestUrl = $"{_baseUrl}/phim-moi/v3?page={page}&limit={limit}";
-                Debug.WriteLine($"Requesting: {requestUrl}");
+                string queryParams = $"?page={page}&limit={limit}";
+                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>("phim-moi", queryParams, "v3");
 
-                var response = await _httpClient.GetAsync(requestUrl);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    // Fallback to v2 endpoint
-                    requestUrl = $"{_baseUrl}/phim-moi/v2?page={page}&limit={limit}";
-                    Debug.WriteLine($"Fallback to: {requestUrl}");
-                    response = await _httpClient.GetAsync(requestUrl);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        // Fallback to v1 endpoint
-                        requestUrl = $"{_baseUrl}/phim-moi/v1?page={page}&limit={limit}";
-                        Debug.WriteLine($"Fallback to: {requestUrl}");
-                        response = await _httpClient.GetAsync(requestUrl);
-
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            Debug.WriteLine($"All API endpoints failed: {response.StatusCode}");
-                            return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-                        }
-                    }
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                // Ensure all movies have poster and thumbnail URLs
                 if (result?.Data != null)
                 {
                     foreach (var movie in result.Data)
                     {
-                        // If poster or thumb is missing, try to get them from the API
+                        Debug.WriteLine($"Movie {movie.Slug}: Initial PosterUrl={movie.PosterUrl}, ThumbUrl={movie.ThumbUrl}");
                         if (string.IsNullOrEmpty(movie.PosterUrl) || string.IsNullOrEmpty(movie.ThumbUrl))
                         {
                             try
                             {
                                 var imageData = await GetMovieImagesAsync(movie.Slug);
-                                if (imageData.ThumbUrl != null || imageData.PosterUrl != null)
-                                {
-                                    if (string.IsNullOrEmpty(movie.PosterUrl) && !string.IsNullOrEmpty(imageData.PosterUrl))
-                                        movie.PosterUrl = imageData.PosterUrl;
+                                Debug.WriteLine($"Images for {movie.Slug}: ThumbUrl={imageData.ThumbUrl}, PosterUrl={imageData.PosterUrl}");
+                                if (!string.IsNullOrEmpty(imageData.PosterUrl))
+                                    movie.PosterUrl = imageData.PosterUrl;
 
-                                    if (string.IsNullOrEmpty(movie.ThumbUrl) && !string.IsNullOrEmpty(imageData.ThumbUrl))
-                                        movie.ThumbUrl = imageData.ThumbUrl;
-                                }
+                                if (!string.IsNullOrEmpty(imageData.ThumbUrl))
+                                    movie.ThumbUrl = imageData.ThumbUrl;
                             }
                             catch (Exception ex)
                             {
@@ -93,7 +150,7 @@ namespace WebAppApiPhim.Services
                     }
                 }
 
-                return result;
+                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
             }
             catch (Exception ex)
             {
@@ -113,54 +170,27 @@ namespace WebAppApiPhim.Services
                     return CreateEmptyMovieDetailResponse("invalid-slug");
                 }
 
-                // Try different API versions for movie details
                 MovieDetailResponse result = null;
 
-                // Try v3 endpoint first
-                result = await TryGetMovieDetailFromEndpoint($"{_baseUrl}/phim-chi-tiet/v3?slug={slug}");
+                // Try v3, v2, v1 for phim-chi-tiet
+                result = await CallApiWithVersionFallbackAsync<MovieDetailResponse>($"phim-chi-tiet", $"?slug={slug}", "v3");
 
-                // If v3 fails, try v2
+                // If no data, try TMDB endpoint
                 if (result == null)
                 {
-                    result = await TryGetMovieDetailFromEndpoint($"{_baseUrl}/phim-chi-tiet/v2?slug={slug}");
-
-                    // If v2 fails, try v1
-                    if (result == null)
-                    {
-                        result = await TryGetMovieDetailFromEndpoint($"{_baseUrl}/phim-chi-tiet/v1?slug={slug}");
-                    }
-                }
-
-                // If all API endpoints fail, try the TMDB endpoint
-                if (result == null)
-                {
-                    var tmdbData = await TryGetMovieDetailFromEndpoint($"{_baseUrl}/get_tmdb/{slug}");
-
+                    var tmdbData = await CallApiWithVersionFallbackAsync<MovieDetailResponse>($"get_tmdb", $"?slug={slug}", "v3");
                     if (tmdbData != null && !string.IsNullOrEmpty(tmdbData.Id))
                     {
-                        // We got TMDB data, now try to get full details
-                        result = await TryGetMovieDetailFromEndpoint($"{_baseUrl}/phim/{slug}/v3");
-
-                        if (result == null)
-                        {
-                            result = await TryGetMovieDetailFromEndpoint($"{_baseUrl}/phim/{slug}/v2");
-
-                            if (result == null)
-                            {
-                                result = await TryGetMovieDetailFromEndpoint($"{_baseUrl}/phim/{slug}/v1");
-                            }
-                        }
+                        result = await CallApiWithVersionFallbackAsync<MovieDetailResponse>($"phim/{slug}", "", "v3");
                     }
                 }
 
-                // If we still don't have data, create an empty response
                 if (result == null)
                 {
                     Debug.WriteLine("All API endpoints failed to return movie details");
                     return CreateEmptyMovieDetailResponse(slug);
                 }
 
-                // Ensure we have a valid Movie object
                 if (result.Movie == null && !string.IsNullOrEmpty(result.Name))
                 {
                     Debug.WriteLine("Converting root-level properties to Movie object");
@@ -182,13 +212,11 @@ namespace WebAppApiPhim.Services
                     };
                 }
 
-                // Ensure the movie has a slug
                 if (result.Movie != null && string.IsNullOrEmpty(result.Movie.Slug))
                 {
                     result.Movie.Slug = slug;
                 }
 
-                // Try to get images if they're missing
                 if (result.Movie != null && (string.IsNullOrEmpty(result.Movie.PosterUrl) || string.IsNullOrEmpty(result.Movie.BackdropUrl)))
                 {
                     try
@@ -209,7 +237,6 @@ namespace WebAppApiPhim.Services
                     }
                 }
 
-                // Parse episodes if they're in a different format
                 if (result.Episodes == null || !result.Episodes.Any())
                 {
                     var parsedEpisodes = ParseEpisodesFromResponse(result);
@@ -226,29 +253,6 @@ namespace WebAppApiPhim.Services
             }
         }
 
-        private async Task<MovieDetailResponse> TryGetMovieDetailFromEndpoint(string endpoint)
-        {
-            try
-            {
-                Debug.WriteLine($"Trying endpoint: {endpoint}");
-                var response = await _httpClient.GetAsync(endpoint);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Debug.WriteLine($"API Error: {response.StatusCode}");
-                    return null;
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                return JsonSerializer.Deserialize<MovieDetailResponse>(content, _jsonOptions);
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Error with endpoint {endpoint}: {ex.Message}");
-                return null;
-            }
-        }
-
         private List<string> ParseGenres(string categories)
         {
             if (string.IsNullOrEmpty(categories))
@@ -261,17 +265,16 @@ namespace WebAppApiPhim.Services
         {
             var episodes = new List<Episode>();
 
-            // Check if episodes are in the format shown in the example
             if (response.Episodes != null && response.Episodes.Any())
             {
                 foreach (var episodeObj in response.Episodes)
                 {
-                    if (episodeObj is JsonElement jsonElement1)
+                    if (episodeObj is JsonElement jsonElement)
                     {
                         try
                         {
-                            if (jsonElement1.TryGetProperty("server_name", out var _) &&
-                                jsonElement1.TryGetProperty("server_data", out var serverData))
+                            if (jsonElement.TryGetProperty("server_name", out var _) &&
+                                jsonElement.TryGetProperty("server_data", out var serverData))
                             {
                                 foreach (var episode in serverData.EnumerateArray())
                                 {
@@ -284,7 +287,7 @@ namespace WebAppApiPhim.Services
                                     });
                                 }
                             }
-                            else if (jsonElement1.TryGetProperty("items", out var items))
+                            else if (jsonElement.TryGetProperty("items", out var items))
                             {
                                 foreach (var item in items.EnumerateArray())
                                 {
@@ -313,7 +316,6 @@ namespace WebAppApiPhim.Services
                 }
             }
 
-            // If we still don't have episodes, try to parse from the raw content
             if (episodes.Count == 0 && !string.IsNullOrEmpty(response.Content))
             {
                 var matches = Regex.Matches(response.Content, @"Tập\s+(\d+)\|(.+?)(?=Tập|$)");
@@ -342,29 +344,9 @@ namespace WebAppApiPhim.Services
         {
             try
             {
-                string requestUrl = $"{_baseUrl}/search/v1?keyword={Uri.EscapeDataString(keyword)}&page={page}";
-                Debug.WriteLine($"Requesting: {requestUrl}");
+                string queryParams = $"?keyword={Uri.EscapeDataString(keyword)}&page={page}";
+                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>("search", queryParams, "v3");
 
-                var response = await _httpClient.GetAsync(requestUrl);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    // Try phim-data endpoint as fallback
-                    requestUrl = $"{_baseUrl}/phim-data/v1?name={Uri.EscapeDataString(keyword)}&page={page}&limit=10";
-                    Debug.WriteLine($"Fallback to: {requestUrl}");
-                    response = await _httpClient.GetAsync(requestUrl);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Debug.WriteLine($"API Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                        return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-                    }
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                // Add images to movies
                 if (result?.Data != null)
                 {
                     foreach (var movie in result.Data)
@@ -391,7 +373,7 @@ namespace WebAppApiPhim.Services
                     }
                 }
 
-                return result;
+                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
             }
             catch (Exception ex)
             {
@@ -404,29 +386,9 @@ namespace WebAppApiPhim.Services
         {
             try
             {
-                string requestUrl = $"{_baseUrl}/the-loai/{category}/v1?page={page}";
-                Debug.WriteLine($"Requesting: {requestUrl}");
+                string queryParams = $"?page={page}";
+                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>($"the-loai/{category}", queryParams, "v3");
 
-                var response = await _httpClient.GetAsync(requestUrl);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    // Try phim-data endpoint as fallback
-                    requestUrl = $"{_baseUrl}/phim-data/v1?the_loai={Uri.EscapeDataString(category)}&page={page}&limit=10";
-                    Debug.WriteLine($"Fallback to: {requestUrl}");
-                    response = await _httpClient.GetAsync(requestUrl);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Debug.WriteLine($"API Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                        return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-                    }
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                // Add images to movies
                 if (result?.Data != null)
                 {
                     foreach (var movie in result.Data)
@@ -453,7 +415,7 @@ namespace WebAppApiPhim.Services
                     }
                 }
 
-                return result;
+                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
             }
             catch (Exception ex)
             {
@@ -466,29 +428,9 @@ namespace WebAppApiPhim.Services
         {
             try
             {
-                string requestUrl = $"{_baseUrl}/quoc-gia/{country}/v1?page={page}";
-                Debug.WriteLine($"Requesting: {requestUrl}");
+                string queryParams = $"?page={page}";
+                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>($"quoc-gia/{country}", queryParams, "v3");
 
-                var response = await _httpClient.GetAsync(requestUrl);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    // Try phim-data endpoint as fallback
-                    requestUrl = $"{_baseUrl}/phim-data/v1?quoc_gia={Uri.EscapeDataString(country)}&page={page}&limit=10";
-                    Debug.WriteLine($"Fallback to: {requestUrl}");
-                    response = await _httpClient.GetAsync(requestUrl);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Debug.WriteLine($"API Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                        return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-                    }
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                // Add images to movies
                 if (result?.Data != null)
                 {
                     foreach (var movie in result.Data)
@@ -515,7 +457,7 @@ namespace WebAppApiPhim.Services
                     }
                 }
 
-                return result;
+                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
             }
             catch (Exception ex)
             {
@@ -528,29 +470,9 @@ namespace WebAppApiPhim.Services
         {
             try
             {
-                string requestUrl = $"{_baseUrl}/danh-sach/{type}/v1?page={page}";
-                Debug.WriteLine($"Requesting: {requestUrl}");
+                string queryParams = $"?page={page}";
+                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>($"danh-sach/{type}", queryParams, "v3");
 
-                var response = await _httpClient.GetAsync(requestUrl);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    // Try phim-data endpoint as fallback
-                    requestUrl = $"{_baseUrl}/phim-data/v1?loai_phim={Uri.EscapeDataString(type)}&page={page}&limit=10";
-                    Debug.WriteLine($"Fallback to: {requestUrl}");
-                    response = await _httpClient.GetAsync(requestUrl);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        Debug.WriteLine($"API Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                        return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-                    }
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                // Add images to movies
                 if (result?.Data != null)
                 {
                     foreach (var movie in result.Data)
@@ -577,7 +499,7 @@ namespace WebAppApiPhim.Services
                     }
                 }
 
-                return result;
+                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
             }
             catch (Exception ex)
             {
@@ -590,37 +512,9 @@ namespace WebAppApiPhim.Services
         {
             try
             {
-                // Since the API might not have a direct endpoint for related movies,
-                // we'll try to get movies from the same category or by the same director
-                string requestUrl = $"{_baseUrl}/phim-moi/v3?limit={limit}";
-                Debug.WriteLine($"Requesting related movies: {requestUrl}");
+                string queryParams = $"?limit={limit}";
+                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>("phim-moi", queryParams, "v3");
 
-                var response = await _httpClient.GetAsync(requestUrl);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    requestUrl = $"{_baseUrl}/phim-moi/v2?limit={limit}";
-                    Debug.WriteLine($"Fallback to: {requestUrl}");
-                    response = await _httpClient.GetAsync(requestUrl);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        requestUrl = $"{_baseUrl}/phim-moi/v1?limit={limit}";
-                        Debug.WriteLine($"Fallback to: {requestUrl}");
-                        response = await _httpClient.GetAsync(requestUrl);
-
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            Debug.WriteLine($"API Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                            return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-                        }
-                    }
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                // Add images to movies
                 if (result?.Data != null)
                 {
                     foreach (var movie in result.Data)
@@ -647,7 +541,7 @@ namespace WebAppApiPhim.Services
                     }
                 }
 
-                return result;
+                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
             }
             catch (Exception ex)
             {
@@ -660,37 +554,9 @@ namespace WebAppApiPhim.Services
         {
             try
             {
-                // Since the API might not have a direct endpoint for trending movies,
-                // we'll use the new movies endpoint as a fallback
-                string requestUrl = $"{_baseUrl}/phim-moi/v3?page={page}&limit={limit}";
-                Debug.WriteLine($"Requesting trending movies: {requestUrl}");
+                string queryParams = $"?page={page}&limit={limit}";
+                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>("phim-moi", queryParams, "v3");
 
-                var response = await _httpClient.GetAsync(requestUrl);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    requestUrl = $"{_baseUrl}/phim-moi/v2?page={page}&limit={limit}";
-                    Debug.WriteLine($"Fallback to: {requestUrl}");
-                    response = await _httpClient.GetAsync(requestUrl);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        requestUrl = $"{_baseUrl}/phim-moi/v1?page={page}&limit={limit}";
-                        Debug.WriteLine($"Fallback to: {requestUrl}");
-                        response = await _httpClient.GetAsync(requestUrl);
-
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            Debug.WriteLine($"API Error: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
-                            return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-                        }
-                    }
-                }
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                // Add images to movies
                 if (result?.Data != null)
                 {
                     foreach (var movie in result.Data)
@@ -717,7 +583,7 @@ namespace WebAppApiPhim.Services
                     }
                 }
 
-                return result;
+                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
             }
             catch (Exception ex)
             {
@@ -730,48 +596,22 @@ namespace WebAppApiPhim.Services
         {
             try
             {
-                // Try v3 endpoint first
-                string requestUrl = $"{_baseUrl}/get-img/v3?slug={slug}";
-                Debug.WriteLine($"Requesting images: {requestUrl}");
+                var result = await CallApiWithVersionFallbackAsync<ImageResponse>("get-img", $"?slug={slug}", "v3");
 
-                var response = await _httpClient.GetAsync(requestUrl);
-
-                if (!response.IsSuccessStatusCode)
+                if (result != null && result.Success)
                 {
-                    // Fallback to v2 endpoint
-                    requestUrl = $"{_baseUrl}/get-img/v2?slug={slug}";
-                    Debug.WriteLine($"Fallback to: {requestUrl}");
-                    response = await _httpClient.GetAsync(requestUrl);
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        // Fallback to v1 endpoint
-                        requestUrl = $"{_baseUrl}/get-img/v1?slug={slug}";
-                        Debug.WriteLine($"Fallback to: {requestUrl}");
-                        response = await _httpClient.GetAsync(requestUrl);
-
-                        if (!response.IsSuccessStatusCode)
-                        {
-                            Debug.WriteLine($"All image API endpoints failed: {response.StatusCode}");
-                            return (null, null);
-                        }
-                    }
+                    string thumbUrl = string.IsNullOrEmpty(result.SubThumb) ? "/placeholder.svg?height=150&width=100" : result.SubThumb;
+                    string posterUrl = string.IsNullOrEmpty(result.SubPoster) ? "/placeholder.svg?height=450&width=300" : result.SubPoster;
+                    return (thumbUrl, posterUrl);
                 }
 
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<ImageResponse>(content, _jsonOptions);
-
-                if (result?.Success == true)
-                {
-                    return (result.SubThumb, result.SubPoster);
-                }
-
-                return (null, null);
+                Debug.WriteLine($"No valid images found for slug: {slug}. Using placeholders.");
+                return ("/placeholder.svg?height=150&width=100", "/placeholder.svg?height=450&width=300");
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Exception in GetMovieImagesAsync: {ex.Message}");
-                return (null, null);
+                return ("/placeholder.svg?height=150&width=100", "/placeholder.svg?height=450&width=300");
             }
         }
 

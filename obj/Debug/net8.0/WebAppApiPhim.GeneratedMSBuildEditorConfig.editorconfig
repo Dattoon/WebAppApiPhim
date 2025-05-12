@@ -26,6 +26,10 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
+[C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Home/TestApi.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxUZXN0QXBpLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Movie/Category.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW92aWVcQ2F0ZWdvcnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
@@ -36,6 +40,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Movie/Search.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW92aWVcU2VhcmNoLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Movie/Watch.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcTW92aWVcV2F0Y2guY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Shared/Error.cshtml]

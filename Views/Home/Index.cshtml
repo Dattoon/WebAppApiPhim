@@ -22,6 +22,16 @@
                     </div>
                 }
             }
+            else
+            {
+                <div class="carousel-item active" style="height: 400px;">
+                    <img src="/placeholder.svg?height=400&width=1200" class="d-block w-100 h-100" style="object-fit: cover;" alt="No movies available">
+                    <div class="carousel-caption d-none d-md-block text-start" style="background: linear-gradient(to right, rgba(0锅锅锅锅, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%); left: 0; right: 0; bottom: 0; padding: 30px;">
+                        <h2>Không có phim nổi bật</h2>
+                        <p>Vui lòng thử lại sau.</p>
+                    </div>
+                </div>
+            }
         </div>
         <button class="carousel-control-prev" type="button" data-bs-target="#featuredCarousel" data-bs-slide="prev">
             <span class="carousel-control-prev-icon" aria-hidden="true"></span>
@@ -42,19 +52,26 @@
     <div class="movie-grid">
         @if (Model?.Data != null)
         {
-            foreach (var movie in Model.Data)
+            if (Model.Data.Any())
             {
-                <div class="movie-card">
-                    <a asp-controller="Movie" asp-action="Detail" asp-route-slug="@movie.Slug">
-                        <img src="@(movie.PosterUrl ?? movie.ThumbUrl ?? "/placeholder.svg?height=450&width=300")" alt="@movie.Name">
-                        <div class="overlay">
-                            <div class="title">@movie.Name</div>
-                            <div class="info">
-                                @movie.Year • @movie.Loai_phim
+                foreach (var movie in Model.Data)
+                {
+                    <div class="movie-card">
+                        <a asp-controller="Movie" asp-action="Detail" asp-route-slug="@movie.Slug">
+                            <img src="@(movie.PosterUrl ?? movie.ThumbUrl ?? "/placeholder.svg?height=450&width=300")" alt="@movie.Name">
+                            <div class="overlay">
+                                <div class="title">@movie.Name</div>
+                                <div class="info">
+                                    @movie.Year • @movie.Loai_phim
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
+                        </a>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Không có phim mới nào để hiển thị.</p>
             }
         }
     </div>
@@ -68,7 +85,7 @@
                 {
                     <li class="page-item">
                         <a class="page-link" asp-controller="Home" asp-action="Index" asp-route-page="@(Model.Pagination.Current_page - 1)" aria-label="Previous">
-                            <span aria-hidden="true">&laquo;</span>
+                            <span aria-hidden="true">«</span>
                         </a>
                     </li>
                 }
@@ -94,7 +111,7 @@
                 {
                     <li class="page-item">
                         <a class="page-link" asp-controller="Home" asp-action="Index" asp-route-page="@(Model.Pagination.Current_page + 1)" aria-label="Next">
-                            <span aria-hidden="true">&raquo;</span>
+                            <span aria-hidden="true">»</span>
                         </a>
                     </li>
                 }
@@ -111,19 +128,26 @@
     <div class="movie-grid">
         @if (Model?.Data != null)
         {
-            foreach (var movie in Model.Data.Take(12).Reverse())
+            if (Model.Data.Any())
             {
-                <div class="movie-card">
-                    <a asp-controller="Movie" asp-action="Detail" asp-route-slug="@movie.Slug">
-                        <img src="@(movie.PosterUrl ?? movie.ThumbUrl ?? "/placeholder.svg?height=450&width=300")" alt="@movie.Name">
-                        <div class="overlay">
-                            <div class="title">@movie.Name</div>
-                            <div class="info">
-                                @movie.Year • @movie.Loai_phim
+                foreach (var movie in Model.Data.Take(12).Reverse())
+                {
+                    <div class="movie-card">
+                        <a asp-controller="Movie" asp-action="Detail" asp-route-slug="@movie.Slug">
+                            <img src="@(movie.PosterUrl ?? movie.ThumbUrl ?? "/placeholder.svg?height=450&width=300")" alt="@movie.Name">
+                            <div class="overlay">
+                                <div class="title">@movie.Name</div>
+                                <div class="info">
+                                    @movie.Year • @movie.Loai_phim
+                                </div>
                             </div>
-                        </div>
-                    </a>
-                </div>
+                        </a>
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Không có phim hot nào để hiển thị.</p>
             }
         }
     </div>
