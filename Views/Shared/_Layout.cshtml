@@ -68,12 +68,13 @@
                             </ul>
                         </li>
                     </ul>
-                    <form class="d-flex" asp-controller="Home" asp-action="Search" method="get">
+                    <form class="d-flex me-2" asp-controller="Home" asp-action="Search" method="get">
                         <input class="form-control me-2 bg-dark text-light border-secondary" type="search" name="query" placeholder="Tìm kiếm phim..." aria-label="Search">
                         <button class="btn btn-outline-light" type="submit">
                             <i class="fas fa-search"></i>
                         </button>
                     </form>
+                    <partial name="_LoginPartial" />
                 </div>
             </div>
         </nav>

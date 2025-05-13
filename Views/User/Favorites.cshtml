@@ -1,1 +1,187 @@
-﻿
+﻿@model IEnumerable<Favorite>
+@{
+    ViewData["Title"] = "Phim yêu thích";
+    var currentPage = ViewBag.CurrentPage;
+    var totalPages = ViewBag.TotalPages;
+    var totalItems = ViewBag.TotalItems;
+}
+
+<div class="container mt-4">
+    <div class="section-title">
+        <h2>Phim yêu thích</h2>
+        <p>Tổng cộng: @totalItems phim</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-secondary text-center">
+            <p>Bạn chưa thêm phim nào vào danh sách yêu thích.</p>
+            <p>Hãy khám phá các bộ phim và thêm vào danh sách yêu thích của bạn.</p>
+            <a asp-controller="Home" asp-action="Index" class="btn btn-primary mt-2">
+                <i class="fas fa-film me-2"></i> Khám phá phim
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="movie-grid">
+            @foreach (var favorite in Model)
+            {
+                <div class="movie-card favorite-card">
+                    <a asp-controller="Movie" asp-action="Detail" asp-route-slug="@favorite.MovieSlug">
+                        <img src="@(favorite.MoviePosterUrl ?? "/placeholder.svg?height=450&width=300")"
+                             alt="@Html.Encode(favorite.MovieName)"
+                             onerror="this.onerror=null; this.src='/placeholder.svg?height=450&width=300';">
+                        <div class="overlay">
+                            <div class="title">@Html.Encode(favorite.MovieName)</div>
+                            <div class="info">
+                                Đã thêm: @favorite.AddedAt.ToString("dd/MM/yyyy")
+                            </div>
+                        </div>
+                    </a>
+                    <button class="btn btn-sm btn-danger remove-favorite"
+                            data-movie-slug="@favorite.MovieSlug"
+                            data-movie-name="@Html.Encode(favorite.MovieName)">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            }
+        </div>
+
+       
+    }
+</div>
+
+<!-- Modal xác nhận xóa -->
+<div class="modal fade" id="confirmRemoveModal" tabindex="-1" aria-labelledby="confirmRemoveModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="confirmRemoveModalLabel">Xác nhận xóa</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Bạn có chắc chắn muốn xóa phim "<span id="movieNameToRemove"></span>" khỏi danh sách yêu thích?
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="removeForm" asp-controller="User" asp-action="RemoveFromFavorites" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="movieSlugToRemove" name="movieSlug" />
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Xử lý nút xóa phim yêu thích
+            $('.remove-favorite').on('click', function () {
+                var movieSlug = $(this).data('movie-slug');
+                var movieName = $(this).data('movie-name');
+
+                $('#movieNameToRemove').text(movieName);
+                $('#movieSlugToRemove').val(movieSlug);
+
+                var modal = new bootstrap.Modal(document.getElementById('confirmRemoveModal'));
+                modal.show();
+            });
+
+            // Reset modal khi đóng
+            $('#confirmRemoveModal').on('hidden.bs.modal', function () {
+                $('#movieNameToRemove').text('');
+                $('#movieSlugToRemove').val('');
+            });
+
+            // Xử lý form xóa phim yêu thích
+            $('#removeForm').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                $.ajax({
+                    type: 'POST',
+                    url: form.attr('action'),
+                    data: form.serialize(),
+                    success: function (data) {
+                        if (data.success) {
+                            $('#confirmRemoveModal').modal('hide');
+                            var movieSlug = $('#movieSlugToRemove').val();
+                            $('.movie-card').filter(function () {
+                                return $(this).find('.remove-favorite').data('movie-slug') === movieSlug;
+                            }).fadeOut(300, function () {
+                                $(this).remove();
+                                if ($('.movie-card').length === 0) {
+                                    location.reload();
+                                }
+                            });
+                        } else {
+                            alert('Đã có lỗi xảy ra. Vui lòng thử lại.');
+                        }
+                    },
+                    error: function () {
+                        alert('Không thể kết nối đến server. Vui lòng thử lại.');
+                    }
+                });
+            });
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .favorite-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .favorite-card img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .favorite-card .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            padding: 10px;
+            transform: translateY(100%);
+            transition: transform 0.3s;
+        }
+
+        .favorite-card:hover .overlay {
+            transform: translateY(0);
+        }
+
+        .favorite-card .remove-favorite {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .favorite-card:hover .remove-favorite {
+            opacity: 1;
+        }
+
+        @@media (max-width: 576px) {
+            .movie-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+    </style>
+}

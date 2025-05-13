@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebAppApiPhim.Data;
 using WebAppApiPhim.Models;
@@ -13,87 +12,57 @@ namespace WebAppApiPhim.Services
     public class UserService : IUserService
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public UserService(ApplicationDbContext context)
+        public UserService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
-        public async Task<User> GetUserByIdAsync(int userId)
+        // Quản lý người dùng
+        public async Task<ApplicationUser> GetUserByIdAsync(string userId)
         {
-            return await _context.Users.FindAsync(userId);
+            return await _userManager.FindByIdAsync(userId);
         }
 
-        public async Task<User> GetUserByUsernameAsync(string username)
+        public async Task<ApplicationUser> GetUserByUsernameAsync(string username)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+            return await _userManager.FindByNameAsync(username);
         }
 
-        public async Task<User> GetUserByEmailAsync(string email)
+        public async Task<ApplicationUser> GetUserByEmailAsync(string email)
         {
-            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            return await _userManager.FindByEmailAsync(email);
         }
 
-        public async Task<bool> RegisterUserAsync(string username, string email, string password)
+        public async Task<IdentityResult> UpdateUserProfileAsync(string userId, string displayName, string avatarUrl)
         {
-            // Kiểm tra xem username hoặc email đã tồn tại chưa
-            if (await _context.Users.AnyAsync(u => u.Username == username || u.Email == email))
-            {
-                return false;
-            }
-
-            // Tạo salt và hash password
-            var salt = GenerateSalt();
-            var passwordHash = HashPassword(password, salt);
-
-            // Tạo user mới
-            var user = new User
-            {
-                Username = username,
-                Email = email,
-                PasswordHash = passwordHash,
-                Salt = salt,
-                CreatedAt = DateTime.Now,
-                IsActive = true,
-                Role = "User"
-            };
-
-            // Thêm user vào database
-            await _context.Users.AddAsync(user);
-            await _context.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<User> AuthenticateAsync(string username, string password)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-
+            var user = await _userManager.FindByIdAsync(userId);
             if (user == null)
             {
-                return null;
+                return IdentityResult.Failed(new IdentityError { Description = "Không tìm thấy người dùng." });
             }
 
-            // Kiểm tra password
-            var passwordHash = HashPassword(password, user.Salt);
-            if (passwordHash != user.PasswordHash)
+            user.DisplayName = displayName;
+            if (!string.IsNullOrEmpty(avatarUrl))
             {
-                return null;
+                user.AvatarUrl = avatarUrl;
             }
 
-            // Cập nhật thời gian đăng nhập
-            user.LastLoginAt = DateTime.Now;
-            await _context.SaveChangesAsync();
-
-            return user;
+            return await _userManager.UpdateAsync(user);
         }
 
-        public async Task<bool> AddToFavoritesAsync(int userId, string movieSlug, string movieName)
+        // Danh sách yêu thích
+        public async Task<bool> AddToFavoritesAsync(string userId, string movieSlug, string movieName, string moviePosterUrl)
         {
             // Kiểm tra xem phim đã có trong danh sách yêu thích chưa
-            if (await _context.Favorites.AnyAsync(f => f.UserId == userId && f.MovieSlug == movieSlug))
+            var existingFavorite = await _context.Favorites
+                .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
+
+            if (existingFavorite != null)
             {
-                return false;
+                return true; // Đã có trong danh sách yêu thích
             }
 
             // Thêm phim vào danh sách yêu thích
@@ -102,6 +71,7 @@ namespace WebAppApiPhim.Services
                 UserId = userId,
                 MovieSlug = movieSlug,
                 MovieName = movieName,
+                MoviePosterUrl = moviePosterUrl,
                 AddedAt = DateTime.Now
             };
 
@@ -111,9 +81,10 @@ namespace WebAppApiPhim.Services
             return true;
         }
 
-        public async Task<bool> RemoveFromFavoritesAsync(int userId, string movieSlug)
+        public async Task<bool> RemoveFromFavoritesAsync(string userId, string movieSlug)
         {
-            var favorite = await _context.Favorites.FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
+            var favorite = await _context.Favorites
+                .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
 
             if (favorite == null)
             {
@@ -126,18 +97,33 @@ namespace WebAppApiPhim.Services
             return true;
         }
 
-        public async Task<List<Favorite>> GetFavoritesAsync(int userId)
+        public async Task<bool> IsFavoriteAsync(string userId, string movieSlug)
+        {
+            return await _context.Favorites
+                .AnyAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
+        }
+
+        public async Task<List<Favorite>> GetFavoritesAsync(string userId, int page = 1, int pageSize = 10)
         {
             return await _context.Favorites
                 .Where(f => f.UserId == userId)
                 .OrderByDescending(f => f.AddedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
         }
 
-        public async Task<bool> AddToWatchHistoryAsync(int userId, string movieSlug, string movieName, string episodeSlug = null, double watchedPercentage = 0)
+        public async Task<int> GetFavoritesCountAsync(string userId)
+        {
+            return await _context.Favorites
+                .CountAsync(f => f.UserId == userId);
+        }
+
+        // Lịch sử xem
+        public async Task<bool> AddToWatchHistoryAsync(string userId, string movieSlug, string movieName, string moviePosterUrl, string episodeSlug = null, string episodeName = null, double watchedPercentage = 0)
         {
             // Kiểm tra xem phim đã có trong lịch sử xem chưa
-            var history = await _context.WatchHistory
+            var history = await _context.WatchHistories
                 .FirstOrDefaultAsync(h => h.UserId == userId && h.MovieSlug == movieSlug && h.EpisodeSlug == episodeSlug);
 
             if (history != null)
@@ -145,6 +131,7 @@ namespace WebAppApiPhim.Services
                 // Cập nhật lịch sử xem
                 history.WatchedPercentage = watchedPercentage;
                 history.WatchedAt = DateTime.Now;
+                _context.WatchHistories.Update(history);
             }
             else
             {
@@ -154,27 +141,58 @@ namespace WebAppApiPhim.Services
                     UserId = userId,
                     MovieSlug = movieSlug,
                     MovieName = movieName,
+                    MoviePosterUrl = moviePosterUrl,
                     EpisodeSlug = episodeSlug,
+                    EpisodeName = episodeName,
                     WatchedPercentage = watchedPercentage,
                     WatchedAt = DateTime.Now
                 };
 
-                await _context.WatchHistory.AddAsync(history);
+                await _context.WatchHistories.AddAsync(history);
             }
 
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public async Task<List<WatchHistory>> GetWatchHistoryAsync(int userId)
+        public async Task<List<WatchHistory>> GetWatchHistoryAsync(string userId, int page = 1, int pageSize = 10)
         {
-            return await _context.WatchHistory
+            return await _context.WatchHistories
                 .Where(h => h.UserId == userId)
                 .OrderByDescending(h => h.WatchedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
         }
 
-        public async Task<bool> AddCommentAsync(int userId, string movieSlug, string content)
+        public async Task<int> GetWatchHistoryCountAsync(string userId)
+        {
+            return await _context.WatchHistories
+                .CountAsync(h => h.UserId == userId);
+        }
+
+        public async Task<bool> ClearWatchHistoryAsync(string userId)
+        {
+            var histories = await _context.WatchHistories
+                .Where(h => h.UserId == userId)
+                .ToListAsync();
+
+            _context.WatchHistories.RemoveRange(histories);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<WatchHistory> GetLastWatchedAsync(string userId, string movieSlug)
+        {
+            return await _context.WatchHistories
+                .Where(h => h.UserId == userId && h.MovieSlug == movieSlug)
+                .OrderByDescending(h => h.WatchedAt)
+                .FirstOrDefaultAsync();
+        }
+
+        // Bình luận
+        public async Task<Comment> AddCommentAsync(string userId, string movieSlug, string content)
         {
             var comment = new Comment
             {
@@ -187,37 +205,122 @@ namespace WebAppApiPhim.Services
             await _context.Comments.AddAsync(comment);
             await _context.SaveChangesAsync();
 
+            // Lấy thông tin người dùng để trả về đầy đủ
+            comment.User = await _userManager.FindByIdAsync(userId);
+
+            return comment;
+        }
+
+        public async Task<bool> UpdateCommentAsync(int commentId, string userId, string content)
+        {
+            var comment = await _context.Comments
+                .FirstOrDefaultAsync(c => c.Id == commentId && c.UserId == userId);
+
+            if (comment == null)
+            {
+                return false;
+            }
+
+            comment.Content = content;
+            comment.UpdatedAt = DateTime.Now;
+
+            _context.Comments.Update(comment);
+            await _context.SaveChangesAsync();
+
             return true;
         }
 
-        public async Task<List<Comment>> GetCommentsAsync(string movieSlug)
+        public async Task<bool> DeleteCommentAsync(int commentId, string userId)
+        {
+            var comment = await _context.Comments
+                .FirstOrDefaultAsync(c => c.Id == commentId && c.UserId == userId);
+
+            if (comment == null)
+            {
+                return false;
+            }
+
+            _context.Comments.Remove(comment);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<List<Comment>> GetCommentsByMovieAsync(string movieSlug, int page = 1, int pageSize = 10)
         {
             return await _context.Comments
                 .Where(c => c.MovieSlug == movieSlug)
                 .OrderByDescending(c => c.CreatedAt)
                 .Include(c => c.User)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
         }
 
-        private string GenerateSalt()
+        public async Task<int> GetCommentsCountByMovieAsync(string movieSlug)
         {
-            byte[] saltBytes = new byte[16];
-            using (var rng = RandomNumberGenerator.Create())
-            {
-                rng.GetBytes(saltBytes);
-            }
-            return Convert.ToBase64String(saltBytes);
+            return await _context.Comments
+                .CountAsync(c => c.MovieSlug == movieSlug);
         }
 
-        private string HashPassword(string password, string salt)
+        // Đánh giá
+        public async Task<bool> AddOrUpdateRatingAsync(string userId, string movieSlug, int value)
         {
-            using (var sha256 = SHA256.Create())
+            if (value < 1 || value > 10)
             {
-                var saltedPassword = password + salt;
-                var saltedPasswordBytes = Encoding.UTF8.GetBytes(saltedPassword);
-                var hashBytes = sha256.ComputeHash(saltedPasswordBytes);
-                return Convert.ToBase64String(hashBytes);
+                return false;
             }
+
+            var rating = await _context.Ratings
+                .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieSlug == movieSlug);
+
+            if (rating != null)
+            {
+                rating.Value = value;
+                rating.UpdatedAt = DateTime.Now;
+                _context.Ratings.Update(rating);
+            }
+            else
+            {
+                rating = new Rating
+                {
+                    UserId = userId,
+                    MovieSlug = movieSlug,
+                    Value = value,
+                    CreatedAt = DateTime.Now
+                };
+
+                await _context.Ratings.AddAsync(rating);
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<double> GetAverageRatingAsync(string movieSlug)
+        {
+            var ratings = await _context.Ratings
+                .Where(r => r.MovieSlug == movieSlug)
+                .ToListAsync();
+
+            if (!ratings.Any())
+            {
+                return 0;
+            }
+
+            return ratings.Average(r => r.Value);
+        }
+
+        public async Task<int> GetRatingCountAsync(string movieSlug)
+        {
+            return await _context.Ratings
+                .CountAsync(r => r.MovieSlug == movieSlug);
+        }
+
+        public async Task<Rating> GetUserRatingAsync(string userId, string movieSlug)
+        {
+            return await _context.Ratings
+                .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieSlug == movieSlug);
         }
     }
 }

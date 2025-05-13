@@ -5,7 +5,7 @@
 }
 
 <div class="container mt-4">
-    <!-- Breadcrumb -->
+    &lt;!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-light">Trang chủ</a></li>
@@ -21,7 +21,7 @@
         </ol>
     </nav>
 
-    <!-- Movie Header -->
+    &lt;!-- Movie Header -->
     <div class="movie-detail-header rounded overflow-hidden position-relative mb-4">
         <div class="backdrop-image" style="background-image: url('@(movie.BackdropUrl ?? "/placeholder.svg?height=500&width=1200")')">
             <div class="backdrop-overlay"></div>
@@ -30,8 +30,8 @@
             <div class="row">
                 <div class="col-md-3">
                     <div class="movie-poster mb-3">
-                        <img src="@(movie.PosterUrl ?? "/placeholder.svg?height=450&width=300")"
-                             alt="@movie.Name"
+                        <img src="@(movie.PosterUrl ?? "/placeholder.svg?height=450&width=300")" 
+                             alt="@movie.Name" 
                              class="img-fluid rounded shadow"
                              onerror="this.onerror=null; this.src='/placeholder.svg?height=450&width=300';">
                     </div>
@@ -39,6 +39,18 @@
                         <a asp-controller="Movie" asp-action="Watch" asp-route-slug="@movie.Slug" class="btn btn-primary">
                             <i class="fas fa-play-circle me-2"></i> Xem phim
                         </a>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <button id="favoriteBtn" class="btn btn-outline-danger" data-movie-slug="@movie.Slug" data-movie-name="@movie.Name" data-movie-poster="@movie.PosterUrl">
+                                <i class="fas fa-heart me-2"></i> <span id="favoriteText">Thêm vào yêu thích</span>
+                            </button>
+                        }
+                        else
+                        {
+                            <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-outline-danger">
+                                <i class="fas fa-heart me-2"></i> Thêm vào yêu thích
+                            </a>
+                        }
                     </div>
                 </div>
                 <div class="col-md-9">
@@ -47,7 +59,7 @@
                     {
                         <h5 class="text-muted mb-3">@movie.OriginalName</h5>
                     }
-
+                    
                     <div class="movie-meta mb-3">
                         @if (!string.IsNullOrEmpty(movie.Year))
                         {
@@ -62,7 +74,24 @@
                             <span class="badge bg-info me-2">@Model.Movie.Language</span>
                         }
                     </div>
-
+                    
+                    <div class="movie-rating mb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="rating-stars me-2">
+                                <span class="rating-value">@(movie.Rating > 0 ? movie.Rating.ToString("0.0") : "N/A")</span>
+                                <i class="fas fa-star text-warning"></i>
+                            </div>
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <div class="user-rating ms-3">
+                                    <button class="btn btn-sm btn-outline-warning" id="rateMovieBtn">
+                                        <i class="fas fa-star me-1"></i> Đánh giá
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    
                     <div class="movie-info mb-4">
                         <div class="row">
                             <div class="col-md-6">
@@ -95,7 +124,7 @@
                             </div>
                         </div>
                     </div>
-
+                    
                     <div class="movie-description">
                         <h5>Nội dung phim</h5>
                         <p>@movie.Description</p>
@@ -105,7 +134,7 @@
         </div>
     </div>
 
-    <!-- Episodes Section -->
+    &lt;!-- Episodes Section -->
     @if (Model.Episodes != null && Model.Episodes.Any())
     {
         <div class="card bg-dark border-secondary mb-4">
@@ -116,9 +145,9 @@
                 <div class="episode-grid">
                     @foreach (var episode in Model.Episodes)
                     {
-                        <a asp-controller="Movie"
-                           asp-action="Watch"
-                           asp-route-slug="@movie.Slug"
+                        <a asp-controller="Movie" 
+                           asp-action="Watch" 
+                           asp-route-slug="@movie.Slug" 
                            asp-route-episode="@episode.Slug"
                            class="episode-button">
                             Tập @episode.Name
@@ -129,7 +158,68 @@
         </div>
     }
 
-    <!-- Related Movies -->
+    &lt;!-- Comments Section -->
+    <div class="card bg-dark border-secondary mb-4">
+        <div class="card-header bg-dark border-secondary">
+            <h5 class="mb-0">Bình luận (@Model.Comments.Count)</h5>
+        </div>
+        <div class="card-body">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <div class="comment-form mb-4">
+                    <form id="commentForm" asp-controller="User" asp-action="AddComment" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="movieSlug" value="@movie.Slug" />
+                        <div class="mb-3">
+                            <textarea name="content" class="form-control bg-dark text-light border-secondary" rows="3" placeholder="Viết bình luận của bạn..."></textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane me-2"></i> Gửi bình luận
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-secondary">
+                    <p>Vui lòng <a asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Context.Request.Path">đăng nhập</a> để bình luận.</p>
+                </div>
+            }
+
+            <div class="comments-list">
+                @if (!Model.Comments.Any())
+                {
+                    <div class="text-center py-4">
+                        <p class="text-muted">Chưa có bình luận nào. Hãy là người đầu tiên bình luận!</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var comment in Model.Comments)
+                    {
+                        <div class="comment-item" id="comment-@comment.Id">
+                            <div class="d-flex">
+                                <div class="comment-avatar me-3">
+                                    <img src="@(comment.UserAvatar ?? "/images/default-avatar.png")" alt="@comment.UserName" class="rounded-circle" width="40" height="40">
+                                </div>
+                                <div class="comment-content flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <h6 class="mb-0">@comment.UserName</h6>
+                                        <small class="text-muted">@comment.CreatedAt</small>
+                                    </div>
+                                    <p class="mb-0">@comment.Content</p>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    &lt;!-- Related Movies -->
     @if (Model.RelatedMovies.Any())
     {
         <div class="section-title">
@@ -140,7 +230,7 @@
             {
                 <div class="movie-card">
                     <a asp-controller="Movie" asp-action="Detail" asp-route-slug="@relatedMovie.Slug">
-                        <img src="@(relatedMovie.PosterUrl ?? relatedMovie.ThumbUrl ?? "/placeholder.svg?height=450&width=300")"
+                        <img src="@(relatedMovie.PosterUrl ?? relatedMovie.ThumbUrl ?? "/placeholder.svg?height=450&width=300")" 
                              alt="@relatedMovie.Name"
                              onerror="this.onerror=null; this.src='/placeholder.svg?height=450&width=300';">
                         <div class="overlay">
@@ -155,6 +245,259 @@
         </div>
     }
 </div>
+
+&lt;!-- Rating Modal -->
+<div class="modal fade" id="ratingModal" tabindex="-1" aria-labelledby="ratingModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="ratingModalLabel">Đánh giá phim</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <h5>@movie.Name</h5>
+                </div>
+                <div class="rating-stars-container text-center">
+                    <div class="rating-stars-large">
+                        <i class="far fa-star rating-star" data-value="1"></i>
+                        <i class="far fa-star rating-star" data-value="2"></i>
+                        <i class="far fa-star rating-star" data-value="3"></i>
+                        <i class="far fa-star rating-star" data-value="4"></i>
+                        <i class="far fa-star rating-star" data-value="5"></i>
+                        <i class="far fa-star rating-star" data-value="6"></i>
+                        <i class="far fa-star rating-star" data-value="7"></i>
+                        <i class="far fa-star rating-star" data-value="8"></i>
+                        <i class="far fa-star rating-star" data-value="9"></i>
+                        <i class="far fa-star rating-star" data-value="10"></i>
+                    </div>
+                    <div class="rating-value-display mt-2">
+                        <span id="ratingValue">0</span>/10
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="ratingForm" asp-controller="User" asp-action="RateMovie" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="movieSlug" value="@movie.Slug" />
+                    <input type="hidden" name="value" id="ratingInput" value="0" />
+                    <button type="submit" class="btn btn-primary" id="submitRating" disabled>Đánh giá</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Kiểm tra xem phim đã được thêm vào yêu thích chưa
+            function checkFavoriteStatus() {
+                $.ajax({
+                    url: '@Url.Action("IsFavorite", "User")',
+                    type: 'GET',
+                    data: { movieSlug: '@movie.Slug' },
+                    success: function(data) {
+                        if (data.isFavorite) {
+                            $('#favoriteBtn').addClass('btn-danger').removeClass('btn-outline-danger');
+                            $('#favoriteText').text('Đã thêm vào yêu thích');
+                        } else {
+                            $('#favoriteBtn').addClass('btn-outline-danger').removeClass('btn-danger');
+                            $('#favoriteText').text('Thêm vào yêu thích');
+                        }
+                    }
+                });
+            }
+            
+            // Thêm/xóa phim khỏi danh sách yêu thích
+            $('#favoriteBtn').on('click', function() {
+                var btn = $(this);
+                var isAdded = btn.hasClass('btn-danger');
+                var movieSlug = btn.data('movie-slug');
+                var movieName = btn.data('movie-name');
+                var moviePoster = btn.data('movie-poster');
+                
+                if (isAdded) {
+                    // Xóa khỏi yêu thích
+                    $.ajax({
+                        url: '@Url.Action("RemoveFromFavorites", "User")',
+                        type: 'POST',
+                        data: {
+                            movieSlug: movieSlug,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(data) {
+                            if (data.success) {
+                                btn.removeClass('btn-danger').addClass('btn-outline-danger');
+                                $('#favoriteText').text('Thêm vào yêu thích');
+                            }
+                        }
+                    });
+                } else {
+                    // Thêm vào yêu thích
+                    $.ajax({
+                        url: '@Url.Action("AddToFavorites", "User")',
+                        type: 'POST',
+                        data: {
+                            movieSlug: movieSlug,
+                            movieName: movieName,
+                            moviePosterUrl: moviePoster,
+                            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                        },
+                        success: function(data) {
+                            if (data.success) {
+                                btn.removeClass('btn-outline-danger').addClass('btn-danger');
+                                $('#favoriteText').text('Đã thêm vào yêu thích');
+                            }
+                        }
+                    });
+                }
+            });
+            
+            // Xử lý form bình luận
+            $('#commentForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var form = $(this);
+                var content = form.find('textarea[name="content"]').val();
+                
+                if (!content.trim()) {
+                    alert('Vui lòng nhập nội dung bình luận');
+                    return;
+                }
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(data) {
+                        if (data.success) {
+                            // Thêm bình luận mới vào danh sách
+                            var newComment = `
+                                <div class="comment-item" id="comment-${data.comment.id}">
+                                    <div class="d-flex">
+                                        <div class="comment-avatar me-3">
+                                            <img src="${data.comment.user.avatarUrl}" alt="${data.comment.user.displayName}" class="rounded-circle" width="40" height="40">
+                                        </div>
+                                        <div class="comment-content flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="mb-0">${data.comment.user.displayName}</h6>
+                                                <small class="text-muted">${data.comment.createdAt}</small>
+                                            </div>
+                                            <p class="mb-0">${data.comment.content}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Nếu chưa có bình luận nào, xóa thông báo
+                            if ($('.comments-list .text-center').length) {
+                                $('.comments-list').empty();
+                            }
+                            
+                            // Thêm bình luận mới vào đầu danh sách
+                            $('.comments-list').prepend(newComment);
+                            
+                            // Xóa nội dung form
+                            form.find('textarea[name="content"]').val('');
+                        }
+                    }
+                });
+            });
+            
+            // Xử lý đánh giá phim
+            var ratingModal = new bootstrap.Modal(document.getElementById('ratingModal'));
+            var selectedRating = 0;
+            
+            // Hiển thị modal đánh giá
+            $('#rateMovieBtn').on('click', function() {
+                // Lấy đánh giá hiện tại của người dùng
+                $.ajax({
+                    url: '@Url.Action("GetUserRating", "User")',
+                    type: 'GET',
+                    data: { movieSlug: '@movie.Slug' },
+                    success: function(data) {
+                        if (data.hasRating) {
+                            selectedRating = data.value;
+                            updateRatingStars(selectedRating);
+                        } else {
+                            selectedRating = 0;
+                            updateRatingStars(0);
+                        }
+                        
+                        ratingModal.show();
+                    }
+                });
+            });
+            
+            // Xử lý hover và click trên các ngôi sao
+            $('.rating-star').hover(
+                function() {
+                    var value = $(this).data('value');
+                    highlightStars(value);
+                },
+                function() {
+                    highlightStars(selectedRating);
+                }
+            ).click(function() {
+                selectedRating = $(this).data('value');
+                updateRatingStars(selectedRating);
+                $('#ratingInput').val(selectedRating);
+                $('#submitRating').prop('disabled', false);
+            });
+            
+            // Hàm highlight các ngôi sao
+            function highlightStars(value) {
+                $('.rating-star').each(function() {
+                    var starValue = $(this).data('value');
+                    if (starValue &lt;= value) {
+                        $(this).removeClass('far').addClass('fas');
+                    } else {
+                        $(this).removeClass('fas').addClass('far');
+                    }
+                });
+                
+                $('#ratingValue').text(value);
+            }
+            
+            // Hàm cập nhật trạng thái các ngôi sao
+            function updateRatingStars(value) {
+                highlightStars(value);
+                $('#ratingInput').val(value);
+                $('#submitRating').prop('disabled', value === 0);
+            }
+            
+            // Xử lý form đánh giá
+            $('#ratingForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var form = $(this);
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    success: function(data) {
+                        if (data.success) {
+                            // Cập nhật đánh giá trên trang
+                            $('.rating-value').text(data.averageRating);
+                            
+                            // Đóng modal
+                            ratingModal.hide();
+                        }
+                    }
+                });
+            });
+            
+            // Kiểm tra trạng thái yêu thích khi tải trang
+            @if (User.Identity.IsAuthenticated)
+            {
+                <text>checkFavoriteStatus();</text>
+            }
+        });
+    </script>
+}
 
 @section Styles {
     <style>
@@ -227,15 +570,15 @@
             transition: all 0.2s;
         }
 
-            .episode-button:hover {
-                background-color: #3a3a3a;
-                color: #fff;
-            }
+        .episode-button:hover {
+            background-color: #3a3a3a;
+            color: #fff;
+        }
 
-            .episode-button.active {
-                background-color: #0d6efd;
-                color: #fff;
-            }
+        .episode-button.active {
+            background-color: #0d6efd;
+            color: #fff;
+        }
 
         /* Movie Grid */
         .movie-grid {
@@ -254,40 +597,40 @@
             aspect-ratio: 2/3;
         }
 
-            .movie-card:hover {
-                transform: translateY(-5px);
-            }
+        .movie-card:hover {
+            transform: translateY(-5px);
+        }
 
-            .movie-card img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
+        .movie-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-            .movie-card .overlay {
-                position: absolute;
-                bottom: 0;
-                left: 0;
-                right: 0;
-                background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 60%, transparent 100%);
-                padding: 15px;
-                color: white;
-            }
+        .movie-card .overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.9) 0%, rgba(0, 0, 0, 0.5) 60%, transparent 100%);
+            padding: 15px;
+            color: white;
+        }
 
-            .movie-card .title {
-                font-weight: bold;
-                font-size: 0.9rem;
-                margin-bottom: 5px;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
+        .movie-card .title {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
 
-            .movie-card .info {
-                font-size: 0.8rem;
-                opacity: 0.8;
-            }
+        .movie-card .info {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
 
         .section-title {
             margin-bottom: 20px;
@@ -295,10 +638,48 @@
             padding-bottom: 10px;
         }
 
-            .section-title h2 {
-                font-size: 1.5rem;
-                font-weight: 600;
-                margin: 0;
-            }
+        .section-title h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        /* Rating styles */
+        .rating-stars {
+            display: inline-flex;
+            align-items: center;
+            background-color: rgba(255, 193, 7, 0.1);
+            padding: 5px 10px;
+            border-radius: 20px;
+        }
+        
+        .rating-value {
+            font-weight: bold;
+            margin-right: 5px;
+        }
+        
+        .rating-stars-large {
+            font-size: 2rem;
+            color: #ffc107;
+            cursor: pointer;
+        }
+        
+        .rating-value-display {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+        
+        /* Comments styles */
+        .comments-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .comment-item {
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 15px;
+        }
     </style>
 }

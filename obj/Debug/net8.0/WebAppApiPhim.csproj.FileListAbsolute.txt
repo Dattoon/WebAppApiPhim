@@ -135,3 +135,6 @@ C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\refint\WebAppApiPhim.dll
 C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\WebAppApiPhim.pdb
 C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\WebAppApiPhim.genruntimeconfig.cache
 C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\ref\WebAppApiPhim.dll
+C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\Microsoft.AspNetCore.Identity.EntityFrameworkCore.dll
+C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Facebook.dll
+C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll

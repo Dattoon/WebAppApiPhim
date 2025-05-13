@@ -1,0 +1,68 @@
+﻿@using WebAppApiPhim.Models.ViewModels
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Đăng nhập";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card bg-dark border-secondary">
+                <div class="card-header bg-dark border-secondary">
+                    <h4 class="mb-0">@ViewData["Title"]</h4>
+                </div>
+                <div class="card-body">
+                    <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="mb-3">
+                            <label asp-for="EmailOrUsername" class="form-label"></label>
+                            <input asp-for="EmailOrUsername" class="form-control bg-dark text-light border-secondary" />
+                            <span asp-validation-for="EmailOrUsername" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Password" class="form-label"></label>
+                            <input asp-for="Password" class="form-control bg-dark text-light border-secondary" />
+                            <span asp-validation-for="Password" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label"></label>
+                        </div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">Đăng nhập</button>
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer bg-dark border-secondary">
+                    <div class="text-center mb-3">
+                        <p>Hoặc đăng nhập bằng:</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <form asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                                <button type="submit" class="btn btn-outline-primary" name="provider" value="Facebook">
+                                    <i class="fab fa-facebook-f me-2"></i>Facebook
+                                </button>
+                            </form>
+                            <form asp-action="ExternalLogin" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post">
+                                <button type="submit" class="btn btn-outline-danger" name="provider" value="Google">
+                                    <i class="fab fa-google me-2"></i>Google
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                        <p>
+                            <a asp-action="ForgotPassword">Quên mật khẩu?</a>
+                        </p>
+                        <p>
+                            Chưa có tài khoản? <a asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">Đăng ký ngay</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}
