@@ -1,87 +1,107 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using WebAppApiPhim.Models;
 using WebAppApiPhim.Services;
 
 namespace WebAppApiPhim.Controllers
 {
-    public class HomeController : Controller
+    public partial class HomeController : Controller
     {
+        private readonly ILogger<HomeController> _logger;
         private readonly IMovieApiService _movieApiService;
 
-        public HomeController(IMovieApiService movieApiService)
+        public HomeController(ILogger<HomeController> logger, IMovieApiService movieApiService)
         {
+            _logger = logger;
             _movieApiService = movieApiService;
         }
 
-        // Action hiện tại
         public async Task<IActionResult> Index(int page = 1)
         {
             try
             {
-                var movies = await _movieApiService.GetNewMoviesAsync(page);
-                Debug.WriteLine($"Movies data count: {movies?.Data?.Count ?? 0}");
-                if (movies?.Data?.FirstOrDefault() != null)
-                {
-                    var firstMovie = movies.Data.First();
-                    Debug.WriteLine($"First movie: {firstMovie.Name}, Slug: {firstMovie.Slug}, Poster: {firstMovie.PosterUrl}");
-                }
+                // Giảm số lượng phim tải về mỗi lần để tăng tốc độ
+                var latestMovies = await _movieApiService.GetLatestMoviesAsync(page, 8);
 
-                if (movies == null || movies.Data == null)
+                // Tạo view model
+                var viewModel = new HomeViewModel
                 {
-                    return View("Error", new ErrorViewModel { RequestId = "API returned null data" });
-                }
+                    LatestMovies = latestMovies?.Data ?? new System.Collections.Generic.List<MovieItem>(),
+                    Pagination = latestMovies?.Pagination
+                };
 
-                return View(movies);
+                return View(viewModel);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Exception in Index action: {ex.Message}");
-                return View("Error", new ErrorViewModel { RequestId = ex.Message });
+                _logger.LogError(ex, "Error loading home page");
+                return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
             }
         }
 
-        // Action mới để test API
-        public async Task<IActionResult> TestApi(int page = 1, int limit = 10)
+        public async Task<IActionResult> Search(string query, int page = 1)
         {
             try
             {
-                // Gọi API để lấy danh sách phim
-                var movies = await _movieApiService.GetNewMoviesAsync(page, limit);
-
-                // Log thông tin để debug
-                Debug.WriteLine($"Test API - Page: {page}, Limit: {limit}");
-                Debug.WriteLine($"Movies data count: {movies?.Data?.Count ?? 0}");
-                Debug.WriteLine($"Pagination: Total pages = {movies?.Pagination?.Total_pages ?? 0}, Current page = {movies?.Pagination?.Current_page ?? 0}");
-                if (movies?.Data?.Any() == true)
+                if (string.IsNullOrWhiteSpace(query))
                 {
-                    foreach (var movie in movies.Data.Take(5)) // In tối đa 5 phim để kiểm tra
-                    {
-                        Debug.WriteLine($"Movie: {movie.Name}, Slug: {movie.Slug}, Poster: {movie.PosterUrl}");
-                    }
-                }
-                else
-                {
-                    Debug.WriteLine("No movies found in the response.");
+                    return RedirectToAction("Index");
                 }
 
-                // Trả về view với dữ liệu hoặc thông báo
-                ViewBag.Message = $"API Test - Page: {page}, Limit: {limit}<br>" +
-                                 $"Total movies: {movies?.Data?.Count ?? 0}<br>" +
-                                 (movies?.Data?.Any() == true ? "First few movies:<br>" + string.Join("<br>", movies.Data.Take(5).Select(m => $"{m.Name} ({m.Slug})")) : "No movies found.");
-                return View(movies);
+                // Giảm số lượng phim tải về mỗi lần để tăng tốc độ
+                var searchResults = await _movieApiService.SearchMoviesAsync(query, page, 10);
+
+                var viewModel = new SearchViewModel
+                {
+                    Query = query,
+                    Movies = searchResults?.Data ?? new System.Collections.Generic.List<MovieItem>(),
+                    Pagination = searchResults?.Pagination,
+                    CurrentPage = page
+                };
+
+                return View(viewModel);
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Exception in TestApi action: {ex.Message}");
-                ViewBag.Message = $"Error: {ex.Message}";
-                return View(new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() });
+                _logger.LogError(ex, $"Error searching for '{query}'");
+                return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
             }
         }
 
-        public IActionResult Privacy()
+        public async Task<IActionResult> Filter(string type, string genre, string country, string year, int page = 1)
         {
-            return View();
+            try
+            {
+                // Giảm số lượng phim tải về mỗi lần để tăng tốc độ
+                var filterResults = await _movieApiService.FilterMoviesAsync(type, genre, country, year, page, 10);
+
+                var viewModel = new FilterViewModel
+                {
+                    Type = type,
+                    Genre = genre,
+                    Country = country,
+                    Year = year,
+                    Movies = filterResults?.Data ?? new System.Collections.Generic.List<MovieItem>(),
+                    Pagination = filterResults?.Pagination,
+                    CurrentPage = page
+                };
+
+                // Lấy danh sách các bộ lọc để hiển thị trong view
+                viewModel.Genres = await _movieApiService.GetGenresAsync();
+                viewModel.Countries = await _movieApiService.GetCountriesAsync();
+                viewModel.Years = await _movieApiService.GetYearsAsync();
+                viewModel.MovieTypes = await _movieApiService.GetMovieTypesAsync();
+
+                return View(viewModel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error filtering movies");
+                return View("Error", new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            }
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

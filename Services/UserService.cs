@@ -24,126 +24,157 @@ namespace WebAppApiPhim.Services
             return await _context.Users.FindAsync(userId);
         }
 
+        public async Task<User> GetUserByUsernameAsync(string username)
+        {
+            return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+        }
+
         public async Task<User> GetUserByEmailAsync(string email)
         {
             return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
-        public async Task<WatchHistory> GetWatchHistoryAsync(int userId, string movieSlug)
+        public async Task<bool> RegisterUserAsync(string username, string email, string password)
         {
-            return await _context.WatchHistories
-                .FirstOrDefaultAsync(w => w.UserId == userId && w.MovieSlug == movieSlug);
-        }
-
-        public async Task<List<WatchHistory>> GetUserWatchHistoryAsync(int userId, int limit = 10)
-        {
-            return await _context.WatchHistories
-                .Where(w => w.UserId == userId)
-                .OrderByDescending(w => w.WatchedAt)
-                .Take(limit)
-                .ToListAsync();
-        }
-
-        public async Task<MovieWatchHistory> UpdateWatchProgressAsync(int userId, string movieSlug, string movieName, double percentage)
-        {
-            var watchHistory = await _context.WatchHistories
-                .FirstOrDefaultAsync(w => w.UserId == userId && w.MovieSlug == movieSlug);
-
-            if (watchHistory == null)
+            // Kiểm tra xem username hoặc email đã tồn tại chưa
+            if (await _context.Users.AnyAsync(u => u.Username == username || u.Email == email))
             {
-                watchHistory = new WatchHistory
-                {
-                    UserId = userId,
-                    MovieSlug = movieSlug,
-                    MovieName = movieName,
-                    WatchedPercentage = percentage,
-                    WatchedAt = DateTime.Now
-                };
-                _context.WatchHistories.Add(watchHistory);
-            }
-            else
-            {
-                watchHistory.WatchedPercentage = percentage;
-                watchHistory.WatchedAt = DateTime.Now;
-                _context.WatchHistories.Update(watchHistory);
+                return false;
             }
 
+            // Tạo salt và hash password
+            var salt = GenerateSalt();
+            var passwordHash = HashPassword(password, salt);
+
+            // Tạo user mới
+            var user = new User
+            {
+                Username = username,
+                Email = email,
+                PasswordHash = passwordHash,
+                Salt = salt,
+                CreatedAt = DateTime.Now,
+                IsActive = true,
+                Role = "User"
+            };
+
+            // Thêm user vào database
+            await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
 
-            return new MovieWatchHistory
-            {
-                Id = watchHistory.Id,
-                UserId = watchHistory.UserId,
-                MovieSlug = watchHistory.MovieSlug,
-                MovieName = watchHistory.MovieName,
-                WatchedPercentage = watchHistory.WatchedPercentage,
-                LastWatchedAt = watchHistory.WatchedAt.ToString("dd/MM/yyyy HH:mm"),
-                WatchedAt = watchHistory.WatchedAt
-            };
+            return true;
         }
 
-        public async Task<Favorite> ToggleFavoriteAsync(int userId, string movieSlug, string movieName)
+        public async Task<User> AuthenticateAsync(string username, string password)
         {
-            var favorite = await _context.Favorites
-                .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            // Kiểm tra password
+            var passwordHash = HashPassword(password, user.Salt);
+            if (passwordHash != user.PasswordHash)
+            {
+                return null;
+            }
+
+            // Cập nhật thời gian đăng nhập
+            user.LastLoginAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+
+            return user;
+        }
+
+        public async Task<bool> AddToFavoritesAsync(int userId, string movieSlug, string movieName)
+        {
+            // Kiểm tra xem phim đã có trong danh sách yêu thích chưa
+            if (await _context.Favorites.AnyAsync(f => f.UserId == userId && f.MovieSlug == movieSlug))
+            {
+                return false;
+            }
+
+            // Thêm phim vào danh sách yêu thích
+            var favorite = new Favorite
+            {
+                UserId = userId,
+                MovieSlug = movieSlug,
+                MovieName = movieName,
+                AddedAt = DateTime.Now
+            };
+
+            await _context.Favorites.AddAsync(favorite);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> RemoveFromFavoritesAsync(int userId, string movieSlug)
+        {
+            var favorite = await _context.Favorites.FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
 
             if (favorite == null)
             {
-                favorite = new Favorite
-                {
-                    UserId = userId,
-                    MovieSlug = movieSlug,
-                    MovieName = movieName,
-                    AddedAt = DateTime.Now
-                };
-                _context.Favorites.Add(favorite);
-                await _context.SaveChangesAsync();
-                return favorite;
+                return false;
             }
-            else
-            {
-                _context.Favorites.Remove(favorite);
-                await _context.SaveChangesAsync();
-                return null;
-            }
+
+            _context.Favorites.Remove(favorite);
+            await _context.SaveChangesAsync();
+
+            return true;
         }
 
-        public async Task<bool> IsFavoriteAsync(int userId, string movieSlug)
-        {
-            return await _context.Favorites
-                .AnyAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
-        }
-
-        public async Task<List<Favorite>> GetUserFavoritesAsync(int userId, int limit = 10)
+        public async Task<List<Favorite>> GetFavoritesAsync(int userId)
         {
             return await _context.Favorites
                 .Where(f => f.UserId == userId)
                 .OrderByDescending(f => f.AddedAt)
-                .Take(limit)
                 .ToListAsync();
         }
 
-        public async Task<MovieWatchHistory> GetMovieWatchHistoryAsync(int userId, string movieSlug)
+        public async Task<bool> AddToWatchHistoryAsync(int userId, string movieSlug, string movieName, string episodeSlug = null, double watchedPercentage = 0)
         {
-            var watchHistory = await _context.WatchHistories
-                .FirstOrDefaultAsync(w => w.UserId == userId && w.MovieSlug == movieSlug);
+            // Kiểm tra xem phim đã có trong lịch sử xem chưa
+            var history = await _context.WatchHistory
+                .FirstOrDefaultAsync(h => h.UserId == userId && h.MovieSlug == movieSlug && h.EpisodeSlug == episodeSlug);
 
-            if (watchHistory == null)
-                return null;
-
-            return new MovieWatchHistory
+            if (history != null)
             {
-                Id = watchHistory.Id,
-                UserId = watchHistory.UserId,
-                MovieSlug = watchHistory.MovieSlug,
-                MovieName = watchHistory.MovieName,
-                WatchedPercentage = watchHistory.WatchedPercentage,
-                LastWatchedAt = watchHistory.WatchedAt.ToString("dd/MM/yyyy HH:mm"),
-                WatchedAt = watchHistory.WatchedAt
-            };
+                // Cập nhật lịch sử xem
+                history.WatchedPercentage = watchedPercentage;
+                history.WatchedAt = DateTime.Now;
+            }
+            else
+            {
+                // Thêm phim vào lịch sử xem
+                history = new WatchHistory
+                {
+                    UserId = userId,
+                    MovieSlug = movieSlug,
+                    MovieName = movieName,
+                    EpisodeSlug = episodeSlug,
+                    WatchedPercentage = watchedPercentage,
+                    WatchedAt = DateTime.Now
+                };
+
+                await _context.WatchHistory.AddAsync(history);
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
         }
 
-        public async Task<Comment> AddCommentAsync(int userId, string movieSlug, string content)
+        public async Task<List<WatchHistory>> GetWatchHistoryAsync(int userId)
+        {
+            return await _context.WatchHistory
+                .Where(h => h.UserId == userId)
+                .OrderByDescending(h => h.WatchedAt)
+                .ToListAsync();
+        }
+
+        public async Task<bool> AddCommentAsync(int userId, string movieSlug, string content)
         {
             var comment = new Comment
             {
@@ -153,97 +184,40 @@ namespace WebAppApiPhim.Services
                 CreatedAt = DateTime.Now
             };
 
-            _context.Comments.Add(comment);
+            await _context.Comments.AddAsync(comment);
             await _context.SaveChangesAsync();
-            return comment;
+
+            return true;
         }
 
-        public async Task<List<CommentViewModel>> GetMovieCommentsAsync(string movieSlug, int limit = 20)
+        public async Task<List<Comment>> GetCommentsAsync(string movieSlug)
         {
-            var comments = await _context.Comments
-                .Include(c => c.User)
+            return await _context.Comments
                 .Where(c => c.MovieSlug == movieSlug)
                 .OrderByDescending(c => c.CreatedAt)
-                .Take(limit)
+                .Include(c => c.User)
                 .ToListAsync();
-
-            return comments.Select(c => new CommentViewModel
-            {
-                Id = c.Id,
-                Username = c.User.Username,
-                Content = c.Content,
-                CreatedAt = c.CreatedAt.ToString("dd/MM/yyyy HH:mm"),
-                User = c.User
-            }).ToList();
         }
 
-        public async Task<User> RegisterUserAsync(string username, string email, string password)
+        private string GenerateSalt()
         {
-            // Check if user already exists
-            if (await _context.Users.AnyAsync(u => u.Email == email))
-            {
-                return null;
-            }
-
-            // Generate salt and hash password
-            var salt = GenerateSalt();
-            var passwordHash = HashPassword(password, salt);
-
-            var user = new User
-            {
-                Username = username,
-                Email = email,
-                PasswordHash = passwordHash,
-                Salt = Convert.ToBase64String(salt),
-                CreatedAt = DateTime.Now,
-                IsActive = true,
-                Role = "User"
-            };
-
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return user;
-        }
-
-        public async Task<User> AuthenticateAsync(string email, string password)
-        {
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            if (user == null)
-                return null;
-
-            var salt = Convert.FromBase64String(user.Salt);
-            var passwordHash = HashPassword(password, salt);
-
-            if (user.PasswordHash != passwordHash)
-                return null;
-
-            // Update last login
-            user.LastLoginAt = DateTime.Now;
-            _context.Users.Update(user);
-            await _context.SaveChangesAsync();
-
-            return user;
-        }
-
-        private byte[] GenerateSalt()
-        {
-            var salt = new byte[16];
+            byte[] saltBytes = new byte[16];
             using (var rng = RandomNumberGenerator.Create())
             {
-                rng.GetBytes(salt);
+                rng.GetBytes(saltBytes);
             }
-            return salt;
+            return Convert.ToBase64String(saltBytes);
         }
 
-        private string HashPassword(string password, byte[] salt)
+        private string HashPassword(string password, string salt)
         {
-            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, 10000, HashAlgorithmName.SHA256))
+            using (var sha256 = SHA256.Create())
             {
-                var hash = pbkdf2.GetBytes(32);
-                return Convert.ToBase64String(hash);
+                var saltedPassword = password + salt;
+                var saltedPasswordBytes = Encoding.UTF8.GetBytes(saltedPassword);
+                var hashBytes = sha256.ComputeHash(saltedPasswordBytes);
+                return Convert.ToBase64String(hashBytes);
             }
         }
     }
-
-    
 }

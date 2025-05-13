@@ -50,19 +50,17 @@ namespace WebAppApiPhim.Controllers
                         Description = movieDetail.Description ?? movieDetail.Content,
                         Type = movieDetail.Type,
                         Status = movieDetail.Status,
-                        Genres = movieDetail.Genres ?? (string.IsNullOrEmpty(movieDetail.Categories)
-                            ? new List<string>()
-                            : movieDetail.Categories.Split(',').Select(c => c.Trim()).ToList()),
+                        Genres = GetGenresFromMovieDetail(movieDetail),
                         Country = movieDetail.Country ?? movieDetail.Countries,
-                        PosterUrl = movieDetail.PosterUrl ?? movieDetail.ThumbUrl ?? movieDetail.SubPoster,
-                        BackdropUrl = movieDetail.BackdropUrl ?? movieDetail.ThumbUrl ?? movieDetail.SubThumb,
-                        Rating = movieDetail.Rating,
+                        PosterUrl = GetPosterUrl(movieDetail),
+                        BackdropUrl = GetBackdropUrl(movieDetail),
+                        Rating = movieDetail.Tmdb_vote_average,
                         // Các trường không có trong MovieDetailResponse, sử dụng giá trị mặc định
-                        Director = "",
-                        Actors = "",
-                        Duration = "",
-                        Quality = "",
-                        Language = ""
+                        Director = movieDetail.Director ?? movieDetail.Directors ?? "",
+                        Actors = movieDetail.Casts ?? movieDetail.Actors ?? "",
+                        Duration = movieDetail.Time ?? "",
+                        Quality = movieDetail.Quality ?? "",
+                        Language = movieDetail.Language ?? movieDetail.Lang ?? ""
                     },
                     RelatedMovies = relatedMovies?.Data ?? new List<MovieItem>(),
                     Comments = new List<CommentViewModel>()
@@ -111,19 +109,17 @@ namespace WebAppApiPhim.Controllers
                         Description = movieDetail.Description ?? movieDetail.Content,
                         Type = movieDetail.Type,
                         Status = movieDetail.Status,
-                        Genres = movieDetail.Genres ?? (string.IsNullOrEmpty(movieDetail.Categories)
-                            ? new List<string>()
-                            : movieDetail.Categories.Split(',').Select(c => c.Trim()).ToList()),
+                        Genres = GetGenresFromMovieDetail(movieDetail),
                         Country = movieDetail.Country ?? movieDetail.Countries,
-                        PosterUrl = movieDetail.PosterUrl ?? movieDetail.ThumbUrl ?? movieDetail.SubPoster,
-                        BackdropUrl = movieDetail.BackdropUrl ?? movieDetail.ThumbUrl ?? movieDetail.SubThumb,
-                        Rating = movieDetail.Rating,
+                        PosterUrl = GetPosterUrl(movieDetail),
+                        BackdropUrl = GetBackdropUrl(movieDetail),
+                        Rating = movieDetail.Tmdb_vote_average,
                         // Các trường không có trong MovieDetailResponse, sử dụng giá trị mặc định
-                        Director = "",
-                        Actors = "",
-                        Duration = "",
-                        Quality = "",
-                        Language = ""
+                        Director = movieDetail.Director ?? movieDetail.Directors ?? "",
+                        Actors = movieDetail.Casts ?? movieDetail.Actors ?? "",
+                        Duration = movieDetail.Time ?? "",
+                        Quality = movieDetail.Quality ?? "",
+                        Language = movieDetail.Language ?? movieDetail.Lang ?? ""
                     },
                     Comments = new List<CommentViewModel>()
                 };
@@ -148,6 +144,52 @@ namespace WebAppApiPhim.Controllers
             {
                 return View("Error", new ErrorViewModel { RequestId = ex.Message });
             }
+        }
+
+        private List<string> GetGenresFromMovieDetail(MovieDetailResponse movieDetail)
+        {
+            // Nếu có Genres dạng string, chuyển thành List<string>
+            if (!string.IsNullOrEmpty(movieDetail.Genres))
+            {
+                return movieDetail.Genres.Split(',').Select(g => g.Trim()).ToList();
+            }
+
+            // Nếu có Categories, chuyển thành List<string>
+            if (!string.IsNullOrEmpty(movieDetail.Categories))
+            {
+                return movieDetail.Categories.Split(',').Select(c => c.Trim()).ToList();
+            }
+
+            // Trả về danh sách rỗng nếu không có thông tin
+            return new List<string>();
+        }
+
+        private string GetPosterUrl(MovieDetailResponse movieDetail)
+        {
+            // Thứ tự ưu tiên: Poster_url > Thumb_url > Sub_poster
+            if (!string.IsNullOrEmpty(movieDetail.Poster_url))
+                return movieDetail.Poster_url;
+
+            if (!string.IsNullOrEmpty(movieDetail.Thumb_url))
+                return movieDetail.Thumb_url;
+
+            if (!string.IsNullOrEmpty(movieDetail.Sub_poster))
+                return movieDetail.Sub_poster;
+
+            return "/placeholder.svg?height=450&width=300";
+        }
+
+        private string GetBackdropUrl(MovieDetailResponse movieDetail)
+        {
+            // Thứ tự ưu tiên: Backdrop > Thumb_url > Sub_thumb
+            // Backdrop không có trong model, nên dùng Thumb_url hoặc Sub_thumb
+            if (!string.IsNullOrEmpty(movieDetail.Thumb_url))
+                return movieDetail.Thumb_url;
+
+            if (!string.IsNullOrEmpty(movieDetail.Sub_thumb))
+                return movieDetail.Sub_thumb;
+
+            return "/placeholder.svg?height=500&width=1200";
         }
 
         private List<Episode> ParseEpisodes(List<object> episodes)

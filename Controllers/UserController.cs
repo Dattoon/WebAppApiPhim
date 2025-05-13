@@ -16,18 +16,8 @@ namespace WebAppApiPhim.Controllers
             _userService = userService;
         }
 
-        public async Task<IActionResult> Favorites()
-        {
-            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var favorites = await _userService.GetUserFavoritesAsync(userId);
-            return View(favorites);
-        }
+       
 
-        public async Task<IActionResult> WatchHistory()
-        {
-            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var history = await _userService.GetUserWatchHistoryAsync(userId);
-            return View(history);
-        }
+        
     }
 }

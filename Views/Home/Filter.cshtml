@@ -1,0 +1,196 @@
+﻿@model FilterViewModel
+@{
+    ViewData["Title"] = "Lọc phim";
+    string pageTitle = "Tất cả phim";
+
+    if (!string.IsNullOrEmpty(Model.Type))
+    {
+        pageTitle = Model.Type;
+    }
+
+    if (!string.IsNullOrEmpty(Model.Genre))
+    {
+        pageTitle = Model.Genre;
+    }
+
+    if (!string.IsNullOrEmpty(Model.Country))
+    {
+        pageTitle = "Phim " + Model.Country;
+    }
+
+    if (!string.IsNullOrEmpty(Model.Year))
+    {
+        pageTitle = "Phim năm " + Model.Year;
+    }
+}
+
+<div class="container">
+    <div class="section-title">
+        <h2>@pageTitle</h2>
+        <p>Tìm thấy @Model.Pagination?.Total_items phim</p>
+    </div>
+
+    <div class="filter-container mb-4">
+        <div class="card bg-dark border-secondary">
+            <div class="card-header bg-dark border-secondary">
+                <h5 class="mb-0">Bộ lọc</h5>
+            </div>
+            <div class="card-body">
+                <form asp-controller="Home" asp-action="Filter" method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="type" class="form-label">Loại phim</label>
+                        <select id="type" name="type" class="form-select bg-dark text-light border-secondary">
+                            <option value="">Tất cả</option>
+                            @foreach (var type in Model.MovieTypes)
+                            {
+                                <option value="@type" selected="@(type == Model.Type)">@type</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="genre" class="form-label">Thể loại</label>
+                        <select id="genre" name="genre" class="form-select bg-dark text-light border-secondary">
+                            <option value="">Tất cả</option>
+                            @foreach (var genre in Model.Genres)
+                            {
+                                <option value="@genre" selected="@(genre == Model.Genre)">@genre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="country" class="form-label">Quốc gia</label>
+                        <select id="country" name="country" class="form-select bg-dark text-light border-secondary">
+                            <option value="">Tất cả</option>
+                            @foreach (var country in Model.Countries)
+                            {
+                                <option value="@country" selected="@(country == Model.Country)">@country</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="year" class="form-label">Năm</label>
+                        <select id="year" name="year" class="form-select bg-dark text-light border-secondary">
+                            <option value="">Tất cả</option>
+                            @foreach (var year in Model.Years)
+                            {
+                                <option value="@year" selected="@(year == Model.Year)">@year</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Lọc phim</button>
+                        <a asp-controller="Home" asp-action="Filter" class="btn btn-outline-secondary">Xóa bộ lọc</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    @if (!Model.Movies.Any())
+    {
+        <div class="alert alert-secondary">
+            <p>Không tìm thấy phim nào phù hợp với bộ lọc.</p>
+            <p>Vui lòng thử lại với bộ lọc khác.</p>
+        </div>
+    }
+    else
+    {
+        <div class="movie-grid">
+            @foreach (var movie in Model.Movies)
+            {
+                <div class="movie-card">
+                    <a asp-controller="Movie" asp-action="Detail" asp-route-slug="@movie.Slug">
+                        <img src="@(movie.PosterUrl ?? movie.ThumbUrl ?? "/placeholder.svg?height=450&width=300")"
+                             alt="@movie.Name"
+                             onerror="this.onerror=null; this.src='/placeholder.svg?height=450&width=300';">
+                        <div class="overlay">
+                            <div class="title">@movie.Name</div>
+                            <div class="info">
+                                @movie.Year • @movie.Loai_phim
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            }
+        </div>
+
+        @if (Model.Pagination != null && Model.Pagination.Total_pages > 1)
+        {
+            <div class="pagination-container">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        @if (Model.CurrentPage > 1)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="Home" asp-action="Filter"
+                                   asp-route-type="@Model.Type"
+                                   asp-route-genre="@Model.Genre"
+                                   asp-route-country="@Model.Country"
+                                   asp-route-year="@Model.Year"
+                                   asp-route-page="1" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="Home" asp-action="Filter"
+                                   asp-route-type="@Model.Type"
+                                   asp-route-genre="@Model.Genre"
+                                   asp-route-country="@Model.Country"
+                                   asp-route-year="@Model.Year"
+                                   asp-route-page="@(Model.CurrentPage - 1)" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        }
+
+                        @{
+                            int startPage = Math.Max(1, Model.CurrentPage - 2);
+                            int endPage = Math.Min(Model.Pagination.Total_pages, startPage + 4);
+
+                            if (endPage - startPage < 4)
+                            {
+                                startPage = Math.Max(1, endPage - 4);
+                            }
+                        }
+
+                        @for (int i = startPage; i <= endPage; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link" asp-controller="Home" asp-action="Filter"
+                                   asp-route-type="@Model.Type"
+                                   asp-route-genre="@Model.Genre"
+                                   asp-route-country="@Model.Country"
+                                   asp-route-year="@Model.Year"
+                                   asp-route-page="@i">@i</a>
+                            </li>
+                        }
+
+                        @if (Model.CurrentPage < Model.Pagination.Total_pages)
+                        {
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="Home" asp-action="Filter"
+                                   asp-route-type="@Model.Type"
+                                   asp-route-genre="@Model.Genre"
+                                   asp-route-country="@Model.Country"
+                                   asp-route-year="@Model.Year"
+                                   asp-route-page="@(Model.CurrentPage + 1)" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" asp-controller="Home" asp-action="Filter"
+                                   asp-route-type="@Model.Type"
+                                   asp-route-genre="@Model.Genre"
+                                   asp-route-country="@Model.Country"
+                                   asp-route-year="@Model.Year"
+                                   asp-route-page="@Model.Pagination.Total_pages" aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </nav>
+            </div>
+        }
+    }
+</div>

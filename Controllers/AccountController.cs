@@ -22,32 +22,7 @@ namespace WebAppApiPhim.Controllers
             _userService = userService;
         }
 
-        [Authorize]
-        public async Task<IActionResult> Profile()
-        {
-            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var user = await _userService.GetUserByIdAsync(userId);
-
-            if (user == null)
-            {
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return RedirectToAction("Login");
-            }
-
-            var favorites = await _userService.GetUserFavoritesAsync(userId);
-            var watchHistory = await _userService.GetUserWatchHistoryAsync(userId);
-
-            var viewModel = new UserProfileViewModel
-            {
-                Username = user.Username,
-                Email = user.Email,
-                JoinedDate = user.CreatedAt,
-                Favorites = favorites,
-                WatchHistory = watchHistory
-            };
-
-            return View(viewModel);
-        }
+        
 
         [HttpGet]
         public IActionResult Login(string returnUrl = null)
@@ -104,46 +79,7 @@ namespace WebAppApiPhim.Controllers
             return View();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            var user = await _userService.RegisterUserAsync(model.Username, model.Email, model.Password);
-
-            if (user == null)
-            {
-                ModelState.AddModelError(string.Empty, "Email đã được sử dụng.");
-                return View(model);
-            }
-
-            // Automatically log in the user
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
-            };
-
-            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
-            };
-
-            await HttpContext.SignInAsync(
-                CookieAuthenticationDefaults.AuthenticationScheme,
-                new ClaimsPrincipal(claimsIdentity),
-                authProperties);
-
-            return RedirectToAction("Index", "Home");
-        }
+        
 
         [HttpPost]
         [ValidateAntiForgeryToken]

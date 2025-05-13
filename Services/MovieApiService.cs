@@ -1,645 +1,456 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 using WebAppApiPhim.Models;
-using System.Text.RegularExpressions;
-using System.Linq;
-using System.Text.Json.Serialization;
 
 namespace WebAppApiPhim.Services
 {
     public class MovieApiService : IMovieApiService
     {
         private readonly HttpClient _httpClient;
+        private readonly IMemoryCache _cache;
+        private readonly ILogger<MovieApiService> _logger;
         private readonly string _baseUrl = "https://api.dulieuphim.ink";
+        private readonly int _cacheExpirationMinutes = 15;
+        private readonly string[] _apiVersions = new[] { "v1", "v3", "v2" };    
         private readonly JsonSerializerOptions _jsonOptions;
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(5, 5);    
 
-        public MovieApiService(HttpClient httpClient)
+        public MovieApiService(HttpClient httpClient, IMemoryCache cache, ILogger<MovieApiService> logger)
         {
             _httpClient = httpClient;
-            _httpClient.Timeout = TimeSpan.FromSeconds(30); // Increase timeout
+            _httpClient.Timeout = TimeSpan.FromSeconds(10); // Giảm timeout để tránh treo
+            _cache = cache;
+            _logger = logger;
 
+            // Cấu hình JsonSerializer
             _jsonOptions = new JsonSerializerOptions
             {
-                PropertyNameCaseInsensitive = true,
-                AllowTrailingCommas = true,
-                ReadCommentHandling = JsonCommentHandling.Skip
+                PropertyNameCaseInsensitive = true
             };
         }
 
-        /// <summary>
-        /// Hàm tổng quát để gọi API với phiên bản fallback (v3 -> v2 -> v1)
-        /// </summary>
-        /// <param name="endpoint">Endpoint cơ bản (ví dụ: /phim-moi)</param>
-        /// <param name="queryParams">Tham số query (ví dụ: ?page=1&limit=10)</param>
-        /// <param name="startVersion">Phiên bản bắt đầu (mặc định: v3)</param>
-        /// <returns>Kết quả hoặc default nếu thất bại</returns>
-        private async Task<T> CallApiWithVersionFallbackAsync<T>(string endpoint, string queryParams, string startVersion = "v3")
+        public async Task<MovieListResponse> GetLatestMoviesAsync(int page = 1, int limit = 10, string version = null)
         {
-            var versions = new List<string> { "v3", "v2", "v1" };
-            int startIndex = versions.IndexOf(startVersion);
-            if (startIndex == -1)
+            string cacheKey = $"latest_movies_{page}_{limit}";
+
+            if (_cache.TryGetValue(cacheKey, out MovieListResponse cachedResponse))
             {
-                Debug.WriteLine($"Invalid start version: {startVersion}. Defaulting to v3.");
-                startIndex = 0; // Nếu phiên bản không hợp lệ, bắt đầu từ v3
+                _logger.LogInformation($"Cache hit for {cacheKey}");
+                return cachedResponse;
             }
 
-            T result = default;
-            string responseContent = null;
-            bool isValidResponse = false;
+            // Nếu version được chỉ định, chỉ thử version đó
+            var versionsToTry = version != null
+                ? new[] { version }
+                : _apiVersions;
 
-            for (int i = startIndex; i < versions.Count; i++)
+            // Thử lần lượt các phiên bản API
+            foreach (var ver in versionsToTry)
             {
-                string version = versions[i];
-                string requestUrl = $"{_baseUrl}/{endpoint}/{version}{queryParams}";
-                Debug.WriteLine($"Requesting: {requestUrl}");
-
                 try
                 {
-                    var response = await _httpClient.GetAsync(requestUrl);
-                    Debug.WriteLine($"Response status: {response.StatusCode}");
+                    string url = $"{_baseUrl}/phim-moi/{ver}?page={page}&limit={limit}";
+                    _logger.LogInformation($"Fetching latest movies from {url}");
 
-                    responseContent = await response.Content.ReadAsStringAsync();
-                    Debug.WriteLine($"Response content ({version}): {responseContent.Substring(0, Math.Min(500, responseContent.Length))}...");
+                    var response = await _httpClient.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
 
-                    if (response.IsSuccessStatusCode)
+                    var content = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
+
+                    // Lấy ảnh cho mỗi phim
+                    if (result?.Data != null)
                     {
-                        try
-                        {
-                            result = JsonSerializer.Deserialize<T>(responseContent, _jsonOptions);
-                            if (result != null)
-                            {
-                                // Kiểm tra đặc biệt cho ImageResponse
-                                if (result is ImageResponse imageResponse)
-                                {
-                                    if (imageResponse.Success && (!string.IsNullOrEmpty(imageResponse.SubThumb) || !string.IsNullOrEmpty(imageResponse.SubPoster)))
-                                    {
-                                        isValidResponse = true;
-                                        Debug.WriteLine($"Successfully deserialized and validated response from {version}");
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        Debug.WriteLine($"ImageResponse from {version} is not valid (Success=false or both URLs empty).");
-                                    }
-                                }
-                                else
-                                {
-                                    // Đối với các loại khác (như MovieListResponse), chỉ cần result không null
-                                    isValidResponse = true;
-                                    Debug.WriteLine($"Successfully deserialized response from {version}");
-                                    break;
-                                }
-                            }
-                        }
-                        catch (JsonException ex)
-                        {
-                            Debug.WriteLine($"Deserialization failed for {version}: {ex.Message}, Raw response: {responseContent}");
-                        }
+                        await EnrichMoviesWithImagesAsync(result.Data);
+                    }
+
+                    // Lưu vào cache
+                    _cache.Set(cacheKey, result, TimeSpan.FromMinutes(_cacheExpirationMinutes));
+
+                    _logger.LogInformation($"Successfully fetched latest movies using {ver}");
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Error fetching latest movies with {ver}: {ex.Message}. Trying next version...");
+                }
+            }
+
+            _logger.LogError("All API versions failed for GetLatestMoviesAsync");
+            return new MovieListResponse
+            {
+                Data = new List<MovieItem>(),
+                Pagination = new Pagination
+                {
+                    Current_page = page,
+                    Total_pages = 1,
+                    Total_items = 0,
+                    Limit = limit
+                }
+            };
+        }
+
+        public async Task<MovieDetailResponse> GetMovieDetailBySlugAsync(string slug, string version = null)
+        {
+            string cacheKey = $"movie_detail_{slug}";
+
+            if (_cache.TryGetValue(cacheKey, out MovieDetailResponse cachedResponse))
+            {
+                _logger.LogInformation($"Cache hit for {cacheKey}");
+                return cachedResponse;
+            }
+
+            // Nếu version được chỉ định, chỉ thử version đó
+            var versionsToTry = version != null
+                ? new[] { version }
+                : _apiVersions;
+
+            // Thử lần lượt các phiên bản API
+            foreach (var ver in versionsToTry)
+            {
+                try
+                {
+                    string url = $"{_baseUrl}/phim-chi-tiet/{ver}?slug={slug}";
+                    _logger.LogInformation($"Fetching movie detail from {url}");
+
+                    var response = await _httpClient.GetAsync(url);
+                    response.EnsureSuccessStatusCode();
+
+                    var content = await response.Content.ReadAsStringAsync();
+                    var result = JsonSerializer.Deserialize<MovieDetailResponse>(content, _jsonOptions);
+
+                    if (result != null)
+                    {
+                        // Lưu vào cache
+                        _cache.Set(cacheKey, result, TimeSpan.FromMinutes(_cacheExpirationMinutes));
+
+                        _logger.LogInformation($"Successfully fetched movie detail using {ver}");
+                        return result;
                     }
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Error calling {version} endpoint: {ex.Message}");
+                    _logger.LogWarning(ex, $"Error fetching movie detail with {ver}: {ex.Message}. Trying next version...");
                 }
-
-                Debug.WriteLine($"Failed to get valid data from {version}. Trying next version...");
             }
 
-            if (!isValidResponse)
+            _logger.LogError($"All API versions failed for GetMovieDetailBySlugAsync with slug: {slug}");
+            return null;
+        }
+
+        public async Task<MovieListResponse> GetRelatedMoviesAsync(string slug, int limit = 6, string version = null)
+        {
+            string cacheKey = $"related_movies_{slug}_{limit}";
+
+            if (_cache.TryGetValue(cacheKey, out MovieListResponse cachedResponse))
             {
-                Debug.WriteLine("All API versions failed to return valid data.");
-                return default;
+                _logger.LogInformation($"Cache hit for {cacheKey}");
+                return cachedResponse;
             }
+
+            // Đơn giản hóa bằng cách lấy phim mới nhất thay vì phim liên quan
+            var result = await GetLatestMoviesAsync(1, limit, version);
+
+            // Lưu vào cache
+            _cache.Set(cacheKey, result, TimeSpan.FromMinutes(_cacheExpirationMinutes));
 
             return result;
         }
 
-        public async Task<MovieListResponse> GetNewMoviesAsync(int page = 1, int limit = 10)
+        public async Task<MovieListResponse> SearchMoviesAsync(string query, int page = 1, int limit = 10)
         {
+            string cacheKey = $"search_movies_{query}_{page}_{limit}";
+
+            if (_cache.TryGetValue(cacheKey, out MovieListResponse cachedResponse))
+            {
+                _logger.LogInformation($"Cache hit for {cacheKey}");
+                return cachedResponse;
+            }
+
             try
             {
-                string queryParams = $"?page={page}&limit={limit}";
-                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>("phim-moi", queryParams, "v3");
+                string url = $"{_baseUrl}/phim-data/v1?name={Uri.EscapeDataString(query)}&page={page}&limit={limit}";
+                _logger.LogInformation($"Searching movies from {url}");
 
+                var response = await _httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
+
+                // Lấy ảnh cho mỗi phim
                 if (result?.Data != null)
                 {
-                    foreach (var movie in result.Data)
-                    {
-                        Debug.WriteLine($"Movie {movie.Slug}: Initial PosterUrl={movie.PosterUrl}, ThumbUrl={movie.ThumbUrl}");
-                        if (string.IsNullOrEmpty(movie.PosterUrl) || string.IsNullOrEmpty(movie.ThumbUrl))
-                        {
-                            try
-                            {
-                                var imageData = await GetMovieImagesAsync(movie.Slug);
-                                Debug.WriteLine($"Images for {movie.Slug}: ThumbUrl={imageData.ThumbUrl}, PosterUrl={imageData.PosterUrl}");
-                                if (!string.IsNullOrEmpty(imageData.PosterUrl))
-                                    movie.PosterUrl = imageData.PosterUrl;
-
-                                if (!string.IsNullOrEmpty(imageData.ThumbUrl))
-                                    movie.ThumbUrl = imageData.ThumbUrl;
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Error getting images for {movie.Slug}: {ex.Message}");
-                            }
-                        }
-                    }
+                    await EnrichMoviesWithImagesAsync(result.Data);
                 }
 
-                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in GetNewMoviesAsync: {ex.Message}");
-                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-        }
-
-        public async Task<MovieDetailResponse> GetMovieDetailBySlugAsync(string slug)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(slug))
-                {
-                    Debug.WriteLine("Slug is null or empty");
-                    return CreateEmptyMovieDetailResponse("invalid-slug");
-                }
-
-                MovieDetailResponse result = null;
-
-                // Try v3, v2, v1 for phim-chi-tiet
-                result = await CallApiWithVersionFallbackAsync<MovieDetailResponse>($"phim-chi-tiet", $"?slug={slug}", "v3");
-
-                // If no data, try TMDB endpoint
-                if (result == null)
-                {
-                    var tmdbData = await CallApiWithVersionFallbackAsync<MovieDetailResponse>($"get_tmdb", $"?slug={slug}", "v3");
-                    if (tmdbData != null && !string.IsNullOrEmpty(tmdbData.Id))
-                    {
-                        result = await CallApiWithVersionFallbackAsync<MovieDetailResponse>($"phim/{slug}", "", "v3");
-                    }
-                }
-
-                if (result == null)
-                {
-                    Debug.WriteLine("All API endpoints failed to return movie details");
-                    return CreateEmptyMovieDetailResponse(slug);
-                }
-
-                if (result.Movie == null && !string.IsNullOrEmpty(result.Name))
-                {
-                    Debug.WriteLine("Converting root-level properties to Movie object");
-                    result.Movie = new MovieDetail
-                    {
-                        Id = result.Id,
-                        Name = result.Name,
-                        OriginalName = result.OriginalName,
-                        Slug = result.Slug ?? slug,
-                        Year = result.Year,
-                        Description = result.Description ?? result.Content,
-                        Type = result.Type,
-                        Status = result.Status,
-                        Genres = result.Genres != null ? result.Genres : ParseGenres(result.Categories),
-                        Country = result.Country ?? result.Countries,
-                        PosterUrl = result.PosterUrl ?? result.ThumbUrl,
-                        BackdropUrl = result.BackdropUrl,
-                        Rating = result.Rating
-                    };
-                }
-
-                if (result.Movie != null && string.IsNullOrEmpty(result.Movie.Slug))
-                {
-                    result.Movie.Slug = slug;
-                }
-
-                if (result.Movie != null && (string.IsNullOrEmpty(result.Movie.PosterUrl) || string.IsNullOrEmpty(result.Movie.BackdropUrl)))
-                {
-                    try
-                    {
-                        var imageData = await GetMovieImagesAsync(slug);
-                        if (imageData.ThumbUrl != null || imageData.PosterUrl != null)
-                        {
-                            if (string.IsNullOrEmpty(result.Movie.PosterUrl) && !string.IsNullOrEmpty(imageData.PosterUrl))
-                                result.Movie.PosterUrl = imageData.PosterUrl;
-
-                            if (string.IsNullOrEmpty(result.Movie.BackdropUrl) && !string.IsNullOrEmpty(imageData.ThumbUrl))
-                                result.Movie.BackdropUrl = imageData.ThumbUrl;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        Debug.WriteLine($"Error getting images: {ex.Message}");
-                    }
-                }
-
-                if (result.Episodes == null || !result.Episodes.Any())
-                {
-                    var parsedEpisodes = ParseEpisodesFromResponse(result);
-                    result.Episodes = parsedEpisodes.Cast<object>().ToList();
-                }
+                // Lưu vào cache
+                _cache.Set(cacheKey, result, TimeSpan.FromMinutes(_cacheExpirationMinutes));
 
                 return result;
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Exception in GetMovieDetailBySlugAsync: {ex.Message}");
-                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                return CreateEmptyMovieDetailResponse(slug);
+                _logger.LogError(ex, $"Error searching movies: {ex.Message}");
+                return new MovieListResponse
+                {
+                    Data = new List<MovieItem>(),
+                    Pagination = new Pagination
+                    {
+                        Current_page = page,
+                        Total_pages = 1,
+                        Total_items = 0,
+                        Limit = limit
+                    }
+                };
             }
         }
 
-        private List<string> ParseGenres(string categories)
+        public async Task<MovieListResponse> FilterMoviesAsync(string type = null, string genre = null, string country = null, string year = null, int page = 1, int limit = 10)
         {
-            if (string.IsNullOrEmpty(categories))
-                return new List<string>();
+            string cacheKey = $"filter_movies_{type}_{genre}_{country}_{year}_{page}_{limit}";
 
-            return categories.Split(',').Select(c => c.Trim()).ToList();
+            if (_cache.TryGetValue(cacheKey, out MovieListResponse cachedResponse))
+            {
+                _logger.LogInformation($"Cache hit for {cacheKey}");
+                return cachedResponse;
+            }
+
+            try
+            {
+                string url = $"{_baseUrl}/phim-data/v1?page={page}&limit={limit}";
+
+                if (!string.IsNullOrEmpty(type))
+                    url += $"&loai_phim={Uri.EscapeDataString(type)}";
+
+                if (!string.IsNullOrEmpty(genre))
+                    url += $"&the_loai={Uri.EscapeDataString(genre)}";
+
+                if (!string.IsNullOrEmpty(country))
+                    url += $"&quoc_gia={Uri.EscapeDataString(country)}";
+
+                if (!string.IsNullOrEmpty(year))
+                    url += $"&year={Uri.EscapeDataString(year)}";
+
+                _logger.LogInformation($"Filtering movies from {url}");
+
+                var response = await _httpClient.GetAsync(url);
+                response.EnsureSuccessStatusCode();
+
+                var content = await response.Content.ReadAsStringAsync();
+                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
+
+                // Lấy ảnh cho mỗi phim
+                if (result?.Data != null)
+                {
+                    await EnrichMoviesWithImagesAsync(result.Data);
+                }
+
+                // Lưu vào cache
+                _cache.Set(cacheKey, result, TimeSpan.FromMinutes(_cacheExpirationMinutes));
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error filtering movies: {ex.Message}");
+                return new MovieListResponse
+                {
+                    Data = new List<MovieItem>(),
+                    Pagination = new Pagination
+                    {
+                        Current_page = page,
+                        Total_pages = 1,
+                        Total_items = 0,
+                        Limit = limit
+                    }
+                };
+            }
         }
 
-        private List<Episode> ParseEpisodesFromResponse(MovieDetailResponse response)
+        private async Task EnrichMoviesWithImagesAsync(List<MovieItem> movies)
         {
-            var episodes = new List<Episode>();
+            var tasks = new List<Task>();
 
-            if (response.Episodes != null && response.Episodes.Any())
+            foreach (var movie in movies)
             {
-                foreach (var episodeObj in response.Episodes)
-                {
-                    if (episodeObj is JsonElement jsonElement)
+                tasks.Add(Task.Run(async () => {
+                    try
                     {
+                        string cacheKey = $"movie_images_{movie.Slug}";
+
+                        if (_cache.TryGetValue(cacheKey, out ImageResponse imageResponse) && imageResponse?.Success == true)
+                        {
+                            movie.ThumbUrl = imageResponse.SubThumb;
+                            movie.PosterUrl = imageResponse.SubPoster;
+                            return;
+                        }
+
+                        // Sử dụng semaphore để giới hạn số lượng request đồng thời
+                        await _semaphore.WaitAsync();
+
                         try
                         {
-                            if (jsonElement.TryGetProperty("server_name", out var _) &&
-                                jsonElement.TryGetProperty("server_data", out var serverData))
+                            // Thử lần lượt các phiên bản API
+                            foreach (var version in _apiVersions)
                             {
-                                foreach (var episode in serverData.EnumerateArray())
+                                try
                                 {
-                                    episodes.Add(new Episode
+                                    using (var client = new HttpClient())
                                     {
-                                        Name = episode.GetProperty("name").GetString(),
-                                        Slug = episode.GetProperty("slug").GetString(),
-                                        Filename = episode.GetProperty("filename").GetString(),
-                                        Link = episode.GetProperty("link_embed").GetString() ?? episode.GetProperty("link_m3u8").GetString()
-                                    });
-                                }
-                            }
-                            else if (jsonElement.TryGetProperty("items", out var items))
-                            {
-                                foreach (var item in items.EnumerateArray())
-                                {
-                                    try
-                                    {
-                                        episodes.Add(new Episode
+                                        client.Timeout = TimeSpan.FromSeconds(3); // Timeout ngắn cho request ảnh
+                                        string url = $"{_baseUrl}/get-img/{version}?slug={movie.Slug}";
+                                        var response = await client.GetAsync(url);
+
+                                        if (response.IsSuccessStatusCode)
                                         {
-                                            Name = item.GetProperty("name").GetString(),
-                                            Slug = item.GetProperty("slug").GetString(),
-                                            Filename = item.GetProperty("name").GetString(),
-                                            Link = item.GetProperty("embed").GetString() ?? item.GetProperty("m3u8").GetString()
-                                        });
+                                            var content = await response.Content.ReadAsStringAsync();
+                                            imageResponse = JsonSerializer.Deserialize<ImageResponse>(content, _jsonOptions);
+
+                                            if (imageResponse?.Success == true)
+                                            {
+                                                movie.ThumbUrl = imageResponse.SubThumb;
+                                                movie.PosterUrl = imageResponse.SubPoster;
+
+                                                _cache.Set(cacheKey, imageResponse, TimeSpan.FromHours(1));
+                                                break;
+                                            }
+                                        }
                                     }
-                                    catch (Exception ex)
-                                    {
-                                        Debug.WriteLine($"Error parsing episode item: {ex.Message}");
-                                    }
                                 }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            Debug.WriteLine($"Error parsing episodes from JsonElement: {ex.Message}");
-                        }
-                    }
-                }
-            }
-
-            if (episodes.Count == 0 && !string.IsNullOrEmpty(response.Content))
-            {
-                var matches = Regex.Matches(response.Content, @"Tập\s+(\d+)\|(.+?)(?=Tập|$)");
-                foreach (Match match in matches)
-                {
-                    if (match.Groups.Count >= 3)
-                    {
-                        var episodeName = match.Groups[1].Value.Trim();
-                        var episodeLink = match.Groups[2].Value.Trim();
-
-                        episodes.Add(new Episode
-                        {
-                            Name = episodeName,
-                            Slug = $"tap-{episodeName}",
-                            Filename = $"Tập {episodeName}",
-                            Link = episodeLink
-                        });
-                    }
-                }
-            }
-
-            return episodes;
-        }
-
-        public async Task<MovieListResponse> SearchMoviesAsync(string keyword, int page = 1)
-        {
-            try
-            {
-                string queryParams = $"?keyword={Uri.EscapeDataString(keyword)}&page={page}";
-                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>("search", queryParams, "v3");
-
-                if (result?.Data != null)
-                {
-                    foreach (var movie in result.Data)
-                    {
-                        if (string.IsNullOrEmpty(movie.PosterUrl) || string.IsNullOrEmpty(movie.ThumbUrl))
-                        {
-                            try
-                            {
-                                var imageData = await GetMovieImagesAsync(movie.Slug);
-                                if (imageData.ThumbUrl != null || imageData.PosterUrl != null)
+                                catch (Exception ex)
                                 {
-                                    if (string.IsNullOrEmpty(movie.PosterUrl) && !string.IsNullOrEmpty(imageData.PosterUrl))
-                                        movie.PosterUrl = imageData.PosterUrl;
-
-                                    if (string.IsNullOrEmpty(movie.ThumbUrl) && !string.IsNullOrEmpty(imageData.ThumbUrl))
-                                        movie.ThumbUrl = imageData.ThumbUrl;
+                                    _logger.LogWarning(ex, $"Error fetching images for movie {movie.Slug} with {version}: {ex.Message}. Trying next version...");
                                 }
                             }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Error getting images for {movie.Slug}: {ex.Message}");
-                            }
                         }
-                    }
-                }
-
-                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in SearchMoviesAsync: {ex.Message}");
-                return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-        }
-
-        public async Task<MovieListResponse> GetMoviesByCategoryAsync(string category, int page = 1)
-        {
-            try
-            {
-                string queryParams = $"?page={page}";
-                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>($"the-loai/{category}", queryParams, "v3");
-
-                if (result?.Data != null)
-                {
-                    foreach (var movie in result.Data)
-                    {
-                        if (string.IsNullOrEmpty(movie.PosterUrl) || string.IsNullOrEmpty(movie.ThumbUrl))
+                        finally
                         {
-                            try
-                            {
-                                var imageData = await GetMovieImagesAsync(movie.Slug);
-                                if (imageData.ThumbUrl != null || imageData.PosterUrl != null)
-                                {
-                                    if (string.IsNullOrEmpty(movie.PosterUrl) && !string.IsNullOrEmpty(imageData.PosterUrl))
-                                        movie.PosterUrl = imageData.PosterUrl;
-
-                                    if (string.IsNullOrEmpty(movie.ThumbUrl) && !string.IsNullOrEmpty(imageData.ThumbUrl))
-                                        movie.ThumbUrl = imageData.ThumbUrl;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Error getting images for {movie.Slug}: {ex.Message}");
-                            }
+                            _semaphore.Release();
                         }
-                    }
-                }
 
-                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in GetMoviesByCategoryAsync: {ex.Message}");
-                return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-        }
-
-        public async Task<MovieListResponse> GetMoviesByCountryAsync(string country, int page = 1)
-        {
-            try
-            {
-                string queryParams = $"?page={page}";
-                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>($"quoc-gia/{country}", queryParams, "v3");
-
-                if (result?.Data != null)
-                {
-                    foreach (var movie in result.Data)
-                    {
-                        if (string.IsNullOrEmpty(movie.PosterUrl) || string.IsNullOrEmpty(movie.ThumbUrl))
+                        // Nếu không lấy được ảnh, sử dụng ảnh mặc định
+                        if (string.IsNullOrEmpty(movie.ThumbUrl) && string.IsNullOrEmpty(movie.PosterUrl))
                         {
-                            try
-                            {
-                                var imageData = await GetMovieImagesAsync(movie.Slug);
-                                if (imageData.ThumbUrl != null || imageData.PosterUrl != null)
-                                {
-                                    if (string.IsNullOrEmpty(movie.PosterUrl) && !string.IsNullOrEmpty(imageData.PosterUrl))
-                                        movie.PosterUrl = imageData.PosterUrl;
-
-                                    if (string.IsNullOrEmpty(movie.ThumbUrl) && !string.IsNullOrEmpty(imageData.ThumbUrl))
-                                        movie.ThumbUrl = imageData.ThumbUrl;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Error getting images for {movie.Slug}: {ex.Message}");
-                            }
+                            movie.ThumbUrl = "/placeholder.svg?height=450&width=300";
+                            movie.PosterUrl = "/placeholder.svg?height=450&width=300";
                         }
                     }
-                }
-
-                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in GetMoviesByCountryAsync: {ex.Message}");
-                return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-        }
-
-        public async Task<MovieListResponse> GetMoviesByTypeAsync(string type, int page = 1)
-        {
-            try
-            {
-                string queryParams = $"?page={page}";
-                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>($"danh-sach/{type}", queryParams, "v3");
-
-                if (result?.Data != null)
-                {
-                    foreach (var movie in result.Data)
+                    catch (Exception ex)
                     {
-                        if (string.IsNullOrEmpty(movie.PosterUrl) || string.IsNullOrEmpty(movie.ThumbUrl))
-                        {
-                            try
-                            {
-                                var imageData = await GetMovieImagesAsync(movie.Slug);
-                                if (imageData.ThumbUrl != null || imageData.PosterUrl != null)
-                                {
-                                    if (string.IsNullOrEmpty(movie.PosterUrl) && !string.IsNullOrEmpty(imageData.PosterUrl))
-                                        movie.PosterUrl = imageData.PosterUrl;
+                        _logger.LogError(ex, $"Error enriching movie {movie.Slug} with images: {ex.Message}");
 
-                                    if (string.IsNullOrEmpty(movie.ThumbUrl) && !string.IsNullOrEmpty(imageData.ThumbUrl))
-                                        movie.ThumbUrl = imageData.ThumbUrl;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Error getting images for {movie.Slug}: {ex.Message}");
-                            }
-                        }
+                        // Đảm bảo luôn có ảnh mặc định
+                        movie.ThumbUrl = "/placeholder.svg?height=450&width=300";
+                        movie.PosterUrl = "/placeholder.svg?height=450&width=300";
                     }
-                }
+                }));
+            }
 
-                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in GetMoviesByTypeAsync: {ex.Message}");
-                return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
+            // Chờ tất cả các task hoàn thành với timeout
+            await Task.WhenAny(
+                Task.WhenAll(tasks),
+                Task.Delay(5000) // Timeout 5 giây
+            );
         }
 
-        public async Task<MovieListResponse> GetRelatedMoviesAsync(string slug, int limit = 6)
+        public async Task<List<string>> GetGenresAsync()
         {
-            try
+            string cacheKey = "all_genres";
+
+            if (_cache.TryGetValue(cacheKey, out List<string> cachedGenres))
             {
-                string queryParams = $"?limit={limit}";
-                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>("phim-moi", queryParams, "v3");
-
-                if (result?.Data != null)
-                {
-                    foreach (var movie in result.Data)
-                    {
-                        if (string.IsNullOrEmpty(movie.PosterUrl) || string.IsNullOrEmpty(movie.ThumbUrl))
-                        {
-                            try
-                            {
-                                var imageData = await GetMovieImagesAsync(movie.Slug);
-                                if (imageData.ThumbUrl != null || imageData.PosterUrl != null)
-                                {
-                                    if (string.IsNullOrEmpty(movie.PosterUrl) && !string.IsNullOrEmpty(imageData.PosterUrl))
-                                        movie.PosterUrl = imageData.PosterUrl;
-
-                                    if (string.IsNullOrEmpty(movie.ThumbUrl) && !string.IsNullOrEmpty(imageData.ThumbUrl))
-                                        movie.ThumbUrl = imageData.ThumbUrl;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Error getting images for {movie.Slug}: {ex.Message}");
-                            }
-                        }
-                    }
-                }
-
-                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
+                return cachedGenres;
             }
-            catch (Exception ex)
+
+            // Danh sách thể loại phim phổ biến
+            var genres = new List<string>
             {
-                Debug.WriteLine($"Exception in GetRelatedMoviesAsync: {ex.Message}");
-                return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-        }
-
-        public async Task<MovieListResponse> GetTrendingMoviesAsync(int page = 1, int limit = 10)
-        {
-            try
-            {
-                string queryParams = $"?page={page}&limit={limit}";
-                var result = await CallApiWithVersionFallbackAsync<MovieListResponse>("phim-moi", queryParams, "v3");
-
-                if (result?.Data != null)
-                {
-                    foreach (var movie in result.Data)
-                    {
-                        if (string.IsNullOrEmpty(movie.PosterUrl) || string.IsNullOrEmpty(movie.ThumbUrl))
-                        {
-                            try
-                            {
-                                var imageData = await GetMovieImagesAsync(movie.Slug);
-                                if (imageData.ThumbUrl != null || imageData.PosterUrl != null)
-                                {
-                                    if (string.IsNullOrEmpty(movie.PosterUrl) && !string.IsNullOrEmpty(imageData.PosterUrl))
-                                        movie.PosterUrl = imageData.PosterUrl;
-
-                                    if (string.IsNullOrEmpty(movie.ThumbUrl) && !string.IsNullOrEmpty(imageData.ThumbUrl))
-                                        movie.ThumbUrl = imageData.ThumbUrl;
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Debug.WriteLine($"Error getting images for {movie.Slug}: {ex.Message}");
-                            }
-                        }
-                    }
-                }
-
-                return result ?? new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in GetTrendingMoviesAsync: {ex.Message}");
-                return new MovieListResponse { Data = new List<MovieItem>(), Pagination = new Pagination() };
-            }
-        }
-
-        private async Task<(string ThumbUrl, string PosterUrl)> GetMovieImagesAsync(string slug)
-        {
-            try
-            {
-                var result = await CallApiWithVersionFallbackAsync<ImageResponse>("get-img", $"?slug={slug}", "v3");
-
-                if (result != null && result.Success)
-                {
-                    string thumbUrl = string.IsNullOrEmpty(result.SubThumb) ? "/placeholder.svg?height=150&width=100" : result.SubThumb;
-                    string posterUrl = string.IsNullOrEmpty(result.SubPoster) ? "/placeholder.svg?height=450&width=300" : result.SubPoster;
-                    return (thumbUrl, posterUrl);
-                }
-
-                Debug.WriteLine($"No valid images found for slug: {slug}. Using placeholders.");
-                return ("/placeholder.svg?height=150&width=100", "/placeholder.svg?height=450&width=300");
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Exception in GetMovieImagesAsync: {ex.Message}");
-                return ("/placeholder.svg?height=150&width=100", "/placeholder.svg?height=450&width=300");
-            }
-        }
-
-        private MovieDetailResponse CreateEmptyMovieDetailResponse(string slug)
-        {
-            return new MovieDetailResponse
-            {
-                Movie = new MovieDetail
-                {
-                    Name = "Movie Not Found",
-                    Slug = slug,
-                    Description = "Unable to load movie details. Please try again later.",
-                    PosterUrl = "/placeholder.svg?height=450&width=300"
-                },
-                Episodes = new List<object>()
+                "Hành Động", "Tình Cảm", "Hài Hước", "Cổ Trang", "Kinh Dị", "Hình Sự",
+                "Chiến Tranh", "Thể Thao", "Võ Thuật", "Viễn Tưởng", "Phiêu Lưu", "Khoa Học",
+                "Tâm Lý", "Gia Đình", "Hoạt Hình", "Âm Nhạc", "Lịch Sử", "Thần Thoại"
             };
+
+            _cache.Set(cacheKey, genres, TimeSpan.FromDays(1));
+
+            return genres;
+        }
+
+        public async Task<List<string>> GetCountriesAsync()
+        {
+            string cacheKey = "all_countries";
+
+            if (_cache.TryGetValue(cacheKey, out List<string> cachedCountries))
+            {
+                return cachedCountries;
+            }
+
+            // Danh sách quốc gia phổ biến
+            var countries = new List<string>
+            {
+                "Việt Nam", "Trung Quốc", "Hàn Quốc", "Nhật Bản", "Thái Lan", "Âu Mỹ",
+                "Đài Loan", "Hồng Kông", "Ấn Độ", "Philippines", "Quốc gia khác"
+            };
+
+            _cache.Set(cacheKey, countries, TimeSpan.FromDays(1));
+
+            return countries;
+        }
+
+        public async Task<List<string>> GetYearsAsync()
+        {
+            string cacheKey = "all_years";
+
+            if (_cache.TryGetValue(cacheKey, out List<string> cachedYears))
+            {
+                return cachedYears;
+            }
+
+            // Tạo danh sách năm từ 2000 đến năm hiện tại
+            var years = new List<string>();
+            int currentYear = DateTime.Now.Year;
+
+            for (int year = currentYear; year >= 2000; year--)
+            {
+                years.Add(year.ToString());
+            }
+
+            _cache.Set(cacheKey, years, TimeSpan.FromDays(1));
+
+            return years;
+        }
+
+        public async Task<List<string>> GetMovieTypesAsync()
+        {
+            string cacheKey = "all_movie_types";
+
+            if (_cache.TryGetValue(cacheKey, out List<string> cachedTypes))
+            {
+                return cachedTypes;
+            }
+
+            // Danh sách loại phim
+            var types = new List<string>
+            {
+                "Phim lẻ", "Phim bộ", "Phim chiếu rạp", "Phim đang chiếu", "TV shows", "Hoạt hình"
+            };
+
+            _cache.Set(cacheKey, types, TimeSpan.FromDays(1));
+
+            return types;
         }
     }
 
     public class ImageResponse
     {
-        [JsonPropertyName("success")]
         public bool Success { get; set; }
-
-        [JsonPropertyName("sub_thumb")]
         public string SubThumb { get; set; }
-
-        [JsonPropertyName("sub_poster")]
         public string SubPoster { get; set; }
     }
 }

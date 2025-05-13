@@ -1,117 +1,79 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - WebAppApiPhim</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-    @RenderSection("Styles", required: false) <!-- Added to render Styles section -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    @await RenderSectionAsync("Styles", required: false)
 </head>
 <body class="bg-dark text-light">
     <header>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-dark border-bottom box-shadow mb-3">
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
             <div class="container">
-                <a class="navbar-brand d-flex align-items-center" asp-controller="Home" asp-action="Index">
-                    <img src="/images/logo.png" alt="Logo" height="40" class="me-2">
-                    <div>
-                        <span class="fw-bold">Phim</span>
-                        <small class="d-block" style="font-size: 0.7rem; margin-top: -5px;">Phim hay có rồ</small>
-                    </div>
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-film me-2"></i>WebAppApiPhim
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
                         aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
                 <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <div class="d-flex flex-grow-1 mx-lg-4">
-                        <form class="w-100" asp-controller="Movie" asp-action="Search" method="get">
-                            <div class="input-group">
-                                <span class="input-group-text bg-dark border-secondary text-light">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                                <input type="text" name="keyword" class="form-control bg-dark border-secondary text-light" placeholder="Tìm kiếm phim, diễn viên">
-                            </div>
-                        </form>
-                    </div>
-                    <ul class="navbar-nav">
+                    <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Movie" asp-action="Category" asp-route-id="chu-de">Chủ Đề</a>
+                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Trang chủ</a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-light" href="#" id="theloaiDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle text-light" href="#" id="navbarDropdownType" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Thể loại
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="theloaiDropdown">
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Category" asp-route-id="hanh-dong">Hành động</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Category" asp-route-id="tinh-cam">Tình cảm</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Category" asp-route-id="hai-huoc">Hài hước</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Category" asp-route-id="co-trang">Cổ trang</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Category" asp-route-id="tam-ly">Tâm lý</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Category" asp-route-id="hinh-su">Hình sự</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Category" asp-route-id="kinh-di">Kinh dị</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Category" asp-route-id="vien-tuong">Viễn tưởng</a></li>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdownType">
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-genre="Hành Động">Hành Động</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-genre="Tình Cảm">Tình Cảm</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-genre="Hài Hước">Hài Hước</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-genre="Cổ Trang">Cổ Trang</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-genre="Kinh Dị">Kinh Dị</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-genre="Viễn Tưởng">Viễn Tưởng</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter">Tất cả thể loại</a></li>
                             </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Movie" asp-action="Type" asp-route-id="phim-le">Phim Lẻ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Movie" asp-action="Type" asp-route-id="phim-bo">Phim Bộ</a>
                         </li>
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-light" href="#" id="quocgiaDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <a class="nav-link dropdown-toggle text-light" href="#" id="navbarDropdownCountry" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 Quốc gia
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="quocgiaDropdown">
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Country" asp-route-id="viet-nam">Việt Nam</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Country" asp-route-id="trung-quoc">Trung Quốc</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Country" asp-route-id="han-quoc">Hàn Quốc</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Country" asp-route-id="nhat-ban">Nhật Bản</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Country" asp-route-id="thai-lan">Thái Lan</a></li>
-                                <li><a class="dropdown-item" asp-controller="Movie" asp-action="Country" asp-route-id="au-my">Âu Mỹ</a></li>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdownCountry">
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-country="Việt Nam">Việt Nam</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-country="Trung Quốc">Trung Quốc</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-country="Hàn Quốc">Hàn Quốc</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-country="Nhật Bản">Nhật Bản</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-country="Thái Lan">Thái Lan</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-country="Âu Mỹ">Âu Mỹ</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter">Tất cả quốc gia</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Movie" asp-action="Actors">Diễn Viên</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Movie" asp-action="Schedule">Lịch chiếu</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle text-light" href="#" id="navbarDropdownType" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                Loại phim
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDropdownType">
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-type="Phim lẻ">Phim lẻ</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-type="Phim bộ">Phim bộ</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-type="Phim chiếu rạp">Phim chiếu rạp</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-type="Phim đang chiếu">Phim đang chiếu</a></li>
+                                <li><a class="dropdown-item" asp-controller="Home" asp-action="Filter" asp-route-type="Hoạt hình">Hoạt hình</a></li>
+                            </ul>
                         </li>
                     </ul>
-                    <div class="d-flex align-items-center ms-lg-3">
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <div class="dropdown me-3">
-                                <a class="btn btn-dark border-secondary dropdown-toggle d-flex align-items-center" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="/images/avatar.png" alt="User" class="rounded-circle me-2" width="24" height="24">
-                                    <span>@User.Identity.Name</span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="userDropdown">
-                                    <li><a class="dropdown-item" asp-controller="User" asp-action="Profile">Tài khoản</a></li>
-                                    <li><a class="dropdown-item" asp-controller="User" asp-action="Favorites">Phim yêu thích</a></li>
-                                    <li><a class="dropdown-item" asp-controller="User" asp-action="WatchHistory">Lịch sử xem</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <form asp-controller="Account" asp-action="Logout" method="post">
-                                            <button type="submit" class="dropdown-item">Đăng xuất</button>
-                                        </form>
-                                    </li>
-                                </ul>
-                            </div>
-                        }
-                        else
-                        {
-                            <a class="btn btn-outline-light me-2" asp-controller="Account" asp-action="Login">
-                                <i class="fas fa-user me-1"></i> Đăng nhập
-                            </a>
-                            <a class="btn btn-light" asp-controller="Account" asp-action="Register">
-                                <i class="fas fa-user-plus me-1"></i> Thành viên
-                            </a>
-                        }
-                    </div>
+                    <form class="d-flex" asp-controller="Home" asp-action="Search" method="get">
+                        <input class="form-control me-2 bg-dark text-light border-secondary" type="search" name="query" placeholder="Tìm kiếm phim..." aria-label="Search">
+                        <button class="btn btn-outline-light" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </form>
                 </div>
             </div>
         </nav>
@@ -122,79 +84,71 @@
         </main>
     </div>
 
-    <footer class="border-top footer text-light bg-dark mt-5 py-5">
+    <footer class="border-top footer text-light bg-dark">
         <div class="container">
-            <div class="row">
-                <div class="col-md-4 mb-4">
-                    <a class="navbar-brand d-flex align-items-center mb-3" href="#">
-                        <img src="/images/logo.png" alt="Logo" height="40" class="me-2">
-                        <div>
-                            <span class="fw-bold">RoPhim</span>
-                            <small class="d-block" style="font-size: 0.7rem; margin-top: -5px;">Phim hay có rồ</small>
-                        </div>
-                    </a>
-                    <div class="d-flex mb-3">
-                        <a href="#" class="me-2 btn btn-dark rounded-circle">
-                            <i class="fab fa-telegram"></i>
-                        </a>
-                        <a href="#" class="me-2 btn btn-dark rounded-circle">
-                            <i class="fab fa-twitter"></i>
-                        </a>
-                        <a href="#" class="me-2 btn btn-dark rounded-circle">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="me-2 btn btn-dark rounded-circle">
-                            <i class="fab fa-tiktok"></i>
-                        </a>
-                        <a href="#" class="me-2 btn btn-dark rounded-circle">
-                            <i class="fab fa-youtube"></i>
-                        </a>
-                        <a href="#" class="btn btn-dark rounded-circle">
-                            <i class="fab fa-instagram"></i>
-                        </a>
-                    </div>
-                    <div class="bg-danger text-white d-inline-block px-3 py-1 rounded">
-                        <i class="fas fa-flag me-1"></i> Hoàng Sa & Trường Sa là của Việt Nam!
-                    </div>
-                </div>
-                <div class="col-md-8">
-                    <div class="row">
-                        <div class="col-6 col-md-3 mb-3">
-                            <h6>Thông tin</h6>
-                            <ul class="nav flex-column">
-                                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-secondary">Hỏi-Đáp</a></li>
-                                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-secondary">Chính sách bảo mật</a></li>
-                                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-secondary">Điều khoản sử dụng</a></li>
-                                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-secondary">Giới thiệu</a></li>
-                                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-secondary">Liên hệ</a></li>
-                            </ul>
-                        </div>
-                        <div class="col-6 col-md-3 mb-3">
-                            <h6>Thể loại phim</h6>
-                            <ul class="nav flex-column">
-                                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-secondary">Dongphim</a></li>
-                                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-secondary">Ghienphim</a></li>
-                                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-secondary">Motphim</a></li>
-                                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-secondary">Subhanah</a></li>
-                            </ul>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <p class="text-secondary small">
-                                Trang xem phim online chất lượng cao miễn phí Vietsub, thuyết minh, lồng tiếng full HD.<br>
-                                Kho phim mới không lỗ, phim chiếu rạp, phim bộ, phim lẻ từ nhiều quốc gia như Việt Nam, Hàn Quốc, Trung Quốc,
-                                Thái Lan, Nhật Bản, Âu Mỹ... đa dạng thể loại. Khám phá nền tảng phim trực tuyến hay nhất 2024 chất lượng 4K!
-                            </p>
-                            <p class="text-secondary small">© 2024 WebAppApiPhim</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            &copy; 2025 - WebAppApiPhim - <a asp-area="" asp-controller="Home" asp-action="Privacy" class="text-light">Privacy</a>
         </div>
     </footer>
-
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script>
+        // Lazy loading cho hình ảnh
+        document.addEventListener("DOMContentLoaded", function () {
+            var lazyImages = [].slice.call(document.querySelectorAll("img.lazy"));
+
+            if ("IntersectionObserver" in window) {
+                let lazyImageObserver = new IntersectionObserver(function (entries, observer) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            let lazyImage = entry.target;
+                            lazyImage.src = lazyImage.dataset.src;
+                            lazyImage.classList.remove("lazy");
+                            lazyImageObserver.unobserve(lazyImage);
+                        }
+                    });
+                });
+
+                lazyImages.forEach(function (lazyImage) {
+                    lazyImageObserver.observe(lazyImage);
+                });
+            } else {
+                // Fallback cho trình duyệt không hỗ trợ IntersectionObserver
+                let active = false;
+
+                const lazyLoad = function () {
+                    if (active === false) {
+                        active = true;
+
+                        setTimeout(function () {
+                            lazyImages.forEach(function (lazyImage) {
+                                if ((lazyImage.getBoundingClientRect().top <= window.innerHeight && lazyImage.getBoundingClientRect().bottom >= 0) && getComputedStyle(lazyImage).display !== "none") {
+                                    lazyImage.src = lazyImage.dataset.src;
+                                    lazyImage.classList.remove("lazy");
+
+                                    lazyImages = lazyImages.filter(function (image) {
+                                        return image !== lazyImage;
+                                    });
+
+                                    if (lazyImages.length === 0) {
+                                        document.removeEventListener("scroll", lazyLoad);
+                                        window.removeEventListener("resize", lazyLoad);
+                                        window.removeEventListener("orientationchange", lazyLoad);
+                                    }
+                                }
+                            });
+
+                            active = false;
+                        }, 200);
+                    }
+                };
+
+                document.addEventListener("scroll", lazyLoad);
+                window.addEventListener("resize", lazyLoad);
+                window.addEventListener("orientationchange", lazyLoad);
+            }
+        });
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

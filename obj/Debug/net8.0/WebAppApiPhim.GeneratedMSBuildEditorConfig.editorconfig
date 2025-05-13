@@ -18,12 +18,20 @@ build_property.GenerateRazorMetadataSourceChecksumAttributes =
 build_property.MSBuildProjectDirectory = C:\D\Leaning\API\APICode\WebAppApiPhim
 build_property._RazorSourceGeneratorDebug = 
 
+[C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Home/Filter.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxGaWx0ZXIuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
 [C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Home/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Home/Search.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxTZWFyY2guY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Home/TestApi.cshtml]
@@ -52,6 +60,10 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Shared/_LoginPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Mb2dpblBhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Shared/_MovieGrid.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3NcU2hhcmVkXF9Nb3ZpZUdyaWQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/D/Leaning/API/APICode/WebAppApiPhim/Views/Shared/_ValidationScriptsPartial.cshtml]
