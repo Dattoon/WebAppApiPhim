@@ -151,3 +151,5 @@ C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\Newtonsoft.Json.dll
 C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\Newtonsoft.Json.Bson.dll
 C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\Numind.AspNetCore.SpaServices.Extensions.dll
 C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\System.Net.WebSockets.WebSocketProtocol.dll
+C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\package-lock.json
+C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\package.json

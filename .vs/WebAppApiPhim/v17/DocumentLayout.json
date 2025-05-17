@@ -3,28 +3,88 @@
   "WorkspaceRootPath": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\services\\jwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:services\\jwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\services\\ijwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:services\\ijwtservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\src\\components\\favorites.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\package-lock.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:package-lock.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:package.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\.gitattributes||{3B902123-F8A7-4915-9F01-361F908088D0}",
-      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:.gitattributes||{3B902123-F8A7-4915-9F01-361F908088D0}"
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\services\\movieapiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:services\\movieapiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7823E8F9-E2A3-4A68-A4D0-1339BE0B46FE}|..\\WebAppFrontend\\WebAppFrontend.Server\\WebAppFrontend.Server.csproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.server\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\src\\config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\vite.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\.env||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7823E8F9-E2A3-4A68-A4D0-1339BE0B46FE}|..\\WebAppFrontend\\WebAppFrontend.Server\\WebAppFrontend.Server.csproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.server\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\.vscode\\launch.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7823E8F9-E2A3-4A68-A4D0-1339BE0B46FE}|..\\WebAppFrontend\\WebAppFrontend.Server\\WebAppFrontend.Server.csproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.server\\webappfrontend.server.http||{5703B403-55E7-4C63-8C88-A8F52C7A45C5}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7823E8F9-E2A3-4A68-A4D0-1339BE0B46FE}|..\\WebAppFrontend\\WebAppFrontend.Server\\WebAppFrontend.Server.csproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.server\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\src\\components\\home.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\src\\components\\moviedetail.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\src\\components\\login.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\src\\app.css||{A5401142-F49D-43DB-90B1-F57BA349E55C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\index.html||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\eslint.config.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\src\\app.js||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\src\\app.jsx||{14D17961-FE51-464D-9111-C4AF11D7D99A}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\src\\assets\\react.svg||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{2C0C7C82-BAFF-45CC-81B6-FD4956D4A59E}|..\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.client\\public\\vite.svg||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7823E8F9-E2A3-4A68-A4D0-1339BE0B46FE}|..\\WebAppFrontend\\WebAppFrontend.Server\\WebAppFrontend.Server.csproj|c:\\d\\leaning\\api\\apicode\\webappfrontend\\webappfrontend.server\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,86 +94,352 @@
       "DocumentGroups": [
         {
           "DockedHeight": 31,
-          "SelectedChildIndex": 1,
+          "SelectedChildIndex": 9,
           "Children": [
             {
               "$type": "Bookmark",
               "Name": "ST:128:0:{116d2292-e37d-41cd-a077-ebacac4c8cc4}"
             },
             {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "JwtService.cs",
-              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Services\\JwtService.cs",
-              "RelativeDocumentMoniker": "Services\\JwtService.cs",
-              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Services\\JwtService.cs",
-              "RelativeToolTip": "Services\\JwtService.cs",
-              "ViewState": "AQIAADoAAAAAAAAAAAAiwFUAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-17T14:00:30.161Z",
-              "EditorCaption": ""
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "IJwtService.cs",
-              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Services\\IJwtService.cs",
-              "RelativeDocumentMoniker": "Services\\IJwtService.cs",
-              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Services\\IJwtService.cs",
-              "RelativeToolTip": "Services\\IJwtService.cs",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAoAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-17T14:00:27.674Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 4,
-              "Title": ".gitattributes",
-              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\.gitattributes",
-              "RelativeDocumentMoniker": ".gitattributes",
-              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\.gitattributes",
-              "RelativeToolTip": ".gitattributes",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
-              "WhenOpened": "2025-05-17T14:00:23.372Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 2,
               "Title": "appsettings.json",
               "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\appsettings.json",
               "RelativeDocumentMoniker": "appsettings.json",
               "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\appsettings.json",
               "RelativeToolTip": "appsettings.json",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAABkAAAAAAAAA",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAwAAAAxAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-05-17T14:00:21.314Z",
+              "WhenOpened": "2025-05-17T15:18:56.319Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "package.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\package.json",
+              "RelativeDocumentMoniker": "package.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\package.json",
+              "RelativeToolTip": "package.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-17T15:18:53.097Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "package-lock.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\package-lock.json",
+              "RelativeDocumentMoniker": "package-lock.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\package-lock.json",
+              "RelativeToolTip": "package-lock.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-17T15:18:52.049Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 5,
-              "Title": "launchSettings.json",
-              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Properties\\launchSettings.json",
-              "RelativeDocumentMoniker": "Properties\\launchSettings.json",
-              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Properties\\launchSettings.json",
-              "RelativeToolTip": "Properties\\launchSettings.json",
-              "ViewState": "AQIAAAcAAAAAAAAAAAAmwCYAAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
-              "WhenOpened": "2025-05-17T14:00:11.677Z"
+              "Title": "MovieApiService.cs",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Services\\MovieApiService.cs",
+              "RelativeDocumentMoniker": "Services\\MovieApiService.cs",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Services\\MovieApiService.cs",
+              "RelativeToolTip": "Services\\MovieApiService.cs",
+              "ViewState": "AQIAAK4BAAAAAAAAAAAcwLYBAAAoAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-17T15:17:38.124Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 16,
+              "Title": "MovieDetail.js",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\components\\MovieDetail.js",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\src\\components\\MovieDetail.js",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\components\\MovieDetail.js",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\src\\components\\MovieDetail.js",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-05-17T15:02:39.767Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Login.js",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\components\\Login.js",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\src\\components\\Login.js",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\components\\Login.js",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\src\\components\\Login.js",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-05-17T15:02:37.321Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "Home.js",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\components\\Home.js",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\src\\components\\Home.js",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\components\\Home.js",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\src\\components\\Home.js",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAIAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-05-17T15:02:33.627Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Favorites.js",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\components\\Favorites.js",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\src\\components\\Favorites.js",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\components\\Favorites.js",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\src\\components\\Favorites.js",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-05-17T15:02:24.064Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 18,
+              "Title": "App.css",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\App.css",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\src\\App.css",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\App.css",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\src\\App.css",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003000|",
+              "WhenOpened": "2025-05-17T15:02:20.585Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 19,
+              "Title": "index.html",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\index.html",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\index.html",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\index.html",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\index.html",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001512|",
+              "WhenOpened": "2025-05-17T15:02:17.637Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 20,
+              "Title": "eslint.config.js",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\eslint.config.js",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\eslint.config.js",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\eslint.config.js",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\eslint.config.js",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAQAAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-05-17T14:59:01.484Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 22,
+              "Title": "App.jsx",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\App.jsx",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\src\\App.jsx",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\App.jsx",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\src\\App.jsx",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003663|",
+              "WhenOpened": "2025-05-17T15:01:27.155Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 21,
+              "Title": "App.js",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\App.js",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\src\\App.js",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\App.js",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\src\\App.js",
+              "ViewState": "AQIAAAMAAAAAAAAAAAAAAA4AAAAkAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-05-17T15:01:21.724Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 23,
+              "Title": "react.svg",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\assets\\react.svg",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\src\\assets\\react.svg",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\assets\\react.svg",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\src\\assets\\react.svg",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAP8SURBVDhPrZRdbJNVGMd/p33b9Qtqt9HZbe2woKxsbGDYpk5DQAkTFcQPjJgY44XGEI3GmBBMNNmVNxoWojei8VITgyzGCwgRyRjJZM5JlvERt0C3dVu3rt3bD7r3bc/xYt0o4CX/5Mn5/uc85/zOgfsppZS4u6\u002Bnp\u002BdYc3PzB6VxlFIrcwGQUpLP58lms71Hjhw5PDExEbvT4S719PSMSillsVj83ygUCnJ4eFgODg7K48eP/xyJRDaVr7eWNwC6uroOd3R0VEsFBSOFzF1GZL7DmP0Rc/o3AP6dNNne1oHT6Qzb7fb6qampy4lEInGPob39NdHY2n74aq6i\u002BvpUP2sL3\u002BCc/ZZC7AyITUgVpBC/yMQcNDzSjs/n01wu18bKysrglStXLqTT6fSyoRC4H93nCz33zudrAqFn2iI2\u002B66aY3hnTjM8vpVf9A8ZqzjElta9yLlRMqabC0M3GBoaQtd1q8/ni5w/f/6nVCoV0wAczXu8Dfvf/\u002BTp7fXvvrxlzLVdfkriWo7\u002B7FGuh19kwnBycWyGrHmDV/xNNLZuoB4/hmHg8XgYGRlZzdIC4O96r7Mjsu6Ng00Da9tyH4vF4TxTopvcugPYsuA2C4TW13Jprkhf8iHEmhDV1VUEAgG8Xi9Wq3WVAgtAQ8Bz4IXG0aoW8ysxP2jiavmBLY8d4OC2AK\u002B3VJOZnsNnr0C4nQwmbMznLaX9KChDC0AD2Lwu9dTj3u\u002BdmXEHX5ufMfmHDbPwD1IpFJJ8UaNKs2Cz2xifWyKZNqhd60ApQNxmFECrDWj2t1pO19uiY\u002BKc5QvlbtstwsrC8mxKpgrzloFhmCwVChSUKg0r1F0PQJu8GtqfHP\u002B1YiDzthoN7in\u002BefGadWuNSygpUUohlQIUQirqkLQGPfg99pLZna8IQFN67NXZm3VL54o7MbNKczttls5wtdhW58br0NDzJgM3kkSTOVCKoM\u002BFx6GtJLB8jmXS8pP5zmS24vf\u002BGW1zSEs11ITrxJnpHGeuz6IME82uUfRUkSy6WIgv8KxFYLPc/gJWUl6RpbAonHuPLh2Kzcx/eW10PHFzOq0M9xoIrUdsfJilugbiShCPJwg7CjzfXIPdunLL98p69E38Ox5Mhi/1X\u002B1rCNjMTMps1DPSPRlfJDGf4lZiAVt6kaYHND7auYFKtx2EWEVGCEE0GuXUqVMndF2PWdfXMhCbYVfEPrujLt43Eqhvde1\u002B4slGv63IJq9Ge62bfU1\u002BXtpai8OmLW\u002BjhAuAsFiIRifo7e09oev6vV9Zd3d3n5RSmqZZCkOaxnIYq7G0WpqmKc\u002BePSuDwWAbK2CXSyn118mTJztL9WV0SgiV95Wzp\u002Bv638DCnU73Sf8B3E0j/55GTsEAAAAASUVORK5CYII=",
+              "WhenOpened": "2025-05-17T15:01:19.596Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 24,
+              "Title": "vite.svg",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\public\\vite.svg",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\public\\vite.svg",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\public\\vite.svg",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\public\\vite.svg",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "00000000-0000-0000-0000-000000000000.000000|iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAP8SURBVDhPrZRdbJNVGMd/p33b9Qtqt9HZbe2woKxsbGDYpk5DQAkTFcQPjJgY44XGEI3GmBBMNNmVNxoWojei8VITgyzGCwgRyRjJZM5JlvERt0C3dVu3rt3bD7r3bc/xYt0o4CX/5Mn5/uc85/zOgfsppZS4u6\u002Bnp\u002BdYc3PzB6VxlFIrcwGQUpLP58lms71Hjhw5PDExEbvT4S719PSMSillsVj83ygUCnJ4eFgODg7K48eP/xyJRDaVr7eWNwC6uroOd3R0VEsFBSOFzF1GZL7DmP0Rc/o3AP6dNNne1oHT6Qzb7fb6qampy4lEInGPob39NdHY2n74aq6i\u002BvpUP2sL3\u002BCc/ZZC7AyITUgVpBC/yMQcNDzSjs/n01wu18bKysrglStXLqTT6fSyoRC4H93nCz33zudrAqFn2iI2\u002B66aY3hnTjM8vpVf9A8ZqzjElta9yLlRMqabC0M3GBoaQtd1q8/ni5w/f/6nVCoV0wAczXu8Dfvf/\u002BTp7fXvvrxlzLVdfkriWo7\u002B7FGuh19kwnBycWyGrHmDV/xNNLZuoB4/hmHg8XgYGRlZzdIC4O96r7Mjsu6Ng00Da9tyH4vF4TxTopvcugPYsuA2C4TW13Jprkhf8iHEmhDV1VUEAgG8Xi9Wq3WVAgtAQ8Bz4IXG0aoW8ysxP2jiavmBLY8d4OC2AK\u002B3VJOZnsNnr0C4nQwmbMznLaX9KChDC0AD2Lwu9dTj3u\u002BdmXEHX5ufMfmHDbPwD1IpFJJ8UaNKs2Cz2xifWyKZNqhd60ApQNxmFECrDWj2t1pO19uiY\u002BKc5QvlbtstwsrC8mxKpgrzloFhmCwVChSUKg0r1F0PQJu8GtqfHP\u002B1YiDzthoN7in\u002BefGadWuNSygpUUohlQIUQirqkLQGPfg99pLZna8IQFN67NXZm3VL54o7MbNKczttls5wtdhW58br0NDzJgM3kkSTOVCKoM\u002BFx6GtJLB8jmXS8pP5zmS24vf\u002BGW1zSEs11ITrxJnpHGeuz6IME82uUfRUkSy6WIgv8KxFYLPc/gJWUl6RpbAonHuPLh2Kzcx/eW10PHFzOq0M9xoIrUdsfJilugbiShCPJwg7CjzfXIPdunLL98p69E38Ox5Mhi/1X\u002B1rCNjMTMps1DPSPRlfJDGf4lZiAVt6kaYHND7auYFKtx2EWEVGCEE0GuXUqVMndF2PWdfXMhCbYVfEPrujLt43Eqhvde1\u002B4slGv63IJq9Ge62bfU1\u002BXtpai8OmLW\u002BjhAuAsFiIRifo7e09oev6vV9Zd3d3n5RSmqZZCkOaxnIYq7G0WpqmKc\u002BePSuDwWAbK2CXSyn118mTJztL9WV0SgiV95Wzp\u002Bv638DCnU73Sf8B3E0j/55GTsEAAAAASUVORK5CYII=",
+              "WhenOpened": "2025-05-17T15:01:16.3Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "config.js",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\config.js",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\src\\config.js",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\src\\config.js",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\src\\config.js",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-05-17T14:48:47.485Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": ".env",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\.env",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\.env",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\.env",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\.env",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAEAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-05-17T14:48:35.042Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\WebAppFrontend.Server\\appsettings.Development.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\appsettings.Development.json",
+              "RelativeToolTip": "..\\WebAppFrontend\\WebAppFrontend.Server\\appsettings.Development.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-17T14:47:24.975Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 25,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\appsettings.json",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\WebAppFrontend.Server\\appsettings.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\appsettings.json",
+              "RelativeToolTip": "..\\WebAppFrontend\\WebAppFrontend.Server\\appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-17T14:47:23.406Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "WebAppFrontend.Server.http",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\WebAppFrontend.Server.http",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\WebAppFrontend.Server\\WebAppFrontend.Server.http",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\WebAppFrontend.Server.http",
+              "RelativeToolTip": "..\\WebAppFrontend\\WebAppFrontend.Server\\WebAppFrontend.Server.http",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAYAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003502|",
+              "WhenOpened": "2025-05-17T14:47:15.912Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\Program.cs",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\WebAppFrontend.Server\\Program.cs",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\Program.cs",
+              "RelativeToolTip": "..\\WebAppFrontend\\WebAppFrontend.Server\\Program.cs",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAcwBQAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-05-17T14:47:10.611Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "vite.config.js",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\vite.config.js",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\vite.config.js",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\vite.config.js",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\vite.config.js",
+              "ViewState": "AQIAABMAAAAAAAAAAAAcwC0AAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001646|",
+              "WhenOpened": "2025-05-17T14:47:03.723Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "Program.cs",
               "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Program.cs",
               "RelativeDocumentMoniker": "Program.cs",
               "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Program.cs",
               "RelativeToolTip": "Program.cs",
-              "ViewState": "AQIAAJAAAAAAAAAAAAAowK8AAAAAAAAA",
+              "ViewState": "AQIAAGcAAAAAAAAAAAAcwH4AAAAAAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-17T13:59:44.734Z",
+              "WhenOpened": "2025-05-17T14:46:52.971Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\WebAppFrontend.Server\\Properties\\launchSettings.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\Properties\\launchSettings.json",
+              "RelativeToolTip": "..\\WebAppFrontend\\WebAppFrontend.Server\\Properties\\launchSettings.json",
+              "ViewState": "AQIAAAQAAAAAAAAAAAAYwC0AAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-17T14:46:42.167Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "launch.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\.vscode\\launch.json",
+              "RelativeDocumentMoniker": "..\\WebAppFrontend\\webappfrontend.client\\.vscode\\launch.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\.vscode\\launch.json",
+              "RelativeToolTip": "..\\WebAppFrontend\\webappfrontend.client\\.vscode\\launch.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABMAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-17T14:46:31.402Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "Properties\\launchSettings.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Properties\\launchSettings.json",
+              "RelativeToolTip": "Properties\\launchSettings.json",
+              "ViewState": "AQIAAAwAAAAAAAAAAAAYwCYAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-17T14:46:22.068Z",
               "EditorCaption": ""
             }
           ]
