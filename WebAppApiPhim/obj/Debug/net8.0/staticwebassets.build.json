@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "PG/KD/nFEPnvOR+v6+rpNXAnwb/OvQu/TPIgXxID/V0=",
+  "Hash": "Dr5Q9tF/1uVcEx3kis4lIes2J3ORKLNRPpxmLZ/1fPI=",
   "Source": "WebAppApiPhim",
   "BasePath": "_content/WebAppApiPhim",
   "Mode": "Default",
@@ -53,6 +53,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\favicon.ico"
+    },
+    {
+      "Identity": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\wwwroot\\js\\movie.js",
+      "SourceId": "WebAppApiPhim",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\wwwroot\\",
+      "BasePath": "_content/WebAppApiPhim",
+      "RelativePath": "js/movie.js",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\js\\movie.js"
     },
     {
       "Identity": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\wwwroot\\js\\site.js",

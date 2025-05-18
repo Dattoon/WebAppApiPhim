@@ -9,6 +9,10 @@
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
+      "Id": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\wwwroot\\js\\movie.js",
+      "PackagePath": "staticwebassets\\js\\movie.js"
+    },
+    {
       "Id": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },
