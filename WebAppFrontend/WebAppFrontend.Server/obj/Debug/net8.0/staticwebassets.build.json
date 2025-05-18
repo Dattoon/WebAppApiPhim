@@ -1,0 +1,31 @@
+{
+  "Version": 1,
+  "Hash": "vamPVlWpEJiKWciEpJ+2nJ116TbIFRrHei38cI4D6Iw=",
+  "Source": "WebAppFrontend.Server",
+  "BasePath": "_content/WebAppFrontend.Server",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [
+    {
+      "Identity": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\webappfrontend.client\\webappfrontend.client.esproj",
+      "Version": 2,
+      "Source": "webappfrontend.client",
+      "GetPublishAssetsTargets": "GetCurrentProjectPublishStaticWebAssetItems",
+      "AdditionalPublishProperties": "Configuration=Debug;Platform=AnyCPU",
+      "AdditionalPublishPropertiesToRemove": "WebPublishProfileFile;TargetFramework;RuntimeIdentifier;SelfContained",
+      "GetBuildAssetsTargets": "GetCurrentProjectBuildStaticWebAssetItems",
+      "AdditionalBuildProperties": "Configuration=Debug;Platform=AnyCPU",
+      "AdditionalBuildPropertiesToRemove": "WebPublishProfileFile;TargetFramework;RuntimeIdentifier;SelfContained"
+    }
+  ],
+  "DiscoveryPatterns": [
+    {
+      "Name": "WebAppFrontend.Server\\wwwroot",
+      "Source": "WebAppFrontend.Server",
+      "ContentRoot": "C:\\D\\Leaning\\API\\APICode\\WebAppFrontend\\WebAppFrontend.Server\\wwwroot\\",
+      "BasePath": "_content/WebAppFrontend.Server",
+      "Pattern": "**"
+    }
+  ],
+  "Assets": []
+}
