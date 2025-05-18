@@ -24,7 +24,7 @@ namespace WebAppApiPhim.Services
         public MovieApiService(HttpClient httpClient, IMemoryCache cache, ILogger<MovieApiService> logger)
         {
             _httpClient = httpClient;
-            _httpClient.Timeout = TimeSpan.FromSeconds(10); // Giảm timeout để tránh treo
+            _httpClient.Timeout = TimeSpan.FromSeconds(120); 
             _cache = cache;
             _logger = logger;
 
@@ -304,7 +304,7 @@ namespace WebAppApiPhim.Services
                                 {
                                     using (var client = new HttpClient())
                                     {
-                                        client.Timeout = TimeSpan.FromSeconds(3); // Timeout ngắn cho request ảnh
+                                        client.Timeout = TimeSpan.FromSeconds(10); // Timeout ngắn cho request ảnh
                                         string url = $"{_baseUrl}/get-img/{version}?slug={movie.Slug}";
                                         var response = await client.GetAsync(url);
 
