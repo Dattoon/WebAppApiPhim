@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using WebAppApiPhim.Models;
@@ -19,21 +20,24 @@ namespace WebAppApiPhim.Services
         private readonly int _cacheExpirationMinutes = 15;
         private readonly string[] _apiVersions = new[] { "v1", "v3", "v2" };    
         private readonly JsonSerializerOptions _jsonOptions;
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(5, 5);    
+        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(5, 5);
+        private readonly ApplicationDbContext _dbContext;
 
-        public MovieApiService(HttpClient httpClient, IMemoryCache cache, ILogger<MovieApiService> logger)
+
+        public MovieApiService(HttpClient httpClient, IMemoryCache cache, ILogger<MovieApiService> logger, ApplicationDbContext dbContext)
         {
             _httpClient = httpClient;
-            _httpClient.Timeout = TimeSpan.FromSeconds(120); 
+            _httpClient.Timeout = TimeSpan.FromSeconds(120);
             _cache = cache;
             _logger = logger;
+            _dbContext = dbContext;
 
-            // Cấu hình JsonSerializer
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             };
         }
+
 
         public async Task<MovieListResponse> GetLatestMoviesAsync(int page = 1, int limit = 10, string version = null)
         {
@@ -360,6 +364,7 @@ namespace WebAppApiPhim.Services
             );
         }
 
+        // Services/MovieApiService.cs (partial update)
         public async Task<List<string>> GetGenresAsync()
         {
             string cacheKey = "all_genres";
@@ -369,19 +374,18 @@ namespace WebAppApiPhim.Services
                 return cachedGenres;
             }
 
-            // Danh sách thể loại phim phổ biến
-            var genres = new List<string>
-            {
-                "Hành Động", "Tình Cảm", "Hài Hước", "Cổ Trang", "Kinh Dị", "Hình Sự",
-                "Chiến Tranh", "Thể Thao", "Võ Thuật", "Viễn Tưởng", "Phiêu Lưu", "Khoa Học",
-                "Tâm Lý", "Gia Đình", "Hoạt Hình", "Âm Nhạc", "Lịch Sử", "Thần Thoại"
-            };
+            // Get genres from database instead of hardcoded list
+            var genres = await _dbContext.Genres
+                .Where(g => g.IsActive)
+                .Select(g => g.Name)
+                .ToListAsync();
 
             _cache.Set(cacheKey, genres, TimeSpan.FromDays(1));
 
             return genres;
         }
 
+        // Similar updates for GetCountriesAsync and GetMovieTypesAsync
         public async Task<List<string>> GetCountriesAsync()
         {
             string cacheKey = "all_countries";

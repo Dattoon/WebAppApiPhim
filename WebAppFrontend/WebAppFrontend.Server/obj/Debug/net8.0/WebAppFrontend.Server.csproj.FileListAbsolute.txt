@@ -34,3 +34,4 @@ C:\D\Leaning\API\APICode\WebAppFrontend\WebAppFrontend.Server\obj\Debug\net8.0\W
 C:\D\Leaning\API\APICode\WebAppFrontend\WebAppFrontend.Server\obj\Debug\net8.0\WebAppFrontend.Server.genruntimeconfig.cache
 C:\D\Leaning\API\APICode\WebAppFrontend\WebAppFrontend.Server\obj\Debug\net8.0\ref\WebAppFrontend.Server.dll
 C:\D\Leaning\API\APICode\WebAppFrontend\WebAppFrontend.Server\bin\Debug\net8.0\WebAppFrontend.Server.staticwebassets.runtime.json
+C:\D\Leaning\API\APICode\WebAppFrontend\WebAppFrontend.Server\obj\Debug\net8.0\WebAppFrontend.Server.sourcelink.json

@@ -2,58 +2,55 @@
 using Microsoft.EntityFrameworkCore;
 using WebAppApiPhim.Models;
 
-namespace WebAppApiPhim.Data
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+        : base(options)
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
-        {
-        }
+    }
 
-        public DbSet<Favorite> Favorites { get; set; }
-        public DbSet<WatchHistory> WatchHistories { get; set; }
-        public DbSet<Comment> Comments { get; set; }
-        public DbSet<Rating> Ratings { get; set; }
+    // Existing tables
+    public DbSet<Favorite> Favorites { get; set; }
+    public DbSet<WatchHistory> WatchHistories { get; set; }
+    public DbSet<Comment> Comments { get; set; }
+    public DbSet<Rating> Ratings { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
+    // New metadata tables
+    public DbSet<Movie> Movies { get; set; }
+    public DbSet<MovieType> MovieTypes { get; set; }
+    public DbSet<Genre> Genres { get; set; }
+    public DbSet<Country> Countries { get; set; }
+    public DbSet<MovieGenre> MovieGenres { get; set; }
+    public DbSet<MovieCountry> MovieCountries { get; set; }
 
-            // Cấu hình các mối quan hệ và ràng buộc
-            modelBuilder.Entity<Favorite>()
-                .HasOne(f => f.User)
-                .WithMany(u => u.Favorites)
-                .HasForeignKey(f => f.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<WatchHistory>()
-                .HasOne(h => h.User)
-                .WithMany(u => u.WatchHistories)
-                .HasForeignKey(h => h.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+        // Existing configurations...
 
-            modelBuilder.Entity<Comment>()
-                .HasOne(c => c.User)
-                .WithMany(u => u.Comments)
-                .HasForeignKey(c => c.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+        // Configure Movie as the primary entity
+        modelBuilder.Entity<Movie>()
+            .HasKey(m => m.Slug);
 
-            modelBuilder.Entity<Rating>()
-                .HasOne(r => r.User)
-                .WithMany(u => u.Ratings)
-                .HasForeignKey(r => r.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+        // Configure many-to-many relationships
+        modelBuilder.Entity<MovieGenre>()
+            .HasKey(mg => new { mg.MovieSlug, mg.GenreId });
 
-            // Đảm bảo mỗi người dùng chỉ có thể đánh giá một phim một lần
-            modelBuilder.Entity<Rating>()
-                .HasIndex(r => new { r.UserId, r.MovieSlug })
-                .IsUnique();
+        modelBuilder.Entity<MovieCountry>()
+            .HasKey(mc => new { mc.MovieSlug, mc.CountryId });
 
-            // Đảm bảo mỗi người dùng chỉ có thể thêm một phim vào danh sách yêu thích một lần
-            modelBuilder.Entity<Favorite>()
-                .HasIndex(f => new { f.UserId, f.MovieSlug })
-                .IsUnique();
-        }
+        // Add unique constraints
+        modelBuilder.Entity<MovieType>()
+            .HasIndex(mt => mt.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<Genre>()
+            .HasIndex(g => g.Name)
+            .IsUnique();
+
+        modelBuilder.Entity<Country>()
+            .HasIndex(c => c.Name)
+            .IsUnique();
     }
 }
