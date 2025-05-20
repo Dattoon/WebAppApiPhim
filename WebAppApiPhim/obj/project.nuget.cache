@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "yVS8Zo1UywNYoYZv+cKx3v0Zo5fs5Hcgh4+3mQ1cw20Z18jy80VzhfWuQ2feTTuyHpwEuje3NVUjzEG+LfdpRg==",
+  "dgSpecHash": "+2Eek5qip7/LBSorzIaWn/gRwdMU6u5rBNMtUBOSgpny2WX7fUFFu2lobX7XFNCdEv2V3vy0iNIKUwD58D7JYg==",
   "success": true,
   "projectFilePath": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\WebAppApiPhim.csproj",
   "expectedPackageFiles": [
@@ -20,6 +20,7 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.dataprotection\\2.2.0\\microsoft.aspnetcore.dataprotection.2.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.dataprotection.abstractions\\2.2.0\\microsoft.aspnetcore.dataprotection.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.diagnostics.abstractions\\2.2.0\\microsoft.aspnetcore.diagnostics.abstractions.2.2.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.diagnostics.entityframeworkcore\\8.0.0\\microsoft.aspnetcore.diagnostics.entityframeworkcore.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.hosting.abstractions\\2.2.0\\microsoft.aspnetcore.hosting.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.hosting.server.abstractions\\2.2.0\\microsoft.aspnetcore.hosting.server.abstractions.2.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.html.abstractions\\2.2.0\\microsoft.aspnetcore.html.abstractions.2.2.0.nupkg.sha512",

@@ -6,7 +6,8 @@ using System;
 using WebAppApiPhim.Repositories;
 using WebAppApiPhim.Data; // namespace chứa ApplicationDbContext
 
-using Microsoft.EntityFrameworkCore; // nếu dùng EF Core
+using Microsoft.EntityFrameworkCore;
+using WebAppApiPhim; // nếu dùng EF Core
 
 var builder = WebApplication.CreateBuilder(args);
 
