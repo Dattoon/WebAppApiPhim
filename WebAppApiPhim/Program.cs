@@ -33,13 +33,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Thêm CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
+    options.AddPolicy("AllowFrontend", builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("http://localhost:3000") // Frontend URL
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowAnyHeader()
+               .AllowCredentials(); // If you need cookies or credentials
     });
 });
+
 
 var app = builder.Build();
 
@@ -62,8 +64,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-// Sử dụng CORS
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontend"); // Replace "AllowAll" with "AllowFrontend"
 
 app.UseAuthorization();
 

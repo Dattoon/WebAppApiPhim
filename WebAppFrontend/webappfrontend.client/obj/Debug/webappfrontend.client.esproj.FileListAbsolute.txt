@@ -1,1 +1,0 @@
-C:\D\Leaning\API\APICode\WebAppFrontend\webappfrontend.client\obj\Debug\webappfrontend.client.esproj.CoreCompileInputs.cache

@@ -1,0 +1,9 @@
+.App {
+  background-color: #00bfff; /* Màu xanh dương nhạt */
+  color: #ffffff; /* Chữ trắng */
+  text-align: center;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
