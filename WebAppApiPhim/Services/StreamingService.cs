@@ -1,22 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using WebAppApiPhim.Models;
+using WebAppApiPhim.Data;
 
 namespace WebAppApiPhim.Services
 {
-    
-
     public class StreamingService : IStreamingService
     {
         private readonly ApplicationDbContext _context;
         private readonly IMovieApiService _movieApiService;
         private readonly ILogger<StreamingService> _logger;
+        private readonly JsonSerializerOptions _jsonOptions;
 
         public StreamingService(
             ApplicationDbContext context,
@@ -26,12 +25,27 @@ namespace WebAppApiPhim.Services
             _context = context;
             _movieApiService = movieApiService;
             _logger = logger;
+
+            _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
         }
 
         public async Task<CachedMovie> GetCachedMovieAsync(string slug)
         {
-            return await _context.CachedMovies
-                .FirstOrDefaultAsync(m => m.Slug == slug);
+            try
+            {
+                return await _context.CachedMovies
+                    .Include(m => m.Episodes)
+                    .Include(m => m.Statistic)
+                    .FirstOrDefaultAsync(m => m.Slug == slug);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting cached movie: {slug}");
+                return null;
+            }
         }
 
         public async Task<CachedMovie> CacheMovieAsync(MovieDetailResponse movieDetail)
@@ -43,7 +57,7 @@ namespace WebAppApiPhim.Services
 
                 if (cachedMovie == null)
                 {
-                    // Tạo mới
+                    // Create new cached movie
                     cachedMovie = new CachedMovie
                     {
                         Slug = movieDetail.Slug,
@@ -63,14 +77,14 @@ namespace WebAppApiPhim.Services
                         Language = movieDetail.Language,
                         ViewCount = 0,
                         LastUpdated = DateTime.Now,
-                        RawData = JsonSerializer.Serialize(movieDetail)
+                        RawData = JsonSerializer.Serialize(movieDetail, _jsonOptions)
                     };
 
                     _context.CachedMovies.Add(cachedMovie);
                 }
                 else
                 {
-                    // Cập nhật
+                    // Update existing cached movie
                     cachedMovie.Name = movieDetail.Name;
                     cachedMovie.OriginalName = movieDetail.OriginalName ?? movieDetail.Name;
                     cachedMovie.Description = movieDetail.Description;
@@ -86,50 +100,15 @@ namespace WebAppApiPhim.Services
                     cachedMovie.Quality = movieDetail.Quality;
                     cachedMovie.Language = movieDetail.Language;
                     cachedMovie.LastUpdated = DateTime.Now;
-                    cachedMovie.RawData = JsonSerializer.Serialize(movieDetail);
+                    cachedMovie.RawData = JsonSerializer.Serialize(movieDetail, _jsonOptions);
 
                     _context.CachedMovies.Update(cachedMovie);
                 }
 
-                // Lưu các tập phim
+                // Process episodes if available
                 if (movieDetail.Episodes != null && movieDetail.Episodes.Any())
                 {
-                    // Xóa các tập phim cũ
-                    var oldEpisodes = await _context.CachedEpisodes
-                        .Where(e => e.MovieSlug == movieDetail.Slug)
-                        .ToListAsync();
-
-                    _context.CachedEpisodes.RemoveRange(oldEpisodes);
-
-                    // Thêm các tập phim mới
-                    foreach (var server in movieDetail.Episodes)
-                    {
-                        var serverName = ((JObject)server)["server_name"]?.ToString();
-                        JsonElement jsonServer = (JsonElement)server;
-                        var items = jsonServer.GetProperty("items").EnumerateArray();
-
-
-                        foreach (var item in items)
-                        {
-                            var episodeName = item.GetProperty("name").GetString();
-                            var episodeSlug = item.GetProperty("slug").GetString();
-                            var embedUrl = item.GetProperty("embed").GetString();
-                            var m3u8Url = item.GetProperty("m3u8").GetString();
-
-                            var cachedEpisode = new CachedEpisode
-                            {
-                                MovieSlug = movieDetail.Slug,
-                                ServerName = serverName,
-                                EpisodeName = episodeName,
-                                EpisodeSlug = episodeSlug,
-                                EmbedUrl = embedUrl,
-                                M3u8Url = m3u8Url,
-                                LastUpdated = DateTime.Now
-                            };
-
-                            _context.CachedEpisodes.Add(cachedEpisode);
-                        }
-                    }
+                    await ProcessEpisodesAsync(movieDetail.Slug, movieDetail.Episodes);
                 }
 
                 await _context.SaveChangesAsync();
@@ -148,22 +127,26 @@ namespace WebAppApiPhim.Services
             {
                 var episodes = await _context.CachedEpisodes
                     .Where(e => e.MovieSlug == slug)
+                    .OrderBy(e => e.ServerName)
+                    .ThenBy(e => e.EpisodeName)
                     .ToListAsync();
 
                 if (!episodes.Any())
                 {
-                    // Nếu không có trong cache, lấy từ API
+                    // If not in cache, get from API
                     var movieDetail = await _movieApiService.GetMovieDetailBySlugAsync(slug);
                     if (movieDetail != null)
                     {
                         await CacheMovieAsync(movieDetail);
                         episodes = await _context.CachedEpisodes
                             .Where(e => e.MovieSlug == slug)
+                            .OrderBy(e => e.ServerName)
+                            .ThenBy(e => e.EpisodeName)
                             .ToListAsync();
                     }
                 }
 
-                // Nhóm theo server
+                // Group by server
                 var servers = episodes
                     .GroupBy(e => e.ServerName)
                     .Select(g => new ServerViewModel
@@ -174,7 +157,9 @@ namespace WebAppApiPhim.Services
                             Name = e.EpisodeName,
                             Slug = e.EpisodeSlug,
                             EmbedUrl = e.EmbedUrl,
-                            M3u8Url = e.M3u8Url
+                            M3u8Url = e.M3u8Url,
+                            IsWatched = false,
+                            WatchedPercentage = 0
                         }).ToList()
                     })
                     .ToList();
@@ -197,7 +182,7 @@ namespace WebAppApiPhim.Services
 
                 if (episode == null)
                 {
-                    // Nếu không có trong cache, lấy từ API
+                    // If not in cache, get from API
                     var movieDetail = await _movieApiService.GetMovieDetailBySlugAsync(slug);
                     if (movieDetail != null)
                     {
@@ -215,7 +200,9 @@ namespace WebAppApiPhim.Services
                     Name = episode.EpisodeName,
                     Slug = episode.EpisodeSlug,
                     EmbedUrl = episode.EmbedUrl,
-                    M3u8Url = episode.M3u8Url
+                    M3u8Url = episode.M3u8Url,
+                    IsWatched = false,
+                    WatchedPercentage = 0
                 };
             }
             catch (Exception ex)
@@ -227,8 +214,16 @@ namespace WebAppApiPhim.Services
 
         public async Task<EpisodeProgress> GetEpisodeProgressAsync(string userId, string movieSlug, string episodeSlug)
         {
-            return await _context.EpisodeProgresses
-                .FirstOrDefaultAsync(p => p.UserId == userId && p.MovieSlug == movieSlug && p.EpisodeSlug == episodeSlug);
+            try
+            {
+                return await _context.EpisodeProgresses
+                    .FirstOrDefaultAsync(p => p.UserId == userId && p.MovieSlug == movieSlug && p.EpisodeSlug == episodeSlug);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting episode progress for user {userId}, movie {movieSlug}, episode {episodeSlug}");
+                return null;
+            }
         }
 
         public async Task UpdateEpisodeProgressAsync(string userId, string movieSlug, string episodeSlug, double currentTime, double duration)
@@ -240,7 +235,7 @@ namespace WebAppApiPhim.Services
 
                 if (progress == null)
                 {
-                    // Tạo mới
+                    // Create new progress
                     progress = new EpisodeProgress
                     {
                         UserId = userId,
@@ -255,7 +250,7 @@ namespace WebAppApiPhim.Services
                 }
                 else
                 {
-                    // Cập nhật
+                    // Update existing progress
                     progress.CurrentTime = currentTime;
                     progress.Duration = duration;
                     progress.UpdatedAt = DateTime.Now;
@@ -283,10 +278,9 @@ namespace WebAppApiPhim.Services
                 {
                     movie.ViewCount++;
                     _context.CachedMovies.Update(movie);
-                    await _context.SaveChangesAsync();
                 }
 
-                // Cập nhật thống kê
+                // Update statistics
                 var statistic = await _context.MovieStatistics
                     .FirstOrDefaultAsync(s => s.MovieSlug == slug);
 
@@ -317,23 +311,64 @@ namespace WebAppApiPhim.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error incrementing view count for movie {slug}");
+                // Don't throw - this is a non-critical operation
             }
         }
-    }
 
-    public class ServerViewModel
-    {
-        public string Name { get; set; }
-        public List<EpisodeViewModel> Episodes { get; set; } = new List<EpisodeViewModel>();
-    }
+        private async Task ProcessEpisodesAsync(string movieSlug, List<object> episodes)
+        {
+            try
+            {
+                // Remove old episodes
+                var oldEpisodes = await _context.CachedEpisodes
+                    .Where(e => e.MovieSlug == movieSlug)
+                    .ToListAsync();
 
-    public class EpisodeViewModel
-    {
-        public string Name { get; set; }
-        public string Slug { get; set; }
-        public string EmbedUrl { get; set; }
-        public string M3u8Url { get; set; }
-        public bool IsWatched { get; set; }
-        public double WatchedPercentage { get; set; }
+                _context.CachedEpisodes.RemoveRange(oldEpisodes);
+
+                // Add new episodes
+                foreach (var server in episodes)
+                {
+                    try
+                    {
+                        var jsonServer = JsonSerializer.Serialize(server);
+                        var serverObj = JsonSerializer.Deserialize<JsonElement>(jsonServer);
+
+                        var serverName = serverObj.GetProperty("server_name").GetString();
+                        var items = serverObj.GetProperty("items").EnumerateArray();
+
+                        foreach (var item in items)
+                        {
+                            var episodeName = item.GetProperty("name").GetString();
+                            var episodeSlug = item.GetProperty("slug").GetString();
+                            var embedUrl = item.GetProperty("embed").GetString();
+                            var m3u8Url = item.GetProperty("m3u8").GetString();
+
+                            var cachedEpisode = new CachedEpisode
+                            {
+                                MovieSlug = movieSlug,
+                                ServerName = serverName,
+                                EpisodeName = episodeName,
+                                EpisodeSlug = episodeSlug,
+                                EmbedUrl = embedUrl,
+                                M3u8Url = m3u8Url,
+                                LastUpdated = DateTime.Now
+                            };
+
+                            _context.CachedEpisodes.Add(cachedEpisode);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error processing episode data for movie {movieSlug}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error processing episodes for movie {movieSlug}");
+                throw;
+            }
+        }
     }
 }

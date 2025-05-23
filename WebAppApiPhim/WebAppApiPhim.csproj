@@ -1,29 +1,54 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.10.0" />
-    <PackageReference Include="Microsoft.OpenApi" Version="1.6.24" />
-    <PackageReference Include="Numind.AspNetCore.SpaServices.Extensions" Version="1.0.1" />
-    <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="8.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="8.0.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.0.0" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="8.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
+
+		<!-- Entity Framework -->
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="8.*" />
+
+		<!-- JWT and Security -->
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.10.0" />
+		<PackageReference Include="Polly.Core" Version="8.5.2" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.10.0" />
+
+		<!-- Swagger -->
+		<PackageReference Include="Microsoft.OpenApi" Version="1.6.24" />
+		<PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="8.0.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="8.0.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="8.0.0" />
+
+		<!-- Polly for Resilience -->
+		<PackageReference Include="Polly" Version="8.*" />
+		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.5" />
+
+		<!-- Health Checks -->
+		<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
+		<PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="8.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="8.0.2" />
+		<PackageReference Include="AspNetCore.HealthChecks.Uris" Version="8.0.1" />
+
+		<!-- SPA Services -->
+		<PackageReference Include="Numind.AspNetCore.SpaServices.Extensions" Version="1.0.1" />
+	</ItemGroup>
 
 </Project>

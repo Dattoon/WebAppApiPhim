@@ -1,9 +1,27 @@
-.App {
-  background-color: #00bfff; /* Màu xanh dương nhạt */
-  color: #ffffff; /* Chữ trắng */
-  text-align: center;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+.movie-card {
+  transition: transform 0.3s ease;
+  height: 100%;
+}
+
+.movie-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.movie-card .card-img-top {
+  height: 300px;
+  object-fit: cover;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.pagination .page-link {
+  color: #007bff;
+}
+
+.pagination .page-link:hover {
+  color: #0056b3;
 }

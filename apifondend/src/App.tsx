@@ -1,4 +1,3 @@
-"use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import "./App.css";
@@ -16,14 +15,16 @@ function App() {
     const fetchMovies = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`https://localhost:7056/api/movies/latest`, {
-          params: { page, limit: 8 },
+        const response = await axios.get("https://localhost:7056/api/movies/latest", {
+          params: { page, limit: 20 },
         });
 
         const data = response.data;
         console.log("API Response:", data);
-        setMovies(data.data || []);
-        setTotalPages(data.pagination?.total_pages || 1);
+
+        // ✅ Lấy danh sách phim từ đúng đường dẫn data.data.data
+        setMovies(Array.isArray(data.data?.data) ? data.data.data : []);
+        setTotalPages(data.data?.pagination?.total_pages || 1);
       } catch (err) {
         const errorMessage = axios.isAxiosError(err)
           ? `${err.message}: ${err.response?.status} - ${err.response?.statusText}`
@@ -47,9 +48,42 @@ function App() {
   }
 
   return (
-    <div className="App container py-4">
-      <h1 className="mb-4 text-center">Danh sách phim mới</h1>
-      <MovieList movies={movies} page={page} totalPages={totalPages} onPageChange={setPage} />
+    <div className="container mt-4">
+      <h1 className="text-center mb-4">Movie Collection</h1>
+
+      {movies.length === 0 ? (
+        <div className="alert alert-info">No movies found</div>
+      ) : (
+        <>
+          <MovieList movies={movies} />
+
+          <div className="d-flex justify-content-center mt-4">
+            <nav aria-label="Movie pagination">
+              <ul className="pagination">
+                <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
+                  <button className="page-link" onClick={() => setPage((p) => Math.max(1, p - 1))}>
+                    Previous
+                  </button>
+                </li>
+
+                {Array.from({ length: totalPages }, (_, i) => (
+                  <li key={i} className={`page-item ${page === i + 1 ? "active" : ""}`}>
+                    <button className="page-link" onClick={() => setPage(i + 1)}>
+                      {i + 1}
+                    </button>
+                  </li>
+                ))}
+
+                <li className={`page-item ${page === totalPages ? "disabled" : ""}`}>
+                  <button className="page-link" onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+                    Next
+                  </button>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </>
+      )}
     </div>
   );
 }

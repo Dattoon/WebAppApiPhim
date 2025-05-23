@@ -1,73 +1,179 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using WebAppApiPhim.Services;
-using System;
-using WebAppApiPhim.Repositories;
-using WebAppApiPhim.Data; // namespace chứa ApplicationDbContext
-
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using WebAppApiPhim; // nếu dùng EF Core
+using Microsoft.IdentityModel.Tokens;
+using System.Text.Json.Serialization;
+using WebAppApiPhim.Data;
+using WebAppApiPhim.Models;
+using WebAppApiPhim.Repositories;
+using WebAppApiPhim.Services;
+using WebAppApiPhim.Middleware;
+using Polly;
+using Polly.Extensions.Http;
+using System.Net.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Thêm các dịch vụ vào container
-builder.Services.AddControllers();
+// JSON config
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
+
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Thêm HttpClient Factory
-builder.Services.AddHttpClient();
+// HttpClient + Polly
+builder.Services.AddHttpClient<IMovieApiService, MovieApiService>()
+    .AddPolicyHandler(GetRetryPolicy())
+    .AddPolicyHandler(GetCircuitBreakerPolicy());
 
-// Thêm Memory Cache
-builder.Services.AddMemoryCache();
+// Memory Cache
+builder.Services.AddMemoryCache(options =>
+{
+    options.SizeLimit = 1024 * 1024 * 100; // 100MB
+});
 
-// Đăng ký dịch vụ
+// Register services
 builder.Services.AddScoped<IMovieApiService, MovieApiService>();
 builder.Services.AddScoped<IMetadataRepository, MetadataRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IStreamingService, StreamingService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 
-// Thêm DbContext (ví dụ sử dụng SQL Server)
+// DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
-// Thêm CORS
+// Identity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    options.Password.RequireDigit = true;
+    options.Password.RequiredLength = 8;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireLowercase = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
+
+// JWT
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            System.Text.Encoding.ASCII.GetBytes(builder.Configuration["JwtSettings:Secret"] ?? "your-super-secret-key-that-is-at-least-32-characters-long")),
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ClockSkew = TimeSpan.Zero
+    };
+});
+
+// CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", builder =>
+    options.AddPolicy("AllowFrontend", policy =>
     {
-        builder.WithOrigins("http://localhost:3000") // Frontend URL
-               .AllowAnyMethod()
-               .AllowAnyHeader()
-               .AllowCredentials(); // If you need cookies or credentials
+        policy.WithOrigins("http://localhost:3000", "https://yourproductiondomain.com")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
+// Health Checks
+builder.Services.AddHealthChecks()
+    .AddCheck<DatabaseHealthCheck>("database")
+    .AddCheck<ExternalApiHealthCheck>("external_api")
+    .AddCheck<MemoryCacheHealthCheck>("memory_cache");
+
+builder.Services.AddScoped<DatabaseHealthCheck>();
+builder.Services.AddHttpClient<ExternalApiHealthCheck>();
+builder.Services.AddScoped<MemoryCacheHealthCheck>();
+
+// Background services
+builder.Services.AddHostedService<MovieCacheService>();
+builder.Services.AddHostedService<CacheCleanupService>();
 
 var app = builder.Build();
 
-// Seed dữ liệu sau khi app được build
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<ApplicationDbContext>();
-    await DbSeeder.SeedAsync(context);
-}
-
-// Cấu hình HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Movie API V1");
+        c.RoutePrefix = string.Empty;
+    });
+
     app.UseDeveloperExceptionPage();
 }
 
+// Middleware
+app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<PerformanceMiddleware>();
+app.UseMiddleware<RequestLoggingMiddleware>();
+app.UseMiddleware<RateLimitingMiddleware>();
+
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseCors("AllowFrontend");
 
-app.UseCors("AllowFrontend"); // Replace "AllowAll" with "AllowFrontend"
-
+app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
 app.MapControllers();
 
+// Seed DB
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+        await context.Database.MigrateAsync();
+        await DbSeeder.SeedAsync(context);
+        await DbSeeder.SeedRolesAsync(roleManager);
+        await DbSeeder.SeedAdminUserAsync(userManager);
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+
 app.Run();
+
+// ----------------------
+// Polly Policies Below:
+// ----------------------
+static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
+}

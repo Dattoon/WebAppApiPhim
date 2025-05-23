@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using WebAppApiPhim;
+using WebAppApiPhim.Data;
 
 #nullable disable
 
@@ -164,8 +164,8 @@ namespace WebAppApiPhim.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("AvatarUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
@@ -175,8 +175,8 @@ namespace WebAppApiPhim.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -247,34 +247,41 @@ namespace WebAppApiPhim.Migrations
 
                     b.Property<string>("EmbedUrl")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("EpisodeName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("EpisodeSlug")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("M3u8Url")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("MovieSlug")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ServerName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MovieSlug", "EpisodeSlug");
+                    b.HasIndex("MovieSlug", "EpisodeSlug")
+                        .IsUnique();
 
                     b.ToTable("CachedEpisodes");
                 });
@@ -289,117 +296,104 @@ namespace WebAppApiPhim.Migrations
 
                     b.Property<string>("Actors")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Country")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("ntext");
 
                     b.Property<string>("Director")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Duration")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Genres")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Language")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("OriginalName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("PosterUrl")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Quality")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("RawData")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("ntext");
 
                     b.Property<string>("Slug")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ThumbUrl")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("ViewCount")
                         .HasColumnType("int");
 
                     b.Property<string>("Year")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Country");
+
+                    b.HasIndex("Genres");
+
+                    b.HasIndex("Name");
 
                     b.HasIndex("Slug")
                         .IsUnique();
 
+                    b.HasIndex("Type");
+
+                    b.HasIndex("Year");
+
                     b.ToTable("CachedMovies");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.Comment", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("MovieSlug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("MovieSlug");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("WebAppApiPhim.Models.Country", b =>
@@ -410,22 +404,40 @@ namespace WebAppApiPhim.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApiValue")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Code")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("MovieCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.HasIndex("Name")
+                        .IsUnique();
 
                     b.ToTable("Countries");
                 });
@@ -446,11 +458,13 @@ namespace WebAppApiPhim.Migrations
 
                     b.Property<string>("EpisodeSlug")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("MovieSlug")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -467,72 +481,6 @@ namespace WebAppApiPhim.Migrations
                     b.ToTable("EpisodeProgresses");
                 });
 
-            modelBuilder.Entity("WebAppApiPhim.Models.Favorite", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("MovieName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MoviePosterUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MovieSlug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("MovieSlug");
-
-                    b.HasIndex("UserId", "MovieSlug")
-                        .IsUnique();
-
-                    b.ToTable("Favorites");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.FeaturedMovie", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MovieSlug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Category", "DisplayOrder");
-
-                    b.ToTable("FeaturedMovies");
-                });
-
             modelBuilder.Entity("WebAppApiPhim.Models.Genre", b =>
                 {
                     b.Property<int>("Id")
@@ -541,115 +489,42 @@ namespace WebAppApiPhim.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApiValue")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("MovieCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
                     b.ToTable("Genres");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.Movie", b =>
-                {
-                    b.Property<string>("Slug")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Actors")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Director")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Duration")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Language")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("LastUpdated")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int?>("MovieTypeId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("OriginalName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("PosterUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Quality")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ThumbUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ViewCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Year")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Slug");
-
-                    b.HasIndex("MovieTypeId");
-
-                    b.ToTable("Movies");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.MovieCountry", b =>
-                {
-                    b.Property<string>("MovieSlug")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("CountryId")
-                        .HasColumnType("int");
-
-                    b.HasKey("MovieSlug", "CountryId");
-
-                    b.HasIndex("CountryId");
-
-                    b.ToTable("MovieCountries");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.MovieGenre", b =>
-                {
-                    b.Property<string>("MovieSlug")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("GenreId")
-                        .HasColumnType("int");
-
-                    b.HasKey("MovieSlug", "GenreId");
-
-                    b.HasIndex("GenreId");
-
-                    b.ToTable("MovieGenres");
                 });
 
             modelBuilder.Entity("WebAppApiPhim.Models.MovieStatistic", b =>
@@ -674,7 +549,8 @@ namespace WebAppApiPhim.Migrations
 
                     b.Property<string>("MovieSlug")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("RatingCount")
                         .HasColumnType("int");
@@ -684,8 +560,12 @@ namespace WebAppApiPhim.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AverageRating");
+
                     b.HasIndex("MovieSlug")
                         .IsUnique();
+
+                    b.HasIndex("ViewCount");
 
                     b.ToTable("MovieStatistics");
                 });
@@ -698,23 +578,96 @@ namespace WebAppApiPhim.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApiValue")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<int>("MovieCount")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
 
                     b.ToTable("MovieTypes");
                 });
 
-            modelBuilder.Entity("WebAppApiPhim.Models.Rating", b =>
+            modelBuilder.Entity("WebAppApiPhim.Models.UserComment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Dislikes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Likes")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MovieSlug")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("MovieSlug");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserComments");
+                });
+
+            modelBuilder.Entity("WebAppApiPhim.Models.UserFavorite", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -727,29 +680,22 @@ namespace WebAppApiPhim.Migrations
 
                     b.Property<string>("MovieSlug")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime2");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("Value")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("MovieSlug");
 
                     b.HasIndex("UserId", "MovieSlug")
                         .IsUnique();
 
-                    b.ToTable("Ratings");
+                    b.ToTable("UserFavorites");
                 });
 
-            modelBuilder.Entity("WebAppApiPhim.Models.UserActivity", b =>
+            modelBuilder.Entity("WebAppApiPhim.Models.UserRating", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -757,89 +703,35 @@ namespace WebAppApiPhim.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ActivityType")
+                    b.Property<string>("Comment")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Details")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EntityId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("UserActivities");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.WatchHistory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<double>("CurrentTime")
-                        .HasColumnType("float");
-
-                    b.Property<double>("Duration")
-                        .HasColumnType("float");
-
-                    b.Property<string>("EpisodeName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EpisodeSlug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MovieName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("MoviePosterUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("MovieSlug")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("ServerName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<double>("Rating")
+                        .HasColumnType("float");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<DateTime>("WatchedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<double>("WatchedPercentage")
-                        .HasColumnType("float");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("MovieSlug");
+                    b.HasIndex("UserId", "MovieSlug")
+                        .IsUnique();
 
-                    b.HasIndex("UserId");
-
-                    b.HasIndex("WatchedAt");
-
-                    b.ToTable("WatchHistories");
+                    b.ToTable("UserRatings");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -893,27 +785,22 @@ namespace WebAppApiPhim.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("WebAppApiPhim.Models.Comment", b =>
+            modelBuilder.Entity("WebAppApiPhim.Models.CachedEpisode", b =>
                 {
-                    b.HasOne("WebAppApiPhim.Models.Movie", null)
-                        .WithMany("Comments")
+                    b.HasOne("WebAppApiPhim.Models.CachedMovie", "Movie")
+                        .WithMany("Episodes")
                         .HasForeignKey("MovieSlug")
+                        .HasPrincipalKey("Slug")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WebAppApiPhim.Models.ApplicationUser", "User")
-                        .WithMany("Comments")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
+                    b.Navigation("Movie");
                 });
 
             modelBuilder.Entity("WebAppApiPhim.Models.EpisodeProgress", b =>
                 {
                     b.HasOne("WebAppApiPhim.Models.ApplicationUser", "User")
-                        .WithMany("EpisodeProgresses")
+                        .WithMany("WatchProgress")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -921,80 +808,22 @@ namespace WebAppApiPhim.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("WebAppApiPhim.Models.Favorite", b =>
+            modelBuilder.Entity("WebAppApiPhim.Models.MovieStatistic", b =>
                 {
-                    b.HasOne("WebAppApiPhim.Models.Movie", null)
-                        .WithMany("Favorites")
-                        .HasForeignKey("MovieSlug")
+                    b.HasOne("WebAppApiPhim.Models.CachedMovie", "Movie")
+                        .WithOne("Statistic")
+                        .HasForeignKey("WebAppApiPhim.Models.MovieStatistic", "MovieSlug")
+                        .HasPrincipalKey("WebAppApiPhim.Models.CachedMovie", "Slug")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.HasOne("WebAppApiPhim.Models.ApplicationUser", "User")
-                        .WithMany("Favorites")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.Movie", b =>
-                {
-                    b.HasOne("WebAppApiPhim.Models.MovieType", "MovieType")
-                        .WithMany("Movies")
-                        .HasForeignKey("MovieTypeId");
-
-                    b.Navigation("MovieType");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.MovieCountry", b =>
-                {
-                    b.HasOne("WebAppApiPhim.Models.Country", "Country")
-                        .WithMany("MovieCountries")
-                        .HasForeignKey("CountryId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("WebAppApiPhim.Models.Movie", "Movie")
-                        .WithMany("MovieCountries")
-                        .HasForeignKey("MovieSlug")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Country");
 
                     b.Navigation("Movie");
                 });
 
-            modelBuilder.Entity("WebAppApiPhim.Models.MovieGenre", b =>
+            modelBuilder.Entity("WebAppApiPhim.Models.UserComment", b =>
                 {
-                    b.HasOne("WebAppApiPhim.Models.Genre", "Genre")
-                        .WithMany("MovieGenres")
-                        .HasForeignKey("GenreId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("WebAppApiPhim.Models.Movie", "Movie")
-                        .WithMany("MovieGenres")
-                        .HasForeignKey("MovieSlug")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Genre");
-
-                    b.Navigation("Movie");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.Rating", b =>
-                {
-                    b.HasOne("WebAppApiPhim.Models.Movie", null)
-                        .WithMany("Ratings")
-                        .HasForeignKey("MovieSlug")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("WebAppApiPhim.Models.ApplicationUser", "User")
-                        .WithMany("Ratings")
+                        .WithMany("Comments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1002,10 +831,10 @@ namespace WebAppApiPhim.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("WebAppApiPhim.Models.UserActivity", b =>
+            modelBuilder.Entity("WebAppApiPhim.Models.UserFavorite", b =>
                 {
                     b.HasOne("WebAppApiPhim.Models.ApplicationUser", "User")
-                        .WithMany("UserActivities")
+                        .WithMany("Favorites")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1013,16 +842,10 @@ namespace WebAppApiPhim.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("WebAppApiPhim.Models.WatchHistory", b =>
+            modelBuilder.Entity("WebAppApiPhim.Models.UserRating", b =>
                 {
-                    b.HasOne("WebAppApiPhim.Models.Movie", null)
-                        .WithMany("WatchHistories")
-                        .HasForeignKey("MovieSlug")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("WebAppApiPhim.Models.ApplicationUser", "User")
-                        .WithMany("WatchHistories")
+                        .WithMany("Ratings")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1034,45 +857,19 @@ namespace WebAppApiPhim.Migrations
                 {
                     b.Navigation("Comments");
 
-                    b.Navigation("EpisodeProgresses");
-
                     b.Navigation("Favorites");
 
                     b.Navigation("Ratings");
 
-                    b.Navigation("UserActivities");
-
-                    b.Navigation("WatchHistories");
+                    b.Navigation("WatchProgress");
                 });
 
-            modelBuilder.Entity("WebAppApiPhim.Models.Country", b =>
+            modelBuilder.Entity("WebAppApiPhim.Models.CachedMovie", b =>
                 {
-                    b.Navigation("MovieCountries");
-                });
+                    b.Navigation("Episodes");
 
-            modelBuilder.Entity("WebAppApiPhim.Models.Genre", b =>
-                {
-                    b.Navigation("MovieGenres");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.Movie", b =>
-                {
-                    b.Navigation("Comments");
-
-                    b.Navigation("Favorites");
-
-                    b.Navigation("MovieCountries");
-
-                    b.Navigation("MovieGenres");
-
-                    b.Navigation("Ratings");
-
-                    b.Navigation("WatchHistories");
-                });
-
-            modelBuilder.Entity("WebAppApiPhim.Models.MovieType", b =>
-                {
-                    b.Navigation("Movies");
+                    b.Navigation("Statistic")
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

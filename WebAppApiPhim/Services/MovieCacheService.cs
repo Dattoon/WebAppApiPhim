@@ -7,7 +7,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WebAppApiPhim.Models;
-using WebAppApiPhim.Services;
+using WebAppApiPhim.Data;
+using WebAppApiPhim.Repositories;
 
 namespace WebAppApiPhim.Services
 {
@@ -16,6 +17,7 @@ namespace WebAppApiPhim.Services
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<MovieCacheService> _logger;
         private readonly TimeSpan _interval = TimeSpan.FromHours(6);
+        private readonly TimeSpan _initialDelay = TimeSpan.FromMinutes(5); // Wait 5 minutes after startup before first run
 
         public MovieCacheService(
             IServiceProvider serviceProvider,
@@ -29,13 +31,16 @@ namespace WebAppApiPhim.Services
         {
             _logger.LogInformation("MovieCacheService is starting.");
 
+            // Initial delay to avoid overloading the system at startup
+            await Task.Delay(_initialDelay, stoppingToken);
+
             while (!stoppingToken.IsCancellationRequested)
             {
                 _logger.LogInformation("MovieCacheService is running at: {time}", DateTimeOffset.Now);
 
                 try
                 {
-                    await UpdateMovieCacheAsync();
+                    await UpdateMovieCacheAsync(stoppingToken);
                 }
                 catch (Exception ex)
                 {
@@ -49,15 +54,15 @@ namespace WebAppApiPhim.Services
             _logger.LogInformation("MovieCacheService is stopping.");
         }
 
-        private async Task UpdateMovieCacheAsync()
+        private async Task UpdateMovieCacheAsync(CancellationToken stoppingToken)
         {
             using (var scope = _serviceProvider.CreateScope())
             {
                 var movieApiService = scope.ServiceProvider.GetRequiredService<IMovieApiService>();
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var analyticsService = scope.ServiceProvider.GetRequiredService<IAnalyticsService>();
+                var metadataRepository = scope.ServiceProvider.GetRequiredService<IMetadataRepository>();
 
-                // Lấy phim mới nhất
+                // Get latest movies
                 var latestMovies = await movieApiService.GetLatestMoviesAsync(1, 50);
                 if (latestMovies?.Data == null || !latestMovies.Data.Any())
                 {
@@ -67,95 +72,55 @@ namespace WebAppApiPhim.Services
 
                 _logger.LogInformation("Found {count} latest movies from API", latestMovies.Data.Count);
 
-                // Cập nhật cache
-                foreach (var movie in latestMovies.Data)
+                // Process movies in batches to avoid overwhelming the system
+                const int batchSize = 5;
+                for (int i = 0; i < latestMovies.Data.Count; i += batchSize)
                 {
-                    try
+                    if (stoppingToken.IsCancellationRequested)
+                        break;
+
+                    var batch = latestMovies.Data.Skip(i).Take(batchSize).ToList();
+
+                    foreach (var movie in batch)
                     {
-                        var existingMovie = await dbContext.CachedMovies
-                            .FirstOrDefaultAsync(m => m.Slug == movie.Slug);
+                        if (stoppingToken.IsCancellationRequested)
+                            break;
 
-                        if (existingMovie == null)
+                        try
                         {
-                            _logger.LogInformation("Caching new movie: {slug}", movie.Slug);
+                            var existingMovie = await dbContext.CachedMovies
+                                .FirstOrDefaultAsync(m => m.Slug == movie.Slug, stoppingToken);
 
-                            // Lấy chi tiết phim
-                            var movieDetail = await movieApiService.GetMovieDetailBySlugAsync(movie.Slug);
-                            if (movieDetail != null)
+                            // Check if movie needs updating (not in cache or older than 1 day)
+                            bool needsUpdate = existingMovie == null ||
+                                (DateTime.Now - existingMovie.LastUpdated).TotalDays > 1;
+
+                            if (needsUpdate)
                             {
-                                // Tạo CachedMovie
-                                var cachedMovie = new CachedMovie
-                                {
-                                    Slug = movie.Slug,
-                                    Name = movie.Name,
-                                    OriginalName = movieDetail.OriginalName ?? movie.Name,
-                                    Description = movieDetail.Description,
-                                    PosterUrl = movie.PosterUrl ?? movieDetail.Poster_url ?? movieDetail.Sub_poster,
-                                    ThumbUrl = movie.ThumbUrl ?? movieDetail.Thumb_url ?? movieDetail.Sub_thumb,
-                                    Year = movie.Year,
-                                    Type = movie.Loai_phim,
-                                    Country = movie.Quoc_gia,
-                                    Genres = movieDetail.Genres,
-                                    Director = movieDetail.Director ?? movieDetail.Directors,
-                                    Actors = movieDetail.Casts ?? movieDetail.Actors,
-                                    Duration = movieDetail.Time,
-                                    Quality = movieDetail.Quality,
-                                    Language = movieDetail.Language,
-                                    ViewCount = 0,
-                                    LastUpdated = DateTime.Now
-                                };
+                                _logger.LogInformation("Caching movie: {slug}", movie.Slug);
 
-                                dbContext.CachedMovies.Add(cachedMovie);
-                                await dbContext.SaveChangesAsync();
-
-                                // Cập nhật thống kê
-                                await analyticsService.UpdateMovieStatisticsAsync(movie.Slug);
-                            }
-                        }
-                        else
-                        {
-                            // Kiểm tra xem có cần cập nhật không
-                            var lastUpdated = existingMovie.LastUpdated;
-                            var daysSinceLastUpdate = (DateTime.Now - lastUpdated).TotalDays;
-
-                            if (daysSinceLastUpdate > 1) // Cập nhật nếu đã hơn 1 ngày
-                            {
-                                _logger.LogInformation("Updating cached movie: {slug}", movie.Slug);
-
-                                // Lấy chi tiết phim
+                                // Get movie details
                                 var movieDetail = await movieApiService.GetMovieDetailBySlugAsync(movie.Slug);
-                                if (movieDetail != null)
-                                {
-                                    // Cập nhật CachedMovie
-                                    existingMovie.Name = movie.Name;
-                                    existingMovie.OriginalName = movieDetail.OriginalName ?? movie.Name;
-                                    existingMovie.Description = movieDetail.Description;
-                                    existingMovie.PosterUrl = movie.PosterUrl ?? movieDetail.Poster_url ?? movieDetail.Sub_poster ?? existingMovie.PosterUrl;
-                                    existingMovie.ThumbUrl = movie.ThumbUrl ?? movieDetail.Thumb_url ?? movieDetail.Sub_thumb ?? existingMovie.ThumbUrl;
-                                    existingMovie.Year = movie.Year;
-                                    existingMovie.Type = movie.Loai_phim;
-                                    existingMovie.Country = movie.Quoc_gia;
-                                    existingMovie.Genres = movieDetail.Genres;
-                                    existingMovie.Director = movieDetail.Director ?? movieDetail.Directors;
-                                    existingMovie.Actors = movieDetail.Casts ?? movieDetail.Actors;
-                                    existingMovie.Duration = movieDetail.Time;
-                                    existingMovie.Quality = movieDetail.Quality;
-                                    existingMovie.Language = movieDetail.Language;
-                                    existingMovie.LastUpdated = DateTime.Now;
 
-                                    dbContext.CachedMovies.Update(existingMovie);
-                                    await dbContext.SaveChangesAsync();
-
-                                    // Cập nhật thống kê
-                                    await analyticsService.UpdateMovieStatisticsAsync(movie.Slug);
-                                }
+                                // Wait a bit to avoid overwhelming the API
+                                await Task.Delay(500, stoppingToken);
                             }
                         }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error caching movie {slug}", movie.Slug);
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Error caching movie {slug}", movie.Slug);
-                    }
+                }
+
+                // Update metadata counts
+                try
+                {
+                    await metadataRepository.UpdateMovieCountsAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error updating metadata counts");
                 }
 
                 _logger.LogInformation("Movie cache update completed");

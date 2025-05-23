@@ -1,326 +1,184 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using WebAppApiPhim.Data;
 using WebAppApiPhim.Models;
 
 namespace WebAppApiPhim.Services
 {
     public class UserService : IUserService
     {
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ILogger<UserService> _logger;
 
-        public UserService(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public UserService(UserManager<ApplicationUser> userManager, ILogger<UserService> logger)
         {
-            _context = context;
             _userManager = userManager;
+            _logger = logger;
         }
 
-        // Quản lý người dùng
         public async Task<ApplicationUser> GetUserByIdAsync(string userId)
         {
-            return await _userManager.FindByIdAsync(userId);
-        }
-
-        public async Task<ApplicationUser> GetUserByUsernameAsync(string username)
-        {
-            return await _userManager.FindByNameAsync(username);
+            try
+            {
+                return await _userManager.FindByIdAsync(userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting user by ID: {userId}");
+                return null;
+            }
         }
 
         public async Task<ApplicationUser> GetUserByEmailAsync(string email)
         {
-            return await _userManager.FindByEmailAsync(email);
-        }
-
-        public async Task<IdentityResult> UpdateUserProfileAsync(string userId, string displayName, string avatarUrl)
-        {
-            var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
+            try
             {
-                return IdentityResult.Failed(new IdentityError { Description = "Không tìm thấy người dùng." });
+                return await _userManager.FindByEmailAsync(email);
             }
-
-            user.DisplayName = displayName;
-            if (!string.IsNullOrEmpty(avatarUrl))
+            catch (Exception ex)
             {
-                user.AvatarUrl = avatarUrl;
+                _logger.LogError(ex, $"Error getting user by email: {email}");
+                return null;
             }
-
-            return await _userManager.UpdateAsync(user);
         }
 
-        // Danh sách yêu thích
-        public async Task<bool> AddToFavoritesAsync(string userId, string movieSlug, string movieName, string moviePosterUrl)
+        public async Task<ApplicationUser> CreateUserAsync(ApplicationUser user, string password)
         {
-            // Kiểm tra xem phim đã có trong danh sách yêu thích chưa
-            var existingFavorite = await _context.Favorites
-                .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
-
-            if (existingFavorite != null)
+            try
             {
-                return true; // Đã có trong danh sách yêu thích
-            }
-
-            // Thêm phim vào danh sách yêu thích
-            var favorite = new Favorite
-            {
-                UserId = userId,
-                MovieSlug = movieSlug,
-                MovieName = movieName,
-                MoviePosterUrl = moviePosterUrl,
-                AddedAt = DateTime.Now
-            };
-
-            await _context.Favorites.AddAsync(favorite);
-            await _context.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<bool> RemoveFromFavoritesAsync(string userId, string movieSlug)
-        {
-            var favorite = await _context.Favorites
-                .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
-
-            if (favorite == null)
-            {
-                return false;
-            }
-
-            _context.Favorites.Remove(favorite);
-            await _context.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<bool> IsFavoriteAsync(string userId, string movieSlug)
-        {
-            return await _context.Favorites
-                .AnyAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
-        }
-
-        public async Task<List<Favorite>> GetFavoritesAsync(string userId, int page = 1, int pageSize = 10)
-        {
-            return await _context.Favorites
-                .Where(f => f.UserId == userId)
-                .OrderByDescending(f => f.AddedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
-
-        public async Task<int> GetFavoritesCountAsync(string userId)
-        {
-            return await _context.Favorites
-                .CountAsync(f => f.UserId == userId);
-        }
-
-        // Lịch sử xem
-        public async Task<bool> AddToWatchHistoryAsync(string userId, string movieSlug, string movieName, string moviePosterUrl, string episodeSlug = null, string episodeName = null, double watchedPercentage = 0)
-        {
-            // Kiểm tra xem phim đã có trong lịch sử xem chưa
-            var history = await _context.WatchHistories
-                .FirstOrDefaultAsync(h => h.UserId == userId && h.MovieSlug == movieSlug && h.EpisodeSlug == episodeSlug);
-
-            if (history != null)
-            {
-                // Cập nhật lịch sử xem
-                history.WatchedPercentage = watchedPercentage;
-                history.WatchedAt = DateTime.Now;
-                _context.WatchHistories.Update(history);
-            }
-            else
-            {
-                // Thêm phim vào lịch sử xem
-                history = new WatchHistory
+                var result = await _userManager.CreateAsync(user, password);
+                if (result.Succeeded)
                 {
-                    UserId = userId,
-                    MovieSlug = movieSlug,
-                    MovieName = movieName,
-                    MoviePosterUrl = moviePosterUrl,
-                    EpisodeSlug = episodeSlug,
-                    EpisodeName = episodeName,
-                    WatchedPercentage = watchedPercentage,
-                    WatchedAt = DateTime.Now
-                };
+                    return user;
+                }
 
-                await _context.WatchHistories.AddAsync(history);
+                _logger.LogWarning($"Failed to create user: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                return null;
             }
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<WatchHistory>> GetWatchHistoryAsync(string userId, int page = 1, int pageSize = 10)
-        {
-            return await _context.WatchHistories
-                .Where(h => h.UserId == userId)
-                .OrderByDescending(h => h.WatchedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
-
-        public async Task<int> GetWatchHistoryCountAsync(string userId)
-        {
-            return await _context.WatchHistories
-                .CountAsync(h => h.UserId == userId);
-        }
-
-        public async Task<bool> ClearWatchHistoryAsync(string userId)
-        {
-            var histories = await _context.WatchHistories
-                .Where(h => h.UserId == userId)
-                .ToListAsync();
-
-            _context.WatchHistories.RemoveRange(histories);
-            await _context.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<WatchHistory> GetLastWatchedAsync(string userId, string movieSlug)
-        {
-            return await _context.WatchHistories
-                .Where(h => h.UserId == userId && h.MovieSlug == movieSlug)
-                .OrderByDescending(h => h.WatchedAt)
-                .FirstOrDefaultAsync();
-        }
-
-        // Bình luận
-        public async Task<Comment> AddCommentAsync(string userId, string movieSlug, string content)
-        {
-            var comment = new Comment
+            catch (Exception ex)
             {
-                UserId = userId,
-                MovieSlug = movieSlug,
-                Content = content,
-                CreatedAt = DateTime.Now
-            };
-
-            await _context.Comments.AddAsync(comment);
-            await _context.SaveChangesAsync();
-
-            // Lấy thông tin người dùng để trả về đầy đủ
-            comment.User = await _userManager.FindByIdAsync(userId);
-
-            return comment;
+                _logger.LogError(ex, $"Error creating user: {user.Email}");
+                return null;
+            }
         }
 
-        public async Task<bool> UpdateCommentAsync(int commentId, string userId, string content)
+        public async Task<bool> UpdateUserAsync(ApplicationUser user)
         {
-            var comment = await _context.Comments
-                .FirstOrDefaultAsync(c => c.Id == commentId && c.UserId == userId);
-
-            if (comment == null)
+            try
             {
+                var result = await _userManager.UpdateAsync(user);
+                return result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating user: {user.Id}");
                 return false;
             }
-
-            comment.Content = content;
-            comment.UpdatedAt = DateTime.Now;
-
-            _context.Comments.Update(comment);
-            await _context.SaveChangesAsync();
-
-            return true;
         }
 
-        public async Task<bool> DeleteCommentAsync(int commentId, string userId)
+        public async Task<bool> DeleteUserAsync(string userId)
         {
-            var comment = await _context.Comments
-                .FirstOrDefaultAsync(c => c.Id == commentId && c.UserId == userId);
-
-            if (comment == null)
+            try
             {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
+
+                var result = await _userManager.DeleteAsync(user);
+                return result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting user: {userId}");
                 return false;
             }
-
-            _context.Comments.Remove(comment);
-            await _context.SaveChangesAsync();
-
-            return true;
         }
 
-        public async Task<List<Comment>> GetCommentsByMovieAsync(string movieSlug, int page = 1, int pageSize = 10)
+        public async Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword)
         {
-            return await _context.Comments
-                .Where(c => c.MovieSlug == movieSlug)
-                .OrderByDescending(c => c.CreatedAt)
-                .Include(c => c.User)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
-
-        public async Task<int> GetCommentsCountByMovieAsync(string movieSlug)
-        {
-            return await _context.Comments
-                .CountAsync(c => c.MovieSlug == movieSlug);
-        }
-
-        // Đánh giá
-        public async Task<bool> AddOrUpdateRatingAsync(string userId, string movieSlug, int value)
-        {
-            if (value < 1 || value > 10)
+            try
             {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
+
+                var result = await _userManager.ChangePasswordAsync(user, currentPassword, newPassword);
+                return result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error changing password for user: {userId}");
                 return false;
             }
-
-            var rating = await _context.Ratings
-                .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieSlug == movieSlug);
-
-            if (rating != null)
-            {
-                rating.Value = value;
-                rating.UpdatedAt = DateTime.Now;
-                _context.Ratings.Update(rating);
-            }
-            else
-            {
-                rating = new Rating
-                {
-                    UserId = userId,
-                    MovieSlug = movieSlug,
-                    Value = value,
-                    CreatedAt = DateTime.Now
-                };
-
-                await _context.Ratings.AddAsync(rating);
-            }
-
-            await _context.SaveChangesAsync();
-            return true;
         }
 
-        public async Task<double> GetAverageRatingAsync(string movieSlug)
+        public async Task<List<ApplicationUser>> GetAllUsersAsync(int page = 1, int pageSize = 20)
         {
-            var ratings = await _context.Ratings
-                .Where(r => r.MovieSlug == movieSlug)
-                .ToListAsync();
-
-            if (!ratings.Any())
+            try
             {
-                return 0;
+                return await _userManager.Users
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
             }
-
-            return ratings.Average(r => r.Value);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all users");
+                return new List<ApplicationUser>();
+            }
         }
 
-        public async Task<int> GetRatingCountAsync(string movieSlug)
+        public async Task<bool> AddToRoleAsync(string userId, string roleName)
         {
-            return await _context.Ratings
-                .CountAsync(r => r.MovieSlug == movieSlug);
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
+
+                var result = await _userManager.AddToRoleAsync(user, roleName);
+                return result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error adding user {userId} to role {roleName}");
+                return false;
+            }
         }
 
-        public async Task<Rating> GetUserRatingAsync(string userId, string movieSlug)
+        public async Task<bool> RemoveFromRoleAsync(string userId, string roleName)
         {
-            return await _context.Ratings
-                .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieSlug == movieSlug);
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return false;
+
+                var result = await _userManager.RemoveFromRoleAsync(user, roleName);
+                return result.Succeeded;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error removing user {userId} from role {roleName}");
+                return false;
+            }
+        }
+
+        public async Task<List<string>> GetUserRolesAsync(string userId)
+        {
+            try
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null) return new List<string>();
+
+                var roles = await _userManager.GetRolesAsync(user);
+                return roles.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting roles for user: {userId}");
+                return new List<string>();
+            }
         }
     }
 }
