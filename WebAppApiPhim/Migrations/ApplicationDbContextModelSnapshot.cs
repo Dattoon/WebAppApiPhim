@@ -295,36 +295,29 @@ namespace WebAppApiPhim.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Actors")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Country")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("ntext");
 
                     b.Property<string>("Director")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Duration")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Genres")
-                        .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Language")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -347,12 +340,10 @@ namespace WebAppApiPhim.Migrations
                         .HasColumnType("nvarchar(1000)");
 
                     b.Property<string>("Quality")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("RawData")
-                        .IsRequired()
                         .HasColumnType("ntext");
 
                     b.Property<string>("Slug")
@@ -365,8 +356,11 @@ namespace WebAppApiPhim.Migrations
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<string>("TrailerUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("Type")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -868,8 +862,7 @@ namespace WebAppApiPhim.Migrations
                 {
                     b.Navigation("Episodes");
 
-                    b.Navigation("Statistic")
-                        .IsRequired();
+                    b.Navigation("Statistic");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace WebAppApiPhim.Controllers
 {
@@ -10,52 +8,41 @@ namespace WebAppApiPhim.Controllers
     public class HealthController : ControllerBase
     {
         private readonly HealthCheckService _healthCheckService;
+        private readonly ILogger<HealthController> _logger;
 
-        public HealthController(HealthCheckService healthCheckService)
+        public HealthController(HealthCheckService healthCheckService, ILogger<HealthController> logger)
         {
             _healthCheckService = healthCheckService;
+            _logger = logger;
         }
 
-        /// <summary>
-        /// Get application health status
-        /// </summary>
         [HttpGet]
         public async Task<IActionResult> GetHealth()
         {
-            var healthReport = await _healthCheckService.CheckHealthAsync();
-
-            var response = new
+            try
             {
-                status = healthReport.Status.ToString(),
-                totalDuration = healthReport.TotalDuration.TotalMilliseconds,
-                checks = healthReport.Entries.Select(entry => new
+                var healthReport = await _healthCheckService.CheckHealthAsync();
+
+                if (healthReport.Status == HealthStatus.Healthy)
                 {
-                    name = entry.Key,
-                    status = entry.Value.Status.ToString(),
-                    description = entry.Value.Description,
-                    duration = entry.Value.Duration.TotalMilliseconds,
-                    exception = entry.Value.Exception?.Message
-                })
-            };
-
-            var statusCode = healthReport.Status switch
+                    return Ok(healthReport);
+                }
+                else
+                {
+                    return StatusCode(503, healthReport);
+                }
+            }
+            catch (Exception ex)
             {
-                HealthStatus.Healthy => 200,
-                HealthStatus.Degraded => 200,
-                HealthStatus.Unhealthy => 503,
-                _ => 500
-            };
-
-            return StatusCode(statusCode, response);
+                _logger.LogError(ex, "Error during health check");
+                return StatusCode(500, "Internal server error during health check");
+            }
         }
 
-        /// <summary>
-        /// Simple health check endpoint for load balancers
-        /// </summary>
         [HttpGet("ping")]
         public IActionResult Ping()
         {
-            return Ok(new { status = "healthy", timestamp = System.DateTime.UtcNow });
+            return Ok(new { Status = "OK", Time = DateTime.UtcNow });
         }
     }
 }

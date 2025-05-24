@@ -11,6 +11,9 @@ using WebAppApiPhim.Middleware;
 using Polly;
 using Polly.Extensions.Http;
 using System.Net.Http;
+using WebAppApiPhim.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,7 +23,6 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.Never;
-
     });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -93,15 +95,17 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Health Checks
+// Health Checks - Use unique names to avoid duplicates
 builder.Services.AddHealthChecks()
-    .AddCheck<DatabaseHealthCheck>("database")
-    .AddCheck<ExternalApiHealthCheck>("external_api")
-    .AddCheck<MemoryCacheHealthCheck>("memory_cache");
+    .AddDbContextCheck<ApplicationDbContext>("database_main", failureStatus: HealthStatus.Degraded, tags: new[] { "db", "sql" }) // Use built-in DbContext check
+    .AddUrlGroup(new Uri("https://api.dulieuphim.ink/phim-moi/v1"), "external_api_main", failureStatus: HealthStatus.Degraded, tags: new[] { "api" }) // Check external API
+    .AddCheck<MemoryCacheHealthCheck>("memory_cache", failureStatus: HealthStatus.Degraded, tags: new[] { "cache" });
 
-builder.Services.AddScoped<DatabaseHealthCheck>();
-builder.Services.AddHttpClient<ExternalApiHealthCheck>();
+// Register health check services (if needed by custom checks)
 builder.Services.AddScoped<MemoryCacheHealthCheck>();
+
+// Add enhanced services (check for duplicate health checks in this method)
+builder.Services.AddEnhancedServices(builder.Configuration);
 
 // Background services
 builder.Services.AddHostedService<MovieCacheService>();
@@ -133,8 +137,36 @@ app.UseCors("AllowFrontend");
 
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseResponseCompression();
+app.UseRateLimiter();
 
-app.MapHealthChecks("/health");
+// Map health checks with detailed response
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResultStatusCodes =
+    {
+        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+    },
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var response = new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                duration = e.Value.Duration.TotalMilliseconds
+            })
+        };
+        await context.Response.WriteAsJsonAsync(response);
+    }
+});
+
 app.MapControllers();
 
 // Seed DB

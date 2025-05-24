@@ -1,13 +1,19 @@
 {
   "version": 2,
-  "dgSpecHash": "0T4YIh/J1aHyp94hSXq9jtCP3pG9KJpCdXdIRN4XPvcwNVbwlYjmctmKPEk/2sM8O37f6FHgqyfOYVWSHlMDvQ==",
+  "dgSpecHash": "AUmRcf+ucrnMC9F6/G8TC1sWwG8aYbPBsvDTsDmk3LmKUkj6z7Hi5Sx/2ZnSPvH8bjAxg/R8XzK5Vz5582Q75A==",
   "success": true,
   "projectFilePath": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\WebAppApiPhim.csproj",
   "expectedPackageFiles": [
+    "C:\\Users\\ASUS\\.nuget\\packages\\aspnetcore.healthchecks.redis\\8.0.0\\aspnetcore.healthchecks.redis.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\aspnetcore.healthchecks.sqlserver\\8.0.2\\aspnetcore.healthchecks.sqlserver.8.0.2.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\aspnetcore.healthchecks.system\\8.0.0\\aspnetcore.healthchecks.system.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\aspnetcore.healthchecks.uris\\8.0.1\\aspnetcore.healthchecks.uris.8.0.1.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\azure.core\\1.35.0\\azure.core.1.35.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\azure.identity\\1.10.3\\azure.identity.1.10.3.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\elasticsearch.net\\7.17.5\\elasticsearch.net.7.17.5.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\fluentvalidation\\11.5.1\\fluentvalidation.11.5.1.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\fluentvalidation.aspnetcore\\11.3.0\\fluentvalidation.aspnetcore.11.3.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\fluentvalidation.dependencyinjectionextensions\\11.5.1\\fluentvalidation.dependencyinjectionextensions.11.5.1.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.antiforgery\\2.2.0\\microsoft.aspnetcore.antiforgery.2.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.aspnetcore.authentication.abstractions\\2.2.0\\microsoft.aspnetcore.authentication.abstractions.2.2.0.nupkg.sha512",
@@ -59,7 +65,7 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.codeanalysis.csharp.workspaces\\4.5.0\\microsoft.codeanalysis.csharp.workspaces.4.5.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.codeanalysis.razor\\2.2.0\\microsoft.codeanalysis.razor.2.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.codeanalysis.workspaces.common\\4.5.0\\microsoft.codeanalysis.workspaces.common.4.5.0.nupkg.sha512",
-    "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.csharp\\4.5.0\\microsoft.csharp.4.5.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.csharp\\4.6.0\\microsoft.csharp.4.6.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.data.sqlclient\\5.2.0\\microsoft.data.sqlclient.5.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.data.sqlclient.sni.runtime\\5.2.0\\microsoft.data.sqlclient.sni.runtime.5.2.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.entityframeworkcore\\8.0.0\\microsoft.entityframeworkcore.8.0.0.nupkg.sha512",
@@ -72,6 +78,7 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.extensions.ambientmetadata.application\\8.10.0\\microsoft.extensions.ambientmetadata.application.8.10.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.extensions.caching.abstractions\\8.0.0\\microsoft.extensions.caching.abstractions.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.extensions.caching.memory\\8.0.0\\microsoft.extensions.caching.memory.8.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.extensions.caching.stackexchangeredis\\8.0.0\\microsoft.extensions.caching.stackexchangeredis.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.extensions.compliance.abstractions\\8.10.0\\microsoft.extensions.compliance.abstractions.8.10.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.extensions.configuration\\9.0.5\\microsoft.extensions.configuration.9.0.5.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.5\\microsoft.extensions.configuration.abstractions.9.0.5.nupkg.sha512",
@@ -132,6 +139,7 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\newtonsoft.json\\11.0.2\\newtonsoft.json.11.0.2.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\newtonsoft.json.bson\\1.0.1\\newtonsoft.json.bson.1.0.1.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\numind.aspnetcore.spaservices.extensions\\1.0.1\\numind.aspnetcore.spaservices.extensions.1.0.1.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\pipelines.sockets.unofficial\\2.2.8\\pipelines.sockets.unofficial.2.2.8.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\polly\\8.5.2\\polly.8.5.2.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\polly.core\\8.5.2\\polly.core.8.5.2.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\polly.extensions\\8.4.2\\polly.extensions.8.4.2.nupkg.sha512",
@@ -153,11 +161,25 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\runtime.ubuntu.14.04-x64.runtime.native.system.security.cryptography.openssl\\4.3.0\\runtime.ubuntu.14.04-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\runtime.ubuntu.16.04-x64.runtime.native.system.security.cryptography.openssl\\4.3.0\\runtime.ubuntu.16.04-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl\\4.3.0\\runtime.ubuntu.16.10-x64.runtime.native.system.security.cryptography.openssl.4.3.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog\\4.3.0\\serilog.4.3.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.aspnetcore\\8.0.0\\serilog.aspnetcore.8.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.extensions.hosting\\8.0.0\\serilog.extensions.hosting.8.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.extensions.logging\\8.0.0\\serilog.extensions.logging.8.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.formatting.compact\\2.0.0\\serilog.formatting.compact.2.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.formatting.elasticsearch\\10.0.0\\serilog.formatting.elasticsearch.10.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.settings.configuration\\8.0.0\\serilog.settings.configuration.8.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.sinks.console\\5.0.0\\serilog.sinks.console.5.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.sinks.debug\\2.0.0\\serilog.sinks.debug.2.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.sinks.elasticsearch\\10.0.0\\serilog.sinks.elasticsearch.10.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.sinks.file\\5.0.0\\serilog.sinks.file.5.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\serilog.sinks.periodicbatching\\4.0.0\\serilog.sinks.periodicbatching.4.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\sixlabors.imagesharp\\3.1.0\\sixlabors.imagesharp.3.1.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\stackexchange.redis\\2.7.4\\stackexchange.redis.2.7.4.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\swashbuckle.aspnetcore.swagger\\8.0.0\\swashbuckle.aspnetcore.swagger.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\swashbuckle.aspnetcore.swaggergen\\8.0.0\\swashbuckle.aspnetcore.swaggergen.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\swashbuckle.aspnetcore.swaggerui\\8.0.0\\swashbuckle.aspnetcore.swaggerui.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.appcontext\\4.3.0\\system.appcontext.4.3.0.nupkg.sha512",
-    "C:\\Users\\ASUS\\.nuget\\packages\\system.buffers\\4.5.0\\system.buffers.4.5.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\system.buffers\\4.5.1\\system.buffers.4.5.1.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.codedom\\4.4.0\\system.codedom.4.4.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.collections\\4.3.0\\system.collections.4.3.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.collections.concurrent\\4.3.0\\system.collections.concurrent.4.3.0.nupkg.sha512",
@@ -227,6 +249,7 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\system.security.cryptography.xml\\4.5.0\\system.security.cryptography.xml.4.5.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.security.permissions\\4.5.0\\system.security.permissions.4.5.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.security.principal.windows\\5.0.0\\system.security.principal.windows.5.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\system.serviceprocess.servicecontroller\\8.0.0\\system.serviceprocess.servicecontroller.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.text.encoding\\4.3.0\\system.text.encoding.4.3.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.text.encoding.codepages\\6.0.0\\system.text.encoding.codepages.6.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.text.encoding.extensions\\4.3.0\\system.text.encoding.extensions.4.3.0.nupkg.sha512",
@@ -234,7 +257,7 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\system.text.json\\8.0.0\\system.text.json.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.text.regularexpressions\\4.3.0\\system.text.regularexpressions.4.3.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.threading\\4.3.0\\system.threading.4.3.0.nupkg.sha512",
-    "C:\\Users\\ASUS\\.nuget\\packages\\system.threading.channels\\6.0.0\\system.threading.channels.6.0.0.nupkg.sha512",
+    "C:\\Users\\ASUS\\.nuget\\packages\\system.threading.channels\\8.0.0\\system.threading.channels.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.threading.ratelimiting\\8.0.0\\system.threading.ratelimiting.8.0.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.threading.tasks\\4.3.0\\system.threading.tasks.4.3.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
@@ -242,5 +265,66 @@
     "C:\\Users\\ASUS\\.nuget\\packages\\system.xml.readerwriter\\4.3.0\\system.xml.readerwriter.4.3.0.nupkg.sha512",
     "C:\\Users\\ASUS\\.nuget\\packages\\system.xml.xdocument\\4.3.0\\system.xml.xdocument.4.3.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'SixLabors.ImageSharp' 3.1.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-2cmq-823j-5qj8",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'SixLabors.ImageSharp' 3.1.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-5x7m-6737-26cr",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'SixLabors.ImageSharp' 3.1.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-63p8-c4ww-9cg7",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1903",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'SixLabors.ImageSharp' 3.1.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-65x7-c272-7g7r",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'SixLabors.ImageSharp' 3.1.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-g85r-6x2q-45w7",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1902",
+      "level": "Warning",
+      "warningLevel": 1,
+      "message": "Package 'SixLabors.ImageSharp' 3.1.0 has a known moderate severity vulnerability, https://github.com/advisories/GHSA-qxrv-gp6x-rc23",
+      "libraryId": "SixLabors.ImageSharp",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
 }

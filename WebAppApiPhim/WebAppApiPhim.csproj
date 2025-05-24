@@ -7,12 +7,20 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="AspNetCore.HealthChecks.Redis" Version="8.0.0" />
+		<PackageReference Include="AspNetCore.HealthChecks.System" Version="8.0.0" />
+		<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Facebook" Version="8.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.0" />
-
+		<PackageReference Include="Polly.Extensions.Http" Version="3.0.0" />
+<PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+<PackageReference Include="Serilog.AspNetCore" Version="8.0.0" />
+<PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
+<PackageReference Include="SixLabors.ImageSharp" Version="3.1.0" />
+<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
 		<!-- Entity Framework -->
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
@@ -24,11 +32,16 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="8.*" />
 
 		<!-- JWT and Security -->
 		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.10.0" />
 		<PackageReference Include="Polly.Core" Version="8.5.2" />
+		<PackageReference Include="Serilog" Version="4.3.0" />
+		<PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+		<PackageReference Include="Serilog.Sinks.Elasticsearch" Version="10.0.0" />
+		<PackageReference Include="SixLabors.ImageSharp" Version="3.1.8" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.10.0" />
 
 		<!-- Swagger -->

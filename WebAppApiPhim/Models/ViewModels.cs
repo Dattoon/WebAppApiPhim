@@ -19,14 +19,7 @@ namespace WebAppApiPhim.Models
         public double WatchedPercentage { get; set; }
     }
 
-    // Helper class for image responses
-    public class ImageResponse
-    {
-        public bool Success { get; set; }
-        public string SubThumb { get; set; }
-        public string SubPoster { get; set; }
-    }
-
+  
     // Response models for API
     public class ApiResponse<T>
     {
@@ -55,7 +48,7 @@ namespace WebAppApiPhim.Models
         public string OriginalName { get; set; }
         public string Description { get; set; }
         public string Year { get; set; }
-        public string ThumbUrl { get; set; }
+        public string ThumbnailUrl { get; set; } 
         public string PosterUrl { get; set; }
         public string Type { get; set; }
         public string Country { get; set; }

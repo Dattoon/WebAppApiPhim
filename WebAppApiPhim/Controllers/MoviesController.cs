@@ -26,9 +26,6 @@ namespace WebAppApiPhim.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Get latest movies with pagination
-        /// </summary>
         [HttpGet("latest")]
         public async Task<ActionResult<ApiResponse<MovieListResponse>>> GetLatestMovies(
             [FromQuery] int page = 1,
@@ -37,8 +34,22 @@ namespace WebAppApiPhim.Controllers
         {
             try
             {
-                if (page < 1) page = 1;
-                if (limit < 1 || limit > 50) limit = 10;
+                if (page < 1)
+                {
+                    return BadRequest(new ApiResponse<MovieListResponse>
+                    {
+                        Success = false,
+                        Message = "Page must be greater than 0"
+                    });
+                }
+                if (limit < 1 || limit > 50)
+                {
+                    return BadRequest(new ApiResponse<MovieListResponse>
+                    {
+                        Success = false,
+                        Message = "Limit must be between 1 and 50"
+                    });
+                }
 
                 var result = await _movieApiService.GetLatestMoviesAsync(page, limit, version);
 
@@ -61,9 +72,6 @@ namespace WebAppApiPhim.Controllers
             }
         }
 
-        /// <summary>
-        /// Get movie detail by slug
-        /// </summary>
         [HttpGet("{slug}")]
         public async Task<ActionResult<ApiResponse<MovieDetailViewModel>>> GetMovieDetail(
             string slug,
@@ -91,13 +99,9 @@ namespace WebAppApiPhim.Controllers
                     });
                 }
 
-                // Get cached movie for additional info
                 var cachedMovie = await _streamingService.GetCachedMovieAsync(slug);
-
-                // Get episodes
                 var servers = await _streamingService.GetEpisodesAsync(slug);
 
-                // Build view model
                 var viewModel = new MovieDetailViewModel
                 {
                     Slug = movieDetail.Slug,
@@ -105,8 +109,8 @@ namespace WebAppApiPhim.Controllers
                     OriginalName = movieDetail.OriginalName,
                     Description = movieDetail.Description,
                     Year = movieDetail.Year,
-                    ThumbUrl = movieDetail.Thumb_url ?? movieDetail.Sub_thumb,
-                    PosterUrl = movieDetail.Poster_url ?? movieDetail.Sub_poster,
+                    ThumbnailUrl = movieDetail.Thumb_url ?? movieDetail.Sub_thumb ?? "/placeholder.svg?height=450&width=300",
+                    PosterUrl = movieDetail.Poster_url ?? movieDetail.Sub_poster ?? "/placeholder.svg?height=450&width=300",
                     Type = movieDetail.Format,
                     Country = movieDetail.Countries,
                     Genres = movieDetail.Genres,
@@ -118,23 +122,20 @@ namespace WebAppApiPhim.Controllers
                     ViewCount = cachedMovie?.ViewCount ?? movieDetail.View,
                     AverageRating = cachedMovie?.Statistic?.AverageRating ?? 0,
                     RatingCount = cachedMovie?.Statistic?.RatingCount ?? 0,
-                    IsFavorite = false, // Will be set based on user context
-                    UserRating = null, // Will be set based on user context
+                    IsFavorite = false,
+                    UserRating = null,
                     Servers = servers
                 };
 
-                // Increment view count asynchronously
-                _ = Task.Run(async () =>
+                // Increment view count synchronously to ensure it executes
+                try
                 {
-                    try
-                    {
-                        await _streamingService.IncrementViewCountAsync(slug);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error incrementing view count for {slug}");
-                    }
-                });
+                    await _streamingService.IncrementViewCountAsync(slug);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Error incrementing view count for {slug}");
+                }
 
                 return Ok(new ApiResponse<MovieDetailViewModel>
                 {
@@ -155,9 +156,6 @@ namespace WebAppApiPhim.Controllers
             }
         }
 
-        /// <summary>
-        /// Search movies
-        /// </summary>
         [HttpGet("search")]
         public async Task<ActionResult<ApiResponse<MovieListResponse>>> SearchMovies(
             [FromQuery] string query,
@@ -175,8 +173,22 @@ namespace WebAppApiPhim.Controllers
                     });
                 }
 
-                if (page < 1) page = 1;
-                if (limit < 1 || limit > 50) limit = 20;
+                if (page < 1)
+                {
+                    return BadRequest(new ApiResponse<MovieListResponse>
+                    {
+                        Success = false,
+                        Message = "Page must be greater than 0"
+                    });
+                }
+                if (limit < 1 || limit > 50)
+                {
+                    return BadRequest(new ApiResponse<MovieListResponse>
+                    {
+                        Success = false,
+                        Message = "Limit must be between 1 and 50"
+                    });
+                }
 
                 var result = await _movieApiService.SearchMoviesAsync(query, page, limit);
 
@@ -199,9 +211,6 @@ namespace WebAppApiPhim.Controllers
             }
         }
 
-        /// <summary>
-        /// Filter movies by criteria
-        /// </summary>
         [HttpGet("filter")]
         public async Task<ActionResult<ApiResponse<MovieListResponse>>> FilterMovies(
             [FromQuery] string type = null,
@@ -213,8 +222,22 @@ namespace WebAppApiPhim.Controllers
         {
             try
             {
-                if (page < 1) page = 1;
-                if (limit < 1 || limit > 50) limit = 20;
+                if (page < 1)
+                {
+                    return BadRequest(new ApiResponse<MovieListResponse>
+                    {
+                        Success = false,
+                        Message = "Page must be greater than 0"
+                    });
+                }
+                if (limit < 1 || limit > 50)
+                {
+                    return BadRequest(new ApiResponse<MovieListResponse>
+                    {
+                        Success = false,
+                        Message = "Limit must be between 1 and 50"
+                    });
+                }
 
                 var result = await _movieApiService.FilterMoviesAsync(type, genre, country, year, page, limit);
 
@@ -237,9 +260,6 @@ namespace WebAppApiPhim.Controllers
             }
         }
 
-        /// <summary>
-        /// Get related movies
-        /// </summary>
         [HttpGet("{slug}/related")]
         public async Task<ActionResult<ApiResponse<MovieListResponse>>> GetRelatedMovies(
             string slug,
@@ -257,7 +277,14 @@ namespace WebAppApiPhim.Controllers
                     });
                 }
 
-                if (limit < 1 || limit > 20) limit = 6;
+                if (limit < 1 || limit > 20)
+                {
+                    return BadRequest(new ApiResponse<MovieListResponse>
+                    {
+                        Success = false,
+                        Message = "Limit must be between 1 and 20"
+                    });
+                }
 
                 var result = await _movieApiService.GetRelatedMoviesAsync(slug, limit, version);
 

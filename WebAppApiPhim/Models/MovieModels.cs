@@ -93,6 +93,14 @@ namespace WebAppApiPhim.Models
         public string Episode_current { get; set; }
     }
 
+    // Helper class for image responses
+    public class ImageResponse
+    {
+        public bool Success { get; set; }
+        public string SubThumb { get; set; } // Sửa từ ThumbnailUrl thành SubThumb
+        public string SubPoster { get; set; } // Sửa từ PosterUrl thành SubPoster
+    }
+
     // Database models - Lưu trong DB của chúng ta
     public class CachedMovie : MovieBase
     {
@@ -100,43 +108,44 @@ namespace WebAppApiPhim.Models
         public new int Id { get; set; }
 
         [Column(TypeName = "ntext")]
-        public string Description { get; set; }
+        public string? Description { get; set; } // Make nullable
 
         [StringLength(100)]
-        public string Type { get; set; }
+        public string? Type { get; set; }
 
         [StringLength(200)]
-        public string Country { get; set; }
+        public string? Country { get; set; } // Make nullable
 
         [StringLength(500)]
-        public string Genres { get; set; }
+        public string? Genres { get; set; } // Make nullable
 
         [StringLength(500)]
-        public string Director { get; set; }
+        public string? Director { get; set; } // Make nullable
 
         [StringLength(1000)]
-        public string Actors { get; set; }
+        public string? Actors { get; set; } // Make nullable
 
         [StringLength(50)]
-        public string Duration { get; set; }
+        public string? Duration { get; set; } // Make nullable
 
         [StringLength(50)]
-        public string Quality { get; set; }
+        public string? Quality { get; set; } // Make nullable
 
         [StringLength(50)]
-        public string Language { get; set; }
+        public string? Language { get; set; } // Make nullable
 
         public int ViewCount { get; set; } = 0;
 
+        [StringLength(1000)]
+        public string? TrailerUrl { get; set; } // Make nullable
+
         public DateTime LastUpdated { get; set; } = DateTime.Now;
 
-        // Store the raw JSON for future use if needed
         [Column(TypeName = "ntext")]
-        public string RawData { get; set; }
+        public string? RawData { get; set; } // Make nullable
 
-        // Navigation properties
         public virtual ICollection<CachedEpisode> Episodes { get; set; } = new List<CachedEpisode>();
-        public virtual MovieStatistic Statistic { get; set; }
+        public virtual MovieStatistic? Statistic { get; set; }
     }
 
     public class CachedEpisode
