@@ -6286,3 +6286,5 @@ Error Number:515,State:2,Class:16
 2025-05-25 21:35:39.602 +07:00 [INF] Successfully cached 20 movies for page 3
 2025-05-25 21:35:42.647 +07:00 [INF] Movie synchronization completed. Synced 0 new movies.
 2025-05-25 21:35:49.857 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '204.953'
+2025-05-25 21:51:56.235 +07:00 [INF] SyncMoviesService is starting.
+2025-05-25 21:51:56.304 +07:00 [INF] CacheCleanupService is starting.

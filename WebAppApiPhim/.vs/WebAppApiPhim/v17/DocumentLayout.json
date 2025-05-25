@@ -3,16 +3,32 @@
   "WorkspaceRootPath": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\controllers\\testrealapicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:controllers\\testrealapicontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\docker-compose.yml||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:docker-compose.yml||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\controllers\\moviescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:controllers\\moviescontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\docker-compose.override.yml||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:docker-compose.override.yml||{8B382828-6202-11D1-8870-0000F87579D2}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\services\\movieapiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:services\\movieapiservice.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\dockerfile||{8B382828-6202-11D1-8870-0000F87579D2}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:dockerfile||{8B382828-6202-11D1-8870-0000F87579D2}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\appsettings.production.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:appsettings.production.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|c:\\d\\leaning\\api\\apicode\\webappapiphim\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{7893CCEB-7A35-4624-98C4-2282FC019719}|WebAppApiPhim.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
   "DocumentGroupContainers": [
@@ -22,7 +38,7 @@
       "DocumentGroups": [
         {
           "DockedHeight": 208,
-          "SelectedChildIndex": 2,
+          "SelectedChildIndex": 5,
           "Children": [
             {
               "$type": "Bookmark",
@@ -34,41 +50,93 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "TestRealApiController.cs",
-              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Controllers\\TestRealApiController.cs",
-              "RelativeDocumentMoniker": "Controllers\\TestRealApiController.cs",
-              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Controllers\\TestRealApiController.cs",
-              "RelativeToolTip": "Controllers\\TestRealApiController.cs",
-              "ViewState": "AQIAAIYAAAAAAAAAAAAawFIAAABBAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-25T14:33:07.467Z",
+              "DocumentIndex": 2,
+              "Title": "Dockerfile",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Dockerfile",
+              "RelativeDocumentMoniker": "Dockerfile",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Dockerfile",
+              "RelativeToolTip": "Dockerfile",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001001|",
+              "WhenOpened": "2025-05-25T15:03:12.152Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "appsettings.Production.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\appsettings.Production.json",
+              "RelativeDocumentMoniker": "appsettings.Production.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\appsettings.Production.json",
+              "RelativeToolTip": "appsettings.Production.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAABnAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-25T15:02:47.607Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
               "DocumentIndex": 1,
-              "Title": "MoviesController.cs",
-              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Controllers\\MoviesController.cs",
-              "RelativeDocumentMoniker": "Controllers\\MoviesController.cs",
-              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Controllers\\MoviesController.cs",
-              "RelativeToolTip": "Controllers\\MoviesController.cs",
-              "ViewState": "AQIAADwBAAAAAAAAAAAswGcBAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-25T14:27:21.693Z",
+              "Title": "docker-compose.override.yml",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\docker-compose.override.yml",
+              "RelativeDocumentMoniker": "docker-compose.override.yml",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\docker-compose.override.yml",
+              "RelativeToolTip": "docker-compose.override.yml",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAABcAAAAPAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
+              "WhenOpened": "2025-05-25T15:02:28.744Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
-              "Title": "MovieApiService.cs",
-              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Services\\MovieApiService.cs",
-              "RelativeDocumentMoniker": "Services\\MovieApiService.cs",
-              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Services\\MovieApiService.cs",
-              "RelativeToolTip": "Services\\MovieApiService.cs",
-              "ViewState": "AQIAAAkCAAAAAAAAAAAswCsCAAAAAAAA",
+              "DocumentIndex": 0,
+              "Title": "docker-compose.yml",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\docker-compose.yml",
+              "RelativeDocumentMoniker": "docker-compose.yml",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\docker-compose.yml",
+              "RelativeToolTip": "docker-compose.yml",
+              "ViewState": "AQIAAC0AAAAAAAAAAAAAABoAAAAMAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003775|",
+              "WhenOpened": "2025-05-25T15:02:16.099Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AQIAAB4AAAAAAAAAAAAAADMAAAAzAAAA",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-05-25T14:27:08.537Z",
+              "WhenOpened": "2025-05-25T15:02:04.039Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "appsettings.Development.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\appsettings.Development.json",
+              "RelativeToolTip": "appsettings.Development.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAASAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-25T15:01:57.165Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "C:\\D\\Leaning\\API\\APICode\\WebAppApiPhim\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAIAAAB9AAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-05-25T15:01:50.285Z",
               "EditorCaption": ""
             }
           ]
