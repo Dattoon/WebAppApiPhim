@@ -78,7 +78,7 @@ namespace WebAppApiPhim.Services
                 // Clean up old episode progress (older than 6 months)
                 var progressThreshold = DateTime.Now.AddMonths(-6);
                 var oldProgress = await dbContext.EpisodeProgresses
-                    .Where(p => p.UpdatedAt < progressThreshold)
+                    .Where(p => p.LastWatched < progressThreshold)
                     .ToListAsync(stoppingToken);
 
                 if (oldProgress.Any())

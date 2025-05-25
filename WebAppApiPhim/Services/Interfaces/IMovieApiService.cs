@@ -2,18 +2,23 @@
 using System.Threading.Tasks;
 using WebAppApiPhim.Models;
 
-namespace WebAppApiPhim.Services
+
+namespace WebAppApiPhim.Services.Interfaces
 {
     public interface IMovieApiService
     {
-        Task<MovieListResponse> GetLatestMoviesAsync(int page = 1, int limit = 10, string version = null);
-        Task<MovieDetailResponse> GetMovieDetailBySlugAsync(string slug, string version = null);
-        Task<MovieListResponse> SearchMoviesAsync(string query, int page = 1, int limit = 10);
-        Task<MovieListResponse> FilterMoviesAsync(string type = null, string genre = null, string country = null, string year = null, int page = 1, int limit = 10);
-        Task<MovieListResponse> GetRelatedMoviesAsync(string slug, int limit = 6, string version = null);
         Task<List<string>> GetGenresAsync();
         Task<List<string>> GetCountriesAsync();
-        Task<List<string>> GetYearsAsync();
         Task<List<string>> GetMovieTypesAsync();
+      
+        Task<Models.MovieListResponse> GetMoviesByCategoryAsync(string category, int page = 1);
+        Task<Models.MovieListResponse> GetMoviesByGenreAsync(string genreSlug, int page = 1);
+        Task<Models.MovieListResponse> GetMoviesByCountryAsync(string countrySlug, int page = 1);
+        Task<Models.MovieListResponse> GetMoviesByTypeAsync(string typeSlug, int page = 1);
+        Task<Models.ImageResponse> GetMovieImagesAsync(string slug);
+        Task<ProductionApiResponse> GetProductionDataAsync(string slug);
+
+        Task<Models.MovieListResponse> GetLatestMoviesAsync(int page = 1, int limit = 20, string version = null);
+        Task<Models.MovieDetailResponse> GetMovieDetailBySlugAsync(string slug, string version = null);
     }
 }

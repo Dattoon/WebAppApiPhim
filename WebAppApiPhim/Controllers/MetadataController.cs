@@ -1,190 +1,118 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using WebAppApiPhim.Models;
-using WebAppApiPhim.Services;
+using WebAppApiPhim.Services.Interfaces;
 
 namespace WebAppApiPhim.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")] // Restrict to admins
     public class MetadataController : ControllerBase
     {
-        private readonly IMovieApiService _movieApiService;
+        private readonly IMetadataService _metadataService;
         private readonly ILogger<MetadataController> _logger;
 
-        public MetadataController(
-            IMovieApiService movieApiService,
-            ILogger<MetadataController> logger)
+        public MetadataController(IMetadataService metadataService, ILogger<MetadataController> logger)
         {
-            _movieApiService = movieApiService;
-            _logger = logger;
+            _metadataService = metadataService ?? throw new ArgumentNullException(nameof(metadataService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Get all genres
-        /// </summary>
-        [HttpGet("genres")]
-        public async Task<ActionResult<ApiResponse<List<string>>>> GetGenres()
+        [HttpPost("genres")]
+        public async Task<IActionResult> AddGenre([FromBody] GenreRequest request)
         {
             try
             {
-                var genres = await _movieApiService.GetGenresAsync();
-
-                return Ok(new ApiResponse<List<string>>
+                if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Slug))
                 {
-                    Success = true,
-                    Message = "Genres retrieved successfully",
-                    Data = genres
-                });
+                    return BadRequest(new { Success = false, Message = "Name and slug are required" });
+                }
+
+                var success = await _metadataService.AddGenreAsync(request.Name, request.Slug);
+                if (!success)
+                {
+                    return StatusCode(500, new { Success = false, Message = "Failed to add genre" });
+                }
+
+                return Ok(new { Success = true, Message = "Genre added successfully" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting genres");
-                return StatusCode(500, new ApiResponse<List<string>>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, "Error adding genre: {Name}", request.Name);
+                return StatusCode(500, new { Success = false, Message = "Internal server error" });
             }
         }
 
-        /// <summary>
-        /// Get all countries
-        /// </summary>
-        [HttpGet("countries")]
-        public async Task<ActionResult<ApiResponse<List<string>>>> GetCountries()
+        [HttpPost("countries")]
+        public async Task<IActionResult> AddCountry([FromBody] CountryRequest request)
         {
             try
             {
-                var countries = await _movieApiService.GetCountriesAsync();
-
-                return Ok(new ApiResponse<List<string>>
+                if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Code) || string.IsNullOrWhiteSpace(request.Slug))
                 {
-                    Success = true,
-                    Message = "Countries retrieved successfully",
-                    Data = countries
-                });
+                    return BadRequest(new { Success = false, Message = "Name, code, and slug are required" });
+                }
+
+                var success = await _metadataService.AddCountryAsync(request.Name, request.Code, request.Slug);
+                if (!success)
+                {
+                    return StatusCode(500, new { Success = false, Message = "Failed to add country" });
+                }
+
+                return Ok(new { Success = true, Message = "Country added successfully" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting countries");
-                return StatusCode(500, new ApiResponse<List<string>>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, "Error adding country: {Name}", request.Name);
+                return StatusCode(500, new { Success = false, Message = "Internal server error" });
             }
         }
 
-        /// <summary>
-        /// Get all years
-        /// </summary>
-        [HttpGet("years")]
-        public async Task<ActionResult<ApiResponse<List<string>>>> GetYears()
+        [HttpPost("movie-types")]
+        public async Task<IActionResult> AddMovieType([FromBody] MovieTypeRequest request)
         {
             try
             {
-                var years = await _movieApiService.GetYearsAsync();
-
-                return Ok(new ApiResponse<List<string>>
+                if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Slug))
                 {
-                    Success = true,
-                    Message = "Years retrieved successfully",
-                    Data = years
-                });
+                    return BadRequest(new { Success = false, Message = "Name and slug are required" });
+                }
+
+                var success = await _metadataService.AddMovieTypeAsync(request.Name, request.Slug);
+                if (!success)
+                {
+                    return StatusCode(500, new { Success = false, Message = "Failed to add movie type" });
+                }
+
+                return Ok(new { Success = true, Message = "Movie type added successfully" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting years");
-                return StatusCode(500, new ApiResponse<List<string>>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
-            }
-        }
-
-        /// <summary>
-        /// Get all movie types
-        /// </summary>
-        [HttpGet("types")]
-        public async Task<ActionResult<ApiResponse<List<string>>>> GetMovieTypes()
-        {
-            try
-            {
-                var types = await _movieApiService.GetMovieTypesAsync();
-
-                return Ok(new ApiResponse<List<string>>
-                {
-                    Success = true,
-                    Message = "Movie types retrieved successfully",
-                    Data = types
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting movie types");
-                return StatusCode(500, new ApiResponse<List<string>>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
-            }
-        }
-
-        /// <summary>
-        /// Get all metadata in one request
-        /// </summary>
-        [HttpGet("all")]
-        public async Task<ActionResult<ApiResponse<MetadataResponse>>> GetAllMetadata()
-        {
-            try
-            {
-                var genres = await _movieApiService.GetGenresAsync();
-                var countries = await _movieApiService.GetCountriesAsync();
-                var years = await _movieApiService.GetYearsAsync();
-                var types = await _movieApiService.GetMovieTypesAsync();
-
-                var metadata = new MetadataResponse
-                {
-                    Genres = genres,
-                    Countries = countries,
-                    Years = years,
-                    Types = types
-                };
-
-                return Ok(new ApiResponse<MetadataResponse>
-                {
-                    Success = true,
-                    Message = "All metadata retrieved successfully",
-                    Data = metadata
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all metadata");
-                return StatusCode(500, new ApiResponse<MetadataResponse>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, "Error adding movie type: {Name}", request.Name);
+                return StatusCode(500, new { Success = false, Message = "Internal server error" });
             }
         }
     }
 
-    public class MetadataResponse
+    public class GenreRequest
     {
-        public List<string> Genres { get; set; } = new List<string>();
-        public List<string> Countries { get; set; } = new List<string>();
-        public List<string> Years { get; set; } = new List<string>();
-        public List<string> Types { get; set; } = new List<string>();
+        public string Name { get; set; }
+        public string Slug { get; set; }
+    }
+
+    public class CountryRequest
+    {
+        public string Name { get; set; }
+        public string Code { get; set; }
+        public string Slug { get; set; }
+    }
+
+    public class MovieTypeRequest
+    {
+        public string Name { get; set; }
+        public string Slug { get; set; }
     }
 }

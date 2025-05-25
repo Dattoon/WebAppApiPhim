@@ -1,17 +1,15 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using WebAppApiPhim.Models;
+﻿using WebAppApiPhim.Models;
 
-namespace WebAppApiPhim.Services
+namespace WebAppApiPhim.Services.Interfaces
 {
     public interface IStreamingService
     {
         Task<CachedMovie> GetCachedMovieAsync(string slug);
         Task<CachedMovie> CacheMovieAsync(MovieDetailResponse movieDetail);
         Task<List<ServerViewModel>> GetEpisodesAsync(string slug);
-        Task<EpisodeViewModel> GetEpisodeAsync(string slug, string episodeSlug);
-        Task<EpisodeProgress> GetEpisodeProgressAsync(string userId, string movieSlug, string episodeSlug);
-        Task UpdateEpisodeProgressAsync(string userId, string movieSlug, string episodeSlug, double currentTime, double duration);
+        Task<EpisodeViewModel> GetEpisodeAsync(string slug, string episodeId);
+        Task<EpisodeProgress> GetEpisodeProgressAsync(string userId, string movieSlug, string episodeId);
+        Task UpdateEpisodeProgressAsync(string userId, string movieSlug, string episodeId, double currentTime, double duration);
         Task IncrementViewCountAsync(string slug);
     }
 }

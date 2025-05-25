@@ -1,0 +1,65 @@
+﻿version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5001:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=MovieDb;User=sa;Password=Your_strong_password123;
+      - ConnectionStrings__Redis=redis:6379  # Thêm Redis
+      - ConnectionStrings__Elasticsearch=http://elasticsearch:9200  # Thêm Elasticsearch (nếu cần)
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: Your_strong_password123
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    networks:
+      - backend
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"  # Mở port Redis để debug cục bộ
+    networks:
+      - backend
+
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    networks:
+      - backend
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    command: http api:80
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN}
+    depends_on:
+      - api
+    ports:
+      - "4040:4040"
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  sql_data:

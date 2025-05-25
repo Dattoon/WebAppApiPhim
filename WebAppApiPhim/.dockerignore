@@ -1,0 +1,13 @@
+﻿**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+*.user
+*.csproj.user
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+.env
+.git
+.gitignore
+README.md

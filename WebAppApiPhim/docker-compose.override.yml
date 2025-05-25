@@ -1,0 +1,27 @@
+﻿version: '3.9'
+
+services:
+  api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=MovieDb;User=sa;Password=Your_strong_password123;
+    ports:
+      - "5001:80"
+    depends_on:
+      - db
+    networks:
+      - backend
+
+  db:
+    ports:
+      - "1433:1433"
+    networks:
+      - backend
+
+  ngrok:
+    ports:
+      - "4040:4040"
+    depends_on:
+      - api
+    networks:
+      - backend

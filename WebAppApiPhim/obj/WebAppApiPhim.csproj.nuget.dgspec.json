@@ -51,33 +51,21 @@
             },
             "AspNetCore.HealthChecks.SqlServer": {
               "target": "Package",
-              "version": "[8.0.2, )"
-            },
-            "AspNetCore.HealthChecks.System": {
-              "target": "Package",
               "version": "[8.0.0, )"
             },
             "AspNetCore.HealthChecks.Uris": {
               "target": "Package",
-              "version": "[8.0.1, )"
+              "version": "[8.0.0, )"
+            },
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.0.3, )"
             },
             "FluentValidation.AspNetCore": {
               "target": "Package",
               "version": "[11.3.0, )"
             },
-            "Microsoft.AspNetCore.Authentication.Facebook": {
-              "target": "Package",
-              "version": "[8.0.0, )"
-            },
-            "Microsoft.AspNetCore.Authentication.Google": {
-              "target": "Package",
-              "version": "[8.0.0, )"
-            },
             "Microsoft.AspNetCore.Authentication.JwtBearer": {
-              "target": "Package",
-              "version": "[8.0.0, )"
-            },
-            "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.0, )"
             },
@@ -117,33 +105,17 @@
               "target": "Package",
               "version": "[8.0.0, )"
             },
-            "Microsoft.Extensions.Http.Polly": {
-              "target": "Package",
-              "version": "[9.0.5, )"
-            },
             "Microsoft.Extensions.Http.Resilience": {
               "target": "Package",
-              "version": "[8.*, )"
+              "version": "[8.0.0, )"
             },
             "Microsoft.IdentityModel.Tokens": {
               "target": "Package",
-              "version": "[8.10.0, )"
-            },
-            "Microsoft.OpenApi": {
-              "target": "Package",
-              "version": "[1.6.24, )"
+              "version": "[8.0.0, )"
             },
             "Numind.AspNetCore.SpaServices.Extensions": {
               "target": "Package",
               "version": "[1.0.1, )"
-            },
-            "Polly": {
-              "target": "Package",
-              "version": "[8.*, )"
-            },
-            "Polly.Core": {
-              "target": "Package",
-              "version": "[8.5.2, )"
             },
             "Polly.Extensions.Http": {
               "target": "Package",
@@ -163,7 +135,7 @@
             },
             "SixLabors.ImageSharp": {
               "target": "Package",
-              "version": "[3.1.0, )"
+              "version": "[3.1.8, )"
             },
             "Swashbuckle.AspNetCore.Swagger": {
               "target": "Package",
@@ -179,7 +151,7 @@
             },
             "System.IdentityModel.Tokens.Jwt": {
               "target": "Package",
-              "version": "[8.10.0, )"
+              "version": "[8.0.0, )"
             }
           },
           "imports": [

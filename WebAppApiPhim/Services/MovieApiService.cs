@@ -1,768 +1,412 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.Logging;
 using WebAppApiPhim.Models;
-using WebAppApiPhim.Data;
-using System.Threading;
-using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json.Serialization;
+
+using WebAppApiPhim.Services.Interfaces;
 
 namespace WebAppApiPhim.Services
 {
-   
-
     public class MovieApiService : IMovieApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly IMemoryCache _cache;
+        private readonly IMemoryCache _memoryCache;
         private readonly ILogger<MovieApiService> _logger;
-        private readonly ApplicationDbContext _dbContext;
-        private readonly IServiceScopeFactory _scopeFactory;
-        private readonly string _baseUrl = "https://api.dulieuphim.ink";
-        private readonly string[] _apiVersions = new[] { "v1", "v3", "v2" };
-        private readonly JsonSerializerOptions _jsonOptions;
-        private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(5, 5); // Limit concurrent requests
-
-        // Cache expiration times
-        private readonly TimeSpan _shortCacheTime = TimeSpan.FromMinutes(15);
-        private readonly TimeSpan _mediumCacheTime = TimeSpan.FromHours(1);
-        private readonly TimeSpan _longCacheTime = TimeSpan.FromDays(1);
+        private readonly TimeSpan _cacheTime = TimeSpan.FromHours(24);
 
         public MovieApiService(
             HttpClient httpClient,
-            IMemoryCache cache,
-            ILogger<MovieApiService> logger,
-            ApplicationDbContext dbContext,
-            IServiceScopeFactory scopeFactory)
+            IMemoryCache memoryCache,
+            ILogger<MovieApiService> logger)
         {
-            _httpClient = httpClient;
-            _cache = cache;
-            _logger = logger;
-            _dbContext = dbContext;
-            _scopeFactory = scopeFactory;
-            _jsonOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                NumberHandling = JsonNumberHandling.AllowReadingFromString
-            };
-        }
-
-        public async Task<MovieListResponse> GetLatestMoviesAsync(int page = 1, int limit = 10, string version = null)
-        {
-            if (page < 1) page = 1;
-            if (limit < 1 || limit > 50) limit = 10;
-
-            string cacheKey = $"latest_movies_{page}_{limit}";
-
-            if (_cache.TryGetValue(cacheKey, out MovieListResponse cachedResponse))
-            {
-                _logger.LogInformation($"Cache hit for {cacheKey}");
-                return cachedResponse;
-            }
-
-            var versionsToTry = version != null ? new[] { version } : _apiVersions;
-
-            foreach (var ver in versionsToTry)
-            {
-                try
-                {
-                    string url = $"{_baseUrl}/phim-moi/{ver}?page={page}&limit={limit}";
-                    _logger.LogInformation($"Fetching latest movies from {url}");
-
-                    var response = await _httpClient.GetAsync(url);
-                    response.EnsureSuccessStatusCode();
-
-                    var content = await response.Content.ReadAsStringAsync();
-                    var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                    if (result?.Data != null && result.Data.Any())
-                    {
-                        await EnrichMoviesWithImagesAsync(result.Data);
-                    }
-
-                    var cacheEntryOptions = new MemoryCacheEntryOptions
-                    {
-                        AbsoluteExpirationRelativeToNow = _shortCacheTime,
-                        Size = EstimateCacheSize(result) // Ước lượng kích thước dựa trên dữ liệu
-                    };
-
-                    _cache.Set(cacheKey, result, cacheEntryOptions);
-                    _logger.LogInformation($"Successfully fetched latest movies using {ver}");
-                    return result;
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, $"Error fetching latest movies with {ver}: {ex.Message}");
-                }
-            }
-
-            _logger.LogError("All API versions failed for GetLatestMoviesAsync");
-            return new MovieListResponse
-            {
-                Data = new List<MovieItem>(),
-                Pagination = new Pagination
-                {
-                    Current_page = page,
-                    Total_pages = 1,
-                    Total_items = 0,
-                    Limit = limit
-                }
-            };
-        }
-
-
-        public async Task<MovieDetailResponse> GetMovieDetailBySlugAsync(string slug, string version = null)
-        {
-            if (string.IsNullOrWhiteSpace(slug))
-                throw new ArgumentException("Slug is required", nameof(slug));
-
-            string cacheKey = $"movie_detail_{slug}";
-
-            if (_cache.TryGetValue(cacheKey, out MovieDetailResponse cachedResponse))
-            {
-                _logger.LogInformation($"Cache hit for {cacheKey}");
-                return cachedResponse;
-            }
-
-            var cachedMovie = await _dbContext.CachedMovies
-                .FirstOrDefaultAsync(m => m.Slug == slug);
-
-            if (cachedMovie != null && !string.IsNullOrEmpty(cachedMovie.RawData))
-            {
-                try
-                {
-                    var movieDetail = JsonSerializer.Deserialize<MovieDetailResponse>(cachedMovie.RawData, _jsonOptions);
-                    if (movieDetail != null)
-                    {
-                        var cacheOptions = new MemoryCacheEntryOptions
-                        {
-                            AbsoluteExpirationRelativeToNow = _mediumCacheTime,
-                            Size = EstimateCacheSize(movieDetail)
-                        };
-                        _cache.Set(cacheKey, movieDetail, cacheOptions);
-                        return movieDetail;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, $"Error deserializing cached movie data for {slug}");
-                }
-            }
-
-            var versionsToTry = version != null ? new[] { version } : _apiVersions;
-
-            foreach (var ver in versionsToTry)
-            {
-                try
-                {
-                    using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)); // Timeout 10 giây
-                    string url = $"{_baseUrl}/phim-chi-tiet/{ver}?slug={slug}";
-                    _logger.LogInformation($"Fetching movie detail from {url}");
-
-                    var response = await _httpClient.GetAsync(url, cts.Token);
-                    response.EnsureSuccessStatusCode();
-
-                    var content = await response.Content.ReadAsStringAsync(cts.Token);
-                    var result = JsonSerializer.Deserialize<MovieDetailResponse>(content, _jsonOptions);
-
-                    if (result != null)
-                    {
-                        var cacheOptions = new MemoryCacheEntryOptions
-                        {
-                            AbsoluteExpirationRelativeToNow = _mediumCacheTime,
-                            Size = EstimateCacheSize(result)
-                        };
-                        _cache.Set(cacheKey, result, cacheOptions);
-
-                        await StoreMovieInDatabaseAsync(result);
-                        _logger.LogInformation($"Successfully fetched movie detail using {ver}");
-                        return result;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, $"Error fetching movie detail with {ver}: {ex.Message}");
-                }
-            }
-
-            _logger.LogError($"All API versions failed for GetMovieDetailBySlugAsync with slug: {slug}");
-            return null;
-        }
-
-
-
-
-
-        public async Task<MovieListResponse> SearchMoviesAsync(string query, int page = 1, int limit = 10)
-        {
-            if (string.IsNullOrWhiteSpace(query))
-                throw new ArgumentException("Query is required", nameof(query));
-
-            if (page < 1) page = 1;
-            if (limit < 1 || limit > 50) limit = 10;
-
-            string cacheKey = $"search_movies_{query}_{page}_{limit}";
-
-            if (_cache.TryGetValue(cacheKey, out MovieListResponse cachedResponse))
-            {
-                _logger.LogInformation($"Cache hit for {cacheKey}");
-                return cachedResponse;
-            }
-
-            try
-            {
-                string url = $"{_baseUrl}/phim-data/v1?name={Uri.EscapeDataString(query)}&page={page}&limit={limit}";
-                _logger.LogInformation($"Searching movies from {url}");
-
-                var response = await _httpClient.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                if (result?.Data != null && result.Data.Any())
-                {
-                    await EnrichMoviesWithImagesAsync(result.Data);
-                }
-
-                var cacheEntryOptions = new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = _shortCacheTime,
-                    Size = EstimateCacheSize(result)
-                };
-                _cache.Set(cacheKey, result, cacheEntryOptions);
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error searching movies: {ex.Message}");
-                return new MovieListResponse
-                {
-                    Data = new List<MovieItem>(),
-                    Pagination = new Pagination
-                    {
-                        Current_page = page,
-                        Total_pages = 1,
-                        Total_items = 0,
-                        Limit = limit
-                    }
-                };
-            }
-        }
-
-        public async Task<MovieListResponse> FilterMoviesAsync(string type = null, string genre = null, string country = null, string year = null, int page = 1, int limit = 10)
-        {
-            if (page < 1) page = 1;
-            if (limit < 1 || limit > 50) limit = 10;
-
-            string cacheKey = $"filter_movies_{type}_{genre}_{country}_{year}_{page}_{limit}";
-
-            if (_cache.TryGetValue(cacheKey, out MovieListResponse cachedResponse))
-            {
-                _logger.LogInformation($"Cache hit for {cacheKey}");
-                return cachedResponse;
-            }
-
-            try
-            {
-                string url = $"{_baseUrl}/phim-data/v1?page={page}&limit={limit}";
-
-                if (!string.IsNullOrEmpty(type))
-                    url += $"&loai_phim={Uri.EscapeDataString(type)}";
-                if (!string.IsNullOrEmpty(genre))
-                    url += $"&the_loai={Uri.EscapeDataString(genre)}";
-                if (!string.IsNullOrEmpty(country))
-                    url += $"&quoc_gia={Uri.EscapeDataString(country)}";
-                if (!string.IsNullOrEmpty(year))
-                    url += $"&year={Uri.EscapeDataString(year)}";
-
-                _logger.LogInformation($"Filtering movies from {url}");
-
-                var response = await _httpClient.GetAsync(url);
-                response.EnsureSuccessStatusCode();
-
-                var content = await response.Content.ReadAsStringAsync();
-                var result = JsonSerializer.Deserialize<MovieListResponse>(content, _jsonOptions);
-
-                if (result?.Data != null && result.Data.Any())
-                {
-                    await EnrichMoviesWithImagesAsync(result.Data);
-                }
-
-                var cacheEntryOptions = new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = _shortCacheTime,
-                    Size = EstimateCacheSize(result)
-                };
-                _cache.Set(cacheKey, result, cacheEntryOptions);
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error filtering movies: {ex.Message}");
-                return new MovieListResponse
-                {
-                    Data = new List<MovieItem>(),
-                    Pagination = new Pagination
-                    {
-                        Current_page = page,
-                        Total_pages = 1,
-                        Total_items = 0,
-                        Limit = limit
-                    }
-                };
-            }
-        }
-
-        public async Task<MovieListResponse> GetRelatedMoviesAsync(string slug, int limit = 6, string version = null)
-        {
-            if (string.IsNullOrWhiteSpace(slug))
-                throw new ArgumentException("Slug is required", nameof(slug));
-
-            if (limit < 1 || limit > 20) limit = 6;
-
-            string cacheKey = $"related_movies_{slug}_{limit}";
-
-            if (_cache.TryGetValue(cacheKey, out MovieListResponse cachedResponse))
-            {
-                _logger.LogInformation($"Cache hit for {cacheKey}");
-                return cachedResponse;
-            }
-
-            try
-            {
-                var movieDetail = await GetMovieDetailBySlugAsync(slug);
-
-                if (movieDetail != null && !string.IsNullOrEmpty(movieDetail.Genres))
-                {
-                    var genres = movieDetail.Genres.Split(',').FirstOrDefault()?.Trim();
-                    if (!string.IsNullOrEmpty(genres))
-                    {
-                        var relatedByGenre = await FilterMoviesAsync(
-                            type: movieDetail.Format,
-                            genre: genres,
-                            limit: limit);
-
-                        if (relatedByGenre?.Data != null && relatedByGenre.Data.Any())
-                        {
-                            relatedByGenre.Data = relatedByGenre.Data
-                                .Where(m => m.Slug != slug)
-                                .Take(limit)
-                                .ToList();
-
-                            if (relatedByGenre.Data.Any())
-                            {
-                                var dbCacheOptions = new MemoryCacheEntryOptions 
-                                {
-                                    AbsoluteExpirationRelativeToNow = _shortCacheTime,
-                                    Size = EstimateCacheSize(relatedByGenre)
-                                };
-                                _cache.Set(cacheKey, relatedByGenre, dbCacheOptions);
-                                return relatedByGenre;
-                            }
-                        }
-                    }
-                }
-
-                var result = await GetLatestMoviesAsync(1, limit + 1, version);
-
-                if (result?.Data != null)
-                {
-                    result.Data = result.Data
-                        .Where(m => m.Slug != slug)
-                        .Take(limit)
-                        .ToList();
-                }
-
-                var cacheEntryOptions = new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = _shortCacheTime,
-                    Size = EstimateCacheSize(result)
-                };
-                _cache.Set(cacheKey, result, cacheEntryOptions);
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error getting related movies for {slug}");
-                return await GetLatestMoviesAsync(1, limit, version);
-            }
+            _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
+            _memoryCache = memoryCache ?? throw new ArgumentNullException(nameof(memoryCache));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<List<string>> GetGenresAsync()
         {
-            string cacheKey = "all_genres";
-
-            if (_cache.TryGetValue(cacheKey, out List<string> cachedGenres))
+            string cacheKey = "genres";
+            if (_memoryCache.TryGetValue(cacheKey, out List<string>? cachedGenres))
             {
-                return cachedGenres;
+                _logger.LogInformation("Cache hit for genres");
+                return cachedGenres ?? new List<string>();
             }
 
-            var genres = await _dbContext.Genres
-                .Where(g => g.IsActive)
-                .Select(g => g.Name)
-                .ToListAsync();
-
-            if (!genres.Any())
+            try
             {
-                genres = new List<string>
+                var response = await _httpClient.GetAsync("api/genres");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var genres = JsonSerializer.Deserialize<List<string>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<string>();
+
+                _memoryCache.Set(cacheKey, genres, new MemoryCacheEntryOptions
                 {
-                    "Hành Động", "Tình Cảm", "Hài Hước", "Cổ Trang", "Kinh Dị", "Tâm Lý",
-                    "Khoa Học Viễn Tưởng", "Phiêu Lưu", "Hình Sự", "Chiến Tranh"
-                };
+                    Size = EstimateCacheSize(genres),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation("Fetched and cached genres");
+                return genres;
             }
-
-            var cacheEntryOptions = new MemoryCacheEntryOptions
+            catch (Exception ex)
             {
-                AbsoluteExpirationRelativeToNow = _longCacheTime,
-                Size = EstimateCacheSize(genres)
-            };
-            _cache.Set(cacheKey, genres, cacheEntryOptions);
-
-            return genres;
+                _logger.LogError(ex, "Error fetching genres");
+                return new List<string>();
+            }
         }
 
         public async Task<List<string>> GetCountriesAsync()
         {
-            string cacheKey = "all_countries";
-
-            if (_cache.TryGetValue(cacheKey, out List<string> cachedCountries))
+            string cacheKey = "countries";
+            if (_memoryCache.TryGetValue(cacheKey, out List<string>? cachedCountries))
             {
-                return cachedCountries;
+                _logger.LogInformation("Cache hit for countries");
+                return cachedCountries ?? new List<string>();
             }
 
-            var countries = await _dbContext.Countries
-                .Where(c => c.IsActive)
-                .Select(c => c.Name)
-                .ToListAsync();
-
-            if (!countries.Any())
+            try
             {
-                countries = new List<string>
+                var response = await _httpClient.GetAsync("api/countries");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var countries = JsonSerializer.Deserialize<List<string>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<string>();
+
+                _memoryCache.Set(cacheKey, countries, new MemoryCacheEntryOptions
                 {
-                    "Việt Nam", "Trung Quốc", "Hàn Quốc", "Nhật Bản", "Thái Lan", "Âu Mỹ",
-                    "Đài Loan", "Hồng Kông", "Ấn Độ", "Philippines", "Quốc gia khác"
-                };
+                    Size = EstimateCacheSize(countries),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation("Fetched and cached countries");
+                return countries;
             }
-
-            var cacheEntryOptions = new MemoryCacheEntryOptions
+            catch (Exception ex)
             {
-                AbsoluteExpirationRelativeToNow = _longCacheTime,
-                Size = EstimateCacheSize(countries)
-            };
-            _cache.Set(cacheKey, countries, cacheEntryOptions);
-
-            return countries;
-        }
-
-        public async Task<List<string>> GetYearsAsync()
-        {
-            string cacheKey = "all_years";
-
-            if (_cache.TryGetValue(cacheKey, out List<string> cachedYears))
-            {
-                return cachedYears;
+                _logger.LogError(ex, "Error fetching countries");
+                return new List<string>();
             }
-
-            var years = new List<string>();
-            int currentYear = DateTime.Now.Year;
-
-            for (int year = currentYear; year >= 2000; year--)
-            {
-                years.Add(year.ToString());
-            }
-
-            var cacheEntryOptions = new MemoryCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = _longCacheTime,
-                Size = EstimateCacheSize(years)
-            };
-            _cache.Set(cacheKey, years, cacheEntryOptions);
-
-            return years;
         }
 
         public async Task<List<string>> GetMovieTypesAsync()
         {
-            string cacheKey = "all_movie_types";
-
-            if (_cache.TryGetValue(cacheKey, out List<string> cachedTypes))
+            string cacheKey = "movie_types";
+            if (_memoryCache.TryGetValue(cacheKey, out List<string>? cachedTypes))
             {
-                return cachedTypes;
+                _logger.LogInformation("Cache hit for movie types");
+                return cachedTypes ?? new List<string>();
             }
-
-            var types = await _dbContext.MovieTypes
-                .Where(t => t.IsActive)
-                .Select(t => t.Name)
-                .ToListAsync();
-
-            if (!types.Any())
-            {
-                types = new List<string>
-                {
-                    "Phim lẻ", "Phim bộ", "Phim chiếu rạp", "Phim đang chiếu", "TV shows", "Hoạt hình"
-                };
-            }
-
-            var cacheEntryOptions = new MemoryCacheEntryOptions
-            {
-                AbsoluteExpirationRelativeToNow = _longCacheTime,
-                Size = EstimateCacheSize(types)
-            };
-            _cache.Set(cacheKey, types, cacheEntryOptions);
-
-            return types;
-        }
-
-        private async Task EnrichMoviesWithImagesAsync(List<MovieItem> movies)
-        {
-            const int batchSize = 5;
-
-            for (int i = 0; i < movies.Count; i += batchSize)
-            {
-                var batch = movies.Skip(i).Take(batchSize).ToList();
-                var tasks = batch.Select(movie => EnrichMovieWithImageAsync(movie)).ToList();
-
-                await Task.WhenAll(tasks); // Đảm bảo tất cả task hoàn thành
-            }
-        }
-
-        private async Task EnrichMovieWithImageAsync(MovieItem movie)
-        {
-            string cacheKey = $"movie_images_{movie.Slug}";
 
             try
             {
-                if (_cache.TryGetValue(cacheKey, out ImageResponse cachedImage) && cachedImage?.Success == true)
+                var response = await _httpClient.GetAsync("api/movie-types");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var types = JsonSerializer.Deserialize<List<string>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<string>();
+
+                _memoryCache.Set(cacheKey, types, new MemoryCacheEntryOptions
                 {
-                    movie.ThumbUrl = cachedImage.SubThumb;
-                    movie.PosterUrl = cachedImage.SubPoster;
-                    return;
-                }
-
-                using (var scope = _scopeFactory.CreateScope())
-                {
-                    var scopedDbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    var cachedMovie = await scopedDbContext.CachedMovies.FirstOrDefaultAsync(m => m.Slug == movie.Slug);
-                    if (cachedMovie != null && !string.IsNullOrEmpty(cachedMovie.ThumbUrl))
-                    {
-                        movie.ThumbUrl = cachedMovie.ThumbUrl;
-                        movie.PosterUrl = cachedMovie.PosterUrl;
-
-                        var cacheEntryOptions = new MemoryCacheEntryOptions
-                        {
-                            AbsoluteExpirationRelativeToNow = _longCacheTime,
-                            Size = 1024 // Kích thước cố định cho image response
-                        };
-                        _cache.Set(cacheKey, new ImageResponse { Success = true, SubThumb = cachedMovie.ThumbUrl, SubPoster = cachedMovie.PosterUrl }, cacheEntryOptions);
-                        return;
-                    }
-                }
-
-                string[] imageApiVersions = { "v2", "v3", "v1" };
-                foreach (var ver in imageApiVersions)
-                {
-                    try
-                    {
-                        string imageUrl = $"{_baseUrl}/get-img/{ver}?slug={movie.Slug}";
-                        var response = await _httpClient.GetAsync(imageUrl);
-                        response.EnsureSuccessStatusCode();
-
-                        var content = await response.Content.ReadAsStringAsync();
-                        var imgResult = JsonSerializer.Deserialize<ImageResponse>(content, _jsonOptions);
-
-                        if (imgResult != null && imgResult.Success)
-                        {
-                            movie.ThumbUrl = imgResult.SubThumb;
-                            movie.PosterUrl = imgResult.SubPoster;
-
-                            var cacheEntryOptions = new MemoryCacheEntryOptions
-                            {
-                                AbsoluteExpirationRelativeToNow = _longCacheTime,
-                                Size = 1024
-                            };
-                            _cache.Set(cacheKey, imgResult, cacheEntryOptions);
-                            return;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogWarning(ex, $"Image fetch failed for {movie.Slug} (version {ver})");
-                    }
-                }
-
-                movie.ThumbUrl = "/placeholder.svg?height=450&width=300";
-                movie.PosterUrl = "/placeholder.svg?height=450&width=300";
+                    Size = EstimateCacheSize(types),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation("Fetched and cached movie types");
+                return types;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error enriching movie {movie.Slug} with images");
-                movie.ThumbUrl = "/placeholder.svg?height=450&width=300";
-                movie.PosterUrl = "/placeholder.svg?height=450&width=300";
+                _logger.LogError(ex, "Error fetching movie types");
+                return new List<string>();
             }
         }
 
-        private async Task StoreMovieInDatabaseAsync(MovieDetailResponse movie)
+        public async Task<Models.MovieDetailResponse> GetMovieDetailBySlugAsync(string slug, string apiVersion = "v3")
         {
+            if (string.IsNullOrWhiteSpace(slug))
+                throw new ArgumentException("Slug is required", nameof(slug));
+
+            string cacheKey = $"movie_detail_{slug}_{apiVersion}";
+            if (_memoryCache.TryGetValue(cacheKey, out Models.MovieDetailResponse? cachedMovie))
+            {
+                _logger.LogInformation($"Cache hit for movie detail: {slug}");
+                return cachedMovie ?? new Models.MovieDetailResponse();
+            }
+
             try
             {
-                var existingMovie = await _dbContext.CachedMovies
-                    .Include(m => m.Episodes)
-                    .Include(m => m.Statistic)
-                    .FirstOrDefaultAsync(m => m.Slug == movie.Slug);
+                var response = await _httpClient.GetAsync($"api/movies/{slug}?v={apiVersion}");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var movie = JsonSerializer.Deserialize<Models.MovieDetailResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Models.MovieDetailResponse();
 
-                if (existingMovie == null)
+                _memoryCache.Set(cacheKey, movie, new MemoryCacheEntryOptions
                 {
-                    var newMovie = new CachedMovie
-                    {
-                        Slug = movie.Slug,
-                        Name = movie.Name,
-                        OriginalName = movie.OriginalName,
-                        Year = movie.Year,
-                        ThumbUrl = movie.Sub_thumb ?? movie.Thumb_url ?? "/placeholder.svg?height=450&width=300",
-                        PosterUrl = movie.Sub_poster ?? movie.Poster_url ?? "/placeholder.svg?height=450&width=300",
-                        Description = movie.Description,
-                        Type = movie.Format ?? movie.Type,
-                        Country = movie.Countries,
-                        Genres = movie.Genres,
-                        Director = movie.Director ?? movie.Directors,
-                        Actors = movie.Casts ?? movie.Actors,
-                        Duration = movie.Time,
-                        Quality = movie.Quality,
-                        Language = movie.Language,
-                        ViewCount = movie.View,
-                        LastUpdated = DateTime.Now,
-                        RawData = JsonSerializer.Serialize(movie, _jsonOptions)
-                    };
-
-                    newMovie.Statistic = new MovieStatistic
-                    {
-                        MovieSlug = movie.Slug,
-                        ViewCount = movie.View,
-                        LastUpdated = DateTime.Now
-                    };
-
-                    if (movie.Episodes != null)
-                    {
-                        foreach (var episodeObj in movie.Episodes)
-                        {
-                            if (episodeObj is Dictionary<string, object> episodeDict &&
-                                episodeDict.ContainsKey("server_name") && episodeDict.ContainsKey("items"))
-                            {
-                                string serverName = episodeDict["server_name"].ToString();
-                                var items = episodeDict["items"] as List<object>;
-
-                                if (items != null)
-                                {
-                                    foreach (var item in items)
-                                    {
-                                        if (item is Dictionary<string, object> episodeItem)
-                                        {
-                                            newMovie.Episodes.Add(new CachedEpisode
-                                            {
-                                                MovieSlug = movie.Slug,
-                                                ServerName = serverName,
-                                                EpisodeName = episodeItem.GetValueOrDefault("name")?.ToString(),
-                                                EpisodeSlug = episodeItem.GetValueOrDefault("slug")?.ToString(),
-                                                EmbedUrl = episodeItem.GetValueOrDefault("embed")?.ToString(),
-                                                M3u8Url = episodeItem.GetValueOrDefault("m3u8")?.ToString(),
-                                                LastUpdated = DateTime.Now
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    _dbContext.CachedMovies.Add(newMovie);
-                }
-                else
-                {
-                    existingMovie.Name = movie.Name;
-                    existingMovie.OriginalName = movie.OriginalName;
-                    existingMovie.Year = movie.Year;
-                    existingMovie.ThumbUrl = movie.Sub_thumb ?? movie.Thumb_url ?? existingMovie.ThumbUrl;
-                    existingMovie.PosterUrl = movie.Sub_poster ?? movie.Poster_url ?? existingMovie.PosterUrl;
-                    existingMovie.Description = movie.Description;
-                    existingMovie.Type = movie.Format ?? movie.Type;
-                    existingMovie.Country = movie.Countries;
-                    existingMovie.Genres = movie.Genres;
-                    existingMovie.Director = movie.Director ?? movie.Directors;
-                    existingMovie.Actors = movie.Casts ?? movie.Actors;
-                    existingMovie.Duration = movie.Time;
-                    existingMovie.Quality = movie.Quality;
-                    existingMovie.Language = movie.Language;
-                    existingMovie.ViewCount = movie.View;
-                    existingMovie.LastUpdated = DateTime.Now;
-                    existingMovie.RawData = JsonSerializer.Serialize(movie, _jsonOptions);
-
-                    if (existingMovie.Statistic != null)
-                    {
-                        existingMovie.Statistic.ViewCount = movie.View;
-                        existingMovie.Statistic.LastUpdated = DateTime.Now;
-                    }
-
-                    if (movie.Episodes != null)
-                    {
-                        _dbContext.CachedEpisodes.RemoveRange(existingMovie.Episodes);
-                        existingMovie.Episodes.Clear();
-
-                        foreach (var episodeObj in movie.Episodes)
-                        {
-                            if (episodeObj is Dictionary<string, object> episodeDict &&
-                                episodeDict.ContainsKey("server_name") && episodeDict.ContainsKey("items"))
-                            {
-                                string serverName = episodeDict["server_name"].ToString();
-                                var items = episodeDict["items"] as List<object>;
-
-                                if (items != null)
-                                {
-                                    foreach (var item in items)
-                                    {
-                                        if (item is Dictionary<string, object> episodeItem)
-                                        {
-                                            existingMovie.Episodes.Add(new CachedEpisode
-                                            {
-                                                MovieSlug = movie.Slug,
-                                                ServerName = serverName,
-                                                EpisodeName = episodeItem.GetValueOrDefault("name")?.ToString(),
-                                                EpisodeSlug = episodeItem.GetValueOrDefault("slug")?.ToString(),
-                                                EmbedUrl = episodeItem.GetValueOrDefault("embed")?.ToString(),
-                                                M3u8Url = episodeItem.GetValueOrDefault("m3u8")?.ToString(),
-                                                LastUpdated = DateTime.Now
-                                            });
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                await _dbContext.SaveChangesAsync();
-                _logger.LogInformation($"Successfully stored movie {movie.Slug} in database");
+                    Size = EstimateCacheSize(movie),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation($"Fetched and cached movie detail for: {slug}");
+                return movie;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error storing movie {movie.Slug} in database");
-                throw;
+                _logger.LogError(ex, $"Error fetching movie detail for: {slug}");
+                return new Models.MovieDetailResponse();
+            }
+        }
+
+        public async Task<Models.MovieListResponse> GetMoviesByCategoryAsync(string category, int page = 1)
+        {
+            if (string.IsNullOrWhiteSpace(category))
+                throw new ArgumentException("Category is required", nameof(category));
+
+            string cacheKey = $"movies_by_category_{category}_{page}";
+            if (_memoryCache.TryGetValue(cacheKey, out Models.MovieListResponse? cachedResponse))
+            {
+                _logger.LogInformation($"Cache hit for movies by category: {category}, page: {page}");
+                return cachedResponse ?? new Models.MovieListResponse();
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/movies/category/{category}?page={page}");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var movies = JsonSerializer.Deserialize<Models.MovieListResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Models.MovieListResponse();
+
+                _memoryCache.Set(cacheKey, movies, new MemoryCacheEntryOptions
+                {
+                    Size = EstimateCacheSize(movies),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation($"Fetched and cached movies by category: {category}, page: {page}");
+                return movies;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching movies by category: {category}, page: {page}");
+                return new Models.MovieListResponse { Data = new List<Models.MovieItem>(), Pagination = new Models.Pagination() };
+            }
+        }
+
+        public async Task<Models.MovieListResponse> GetMoviesByGenreAsync(string genreSlug, int page = 1)
+        {
+            if (string.IsNullOrWhiteSpace(genreSlug))
+                throw new ArgumentException("Genre slug is required", nameof(genreSlug));
+
+            string cacheKey = $"movies_by_genre_{genreSlug}_{page}";
+            if (_memoryCache.TryGetValue(cacheKey, out Models.MovieListResponse? cachedResponse))
+            {
+                _logger.LogInformation($"Cache hit for movies by genre: {genreSlug}, page: {page}");
+                return cachedResponse ?? new Models.MovieListResponse();
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/movies/genre/{genreSlug}?page={page}");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var movies = JsonSerializer.Deserialize<Models.MovieListResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Models.MovieListResponse();
+
+                _memoryCache.Set(cacheKey, movies, new MemoryCacheEntryOptions
+                {
+                    Size = EstimateCacheSize(movies),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation($"Fetched and cached movies by genre: {genreSlug}, page: {page}");
+                return movies;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching movies by genre: {genreSlug}, page: {page}");
+                return new Models.MovieListResponse { Data = new List<Models.MovieItem>(), Pagination = new Models.Pagination() };
+            }
+        }
+
+        public async Task<Models.MovieListResponse> GetMoviesByCountryAsync(string countrySlug, int page = 1)
+        {
+            if (string.IsNullOrWhiteSpace(countrySlug))
+                throw new ArgumentException("Country slug is required", nameof(countrySlug));
+
+            string cacheKey = $"movies_by_country_{countrySlug}_{page}";
+            if (_memoryCache.TryGetValue(cacheKey, out Models.MovieListResponse? cachedResponse))
+            {
+                _logger.LogInformation($"Cache hit for movies by country: {countrySlug}, page: {page}");
+                return cachedResponse ?? new Models.MovieListResponse();
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/movies/country/{countrySlug}?page={page}");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var movies = JsonSerializer.Deserialize<Models.MovieListResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Models.MovieListResponse();
+
+                _memoryCache.Set(cacheKey, movies, new MemoryCacheEntryOptions
+                {
+                    Size = EstimateCacheSize(movies),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation($"Fetched and cached movies by country: {countrySlug}, page: {page}");
+                return movies;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching movies by country: {countrySlug}, page: {page}");
+                return new Models.MovieListResponse { Data = new List<Models.MovieItem>(), Pagination = new Models.Pagination() };
+            }
+        }
+
+        public async Task<Models.MovieListResponse> GetMoviesByTypeAsync(string typeSlug, int page = 1)
+        {
+            if (string.IsNullOrWhiteSpace(typeSlug))
+                throw new ArgumentException("Type slug is required", nameof(typeSlug));
+
+            string cacheKey = $"movies_by_type_{typeSlug}_{page}";
+            if (_memoryCache.TryGetValue(cacheKey, out Models.MovieListResponse ? cachedResponse))
+            {
+                _logger.LogInformation($"Cache hit for movies by type: {typeSlug}, page: {page}");
+                return cachedResponse ?? new Models.MovieListResponse();
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/movies/type/{typeSlug}?page={page}");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var movies = JsonSerializer.Deserialize<Models.MovieListResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Models.MovieListResponse();
+
+                _memoryCache.Set(cacheKey, movies, new MemoryCacheEntryOptions
+                {
+                    Size = EstimateCacheSize(movies),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation($"Fetched and cached movies by type: {typeSlug}, page: {page}");
+                return movies;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching movies by type: {typeSlug}, page: {page}");
+                return new Models.MovieListResponse { Data = new List<Models.MovieItem>(), Pagination = new Models.Pagination() };
+            }
+        }
+
+        public async Task<Models.ImageResponse> GetMovieImagesAsync(string slug)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                throw new ArgumentException("Slug is required", nameof(slug));
+
+            string cacheKey = $"movie_images_{slug}";
+            if (_memoryCache.TryGetValue(cacheKey, out Models.ImageResponse? cachedImages))
+            {
+                _logger.LogInformation($"Cache hit for images: {slug}");
+                return cachedImages ?? new Models.ImageResponse();
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/movies/{slug}/images");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var images = JsonSerializer.Deserialize<Models.ImageResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Models.ImageResponse();
+
+                _memoryCache.Set(cacheKey, images, new MemoryCacheEntryOptions
+                {
+                    Size = EstimateCacheSize(images),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation($"Fetched and cached images for: {slug}");
+                return images;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching images for: {slug}");
+                return new Models.ImageResponse { Success = false };
+            }
+        }
+
+        public async Task<ProductionApiResponse> GetProductionDataAsync(string slug)
+        {
+            if (string.IsNullOrWhiteSpace(slug))
+                throw new ArgumentException("Slug is required", nameof(slug));
+
+            string cacheKey = $"production_data_{slug}";
+            if (_memoryCache.TryGetValue(cacheKey, out ProductionApiResponse? cachedData))
+            {
+                _logger.LogInformation($"Cache hit for production data: {slug}");
+                return cachedData ?? new ProductionApiResponse();
+            }
+
+            try
+            {
+                var response = await _httpClient.GetAsync($"api/movies/{slug}/production");
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var data = JsonSerializer.Deserialize<ProductionApiResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new ProductionApiResponse();
+
+                _memoryCache.Set(cacheKey, data, new MemoryCacheEntryOptions
+                {
+                    Size = EstimateCacheSize(data),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation($"Fetched and cached production data for: {slug}");
+                return data;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching production data for: {slug}");
+                return new ProductionApiResponse { Status = "error" };
             }
         }
 
         private int EstimateCacheSize(object data)
         {
-            // Ước lượng kích thước dựa trên kích thước chuỗi JSON của dữ liệu
-            string json = JsonSerializer.Serialize(data, _jsonOptions);
-            return json.Length * sizeof(char); // Ước lượng kích thước byte
+            if (data == null) return 1024;
+
+            try
+            {
+                var json = JsonSerializer.Serialize(data);
+                return json.Length * sizeof(char);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error estimating cache size, using default size");
+                return 1024;
+            }
+        }
+
+        Task<Models.MovieDetailResponse> IMovieApiService.GetMovieDetailBySlugAsync(string slug, string apiVersion)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Models.MovieListResponse> IMovieApiService.GetMoviesByCategoryAsync(string category, int page)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Models.MovieListResponse> IMovieApiService.GetMoviesByGenreAsync(string genreSlug, int page)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Models.MovieListResponse> IMovieApiService.GetMoviesByCountryAsync(string countrySlug, int page)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Models.MovieListResponse> IMovieApiService.GetMoviesByTypeAsync(string typeSlug, int page)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task<Models.ImageResponse> IMovieApiService.GetMovieImagesAsync(string slug)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Models.MovieListResponse> GetLatestMoviesAsync(int page = 1, int limit = 20, string version = null)
+        {
+            throw new NotImplementedException();
         }
     }
 }

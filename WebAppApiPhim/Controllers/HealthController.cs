@@ -23,21 +23,38 @@ namespace WebAppApiPhim.Controllers
             {
                 var healthReport = await _healthCheckService.CheckHealthAsync();
 
+                var response = new
+                {
+                    status = healthReport.Status.ToString(),
+                    checks = healthReport.Entries.Select(e => new
+                    {
+                        name = e.Key,
+                        status = e.Value.Status.ToString(),
+                        description = e.Value.Description ?? "none",
+                        error = e.Value.Exception?.Message ?? "none",
+                        duration = e.Value.Duration.TotalMilliseconds
+                    })
+                };
+
                 if (healthReport.Status == HealthStatus.Healthy)
                 {
-                    return Ok(healthReport);
+                    return Ok(response);
                 }
-                else
-                {
-                    return StatusCode(503, healthReport);
-                }
+
+                return StatusCode(503, response);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during health check");
-                return StatusCode(500, "Internal server error during health check");
+                return StatusCode(500, new
+                {
+                    message = "Internal server error during health check",
+                    exception = ex.Message,
+                    stackTrace = ex.StackTrace
+                });
             }
         }
+
 
         [HttpGet("ping")]
         public IActionResult Ping()

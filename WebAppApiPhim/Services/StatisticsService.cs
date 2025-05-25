@@ -1,195 +1,114 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebAppApiPhim.Data;
 using WebAppApiPhim.Models;
+using WebAppApiPhim.Services.Interfaces;
 
 namespace WebAppApiPhim.Services
 {
-    public interface IStatisticsService
-    {
-        Task<StatisticsViewModel> GetStatisticsAsync();
-        Task<List<MovieListItemViewModel>> GetPopularMoviesAsync(int count = 10);
-        Task<List<MovieListItemViewModel>> GetRecentMoviesAsync(int count = 10);
-        Task<int> GetTotalViewsAsync();
-        Task<int> GetTodayViewsAsync();
-    }
-
     public class StatisticsService : IStatisticsService
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IMemoryCache _cache;
+        private readonly ApplicationDbContext _dbContext;
         private readonly ILogger<StatisticsService> _logger;
-        private readonly TimeSpan _cacheTime = TimeSpan.FromHours(1);
 
         public StatisticsService(
-            ApplicationDbContext context,
-            IMemoryCache cache,
+            ApplicationDbContext dbContext,
             ILogger<StatisticsService> logger)
         {
-            _context = context;
-            _cache = cache;
-            _logger = logger;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<StatisticsViewModel> GetStatisticsAsync()
+        public async Task<int> GetTotalMoviesAsync()
         {
-            string cacheKey = "site_statistics";
-
-            if (_cache.TryGetValue(cacheKey, out StatisticsViewModel cachedStats))
+            try
             {
-                return cachedStats;
+                var count = await _dbContext.CachedMovies.CountAsync();
+                _logger.LogInformation("Total movies retrieved: {Count}", count);
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving total movies");
+                return 0;
+            }
+        }
+
+        public async Task<int> GetTotalUsersAsync()
+        {
+            try
+            {
+                // Since ApplicationDbContext uses Identity, users are stored in AspNetUsers table
+                var count = await _dbContext.UserMovies.CountAsync();
+                _logger.LogInformation("Total users retrieved: {Count}", count);
+                return count;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving total users");
+                return 0;
+            }
+        }
+
+        public async Task<int> GetMovieViewCountAsync(string movieSlug)
+        {
+            if (string.IsNullOrWhiteSpace(movieSlug))
+            {
+                _logger.LogWarning("GetMovieViewCountAsync failed: Movie slug is empty");
+                return 0;
             }
 
             try
             {
-                var stats = new StatisticsViewModel
+                var movie = await _dbContext.CachedMovies
+                    .FirstOrDefaultAsync(m => m.Slug == movieSlug);
+
+                if (movie == null)
                 {
-                    TotalMovies = await _context.CachedMovies.CountAsync(),
-                    TotalEpisodes = await _context.CachedEpisodes.CountAsync(),
-                    TotalUsers = await _context.Users.CountAsync(),
-                    TotalViews = await GetTotalViewsAsync(),
-                    TodayViews = await GetTodayViewsAsync(),
-                    PopularMovies = await GetPopularMoviesAsync(10),
-                    RecentMovies = await GetRecentMoviesAsync(10)
-                };
+                    _logger.LogWarning("Movie not found for slug: {MovieSlug}", movieSlug);
+                    return 0;
+                }
 
-                _cache.Set(cacheKey, stats, _cacheTime);
-                return stats;
+                // Assuming CachedMovie has a Views property; adjust based on your model
+                _logger.LogInformation("View count for movie {MovieSlug}: {ViewCount}", movieSlug, movie.Views);
+                return movie.ViewCount;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting statistics");
-                return new StatisticsViewModel();
-            }
-        }
-
-        public async Task<List<MovieListItemViewModel>> GetPopularMoviesAsync(int count = 10)
-        {
-            string cacheKey = $"popular_movies_{count}";
-
-            if (_cache.TryGetValue(cacheKey, out List<MovieListItemViewModel> cachedMovies))
-            {
-                return cachedMovies;
-            }
-
-            try
-            {
-                var movies = await _context.CachedMovies
-                    .OrderByDescending(m => m.ViewCount)
-                    .Take(count)
-                    .Select(m => new MovieListItemViewModel
-                    {
-                        Slug = m.Slug,
-                        Name = m.Name,
-                        OriginalName = m.OriginalName,
-                        Year = m.Year,
-                        ThumbUrl = m.ThumbUrl,
-                        PosterUrl = m.PosterUrl,
-                        Type = m.Type,
-                        Quality = m.Quality,
-                        ViewCount = m.ViewCount,
-                        AverageRating = m.Statistic != null ? m.Statistic.AverageRating : 0,
-                        IsFavorite = false,
-                        WatchedPercentage = null
-                    })
-                    .ToListAsync();
-
-                _cache.Set(cacheKey, movies, _cacheTime);
-                return movies;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting popular movies");
-                return new List<MovieListItemViewModel>();
-            }
-        }
-
-        public async Task<List<MovieListItemViewModel>> GetRecentMoviesAsync(int count = 10)
-        {
-            string cacheKey = $"recent_movies_{count}";
-
-            if (_cache.TryGetValue(cacheKey, out List<MovieListItemViewModel> cachedMovies))
-            {
-                return cachedMovies;
-            }
-
-            try
-            {
-                var movies = await _context.CachedMovies
-                    .OrderByDescending(m => m.LastUpdated)
-                    .Take(count)
-                    .Select(m => new MovieListItemViewModel
-                    {
-                        Slug = m.Slug,
-                        Name = m.Name,
-                        OriginalName = m.OriginalName,
-                        Year = m.Year,
-                        ThumbUrl = m.ThumbUrl,
-                        PosterUrl = m.PosterUrl,
-                        Type = m.Type,
-                        Quality = m.Quality,
-                        ViewCount = m.ViewCount,
-                        AverageRating = m.Statistic != null ? m.Statistic.AverageRating : 0,
-                        IsFavorite = false,
-                        WatchedPercentage = null
-                    })
-                    .ToListAsync();
-
-                _cache.Set(cacheKey, movies, _cacheTime);
-                return movies;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting recent movies");
-                return new List<MovieListItemViewModel>();
-            }
-        }
-
-        public async Task<int> GetTotalViewsAsync()
-        {
-            string cacheKey = "total_views";
-
-            if (_cache.TryGetValue(cacheKey, out int cachedViews))
-            {
-                return cachedViews;
-            }
-
-            try
-            {
-                var totalViews = await _context.CachedMovies.SumAsync(m => m.ViewCount);
-                _cache.Set(cacheKey, totalViews, _cacheTime);
-                return totalViews;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting total views");
+                _logger.LogError(ex, "Error retrieving view count for movie: {MovieSlug}", movieSlug);
                 return 0;
             }
         }
 
-        public async Task<int> GetTodayViewsAsync()
+        public async Task<(string Quality, int Count)[]> GetMoviesByQualityAsync()
         {
             try
             {
-                var today = DateTime.Today;
-                var tomorrow = today.AddDays(1);
+                var moviesByQuality = await _dbContext.CachedMovies
+                    .GroupBy(m => m.Resolution) // Assuming Resolution represents quality (e.g., "HD", "4K")
+                    .Select(g => new { Quality = g.Key, Count = g.Count() })
+                    .ToArrayAsync();
 
-                var todayViews = await _context.MovieStatistics
-                    .Where(s => s.LastUpdated >= today && s.LastUpdated < tomorrow)
-                    .SumAsync(s => s.ViewCount);
+                var result = moviesByQuality
+                    .Select(x => (x.Quality ?? "Unknown", x.Count))
+                    .ToArray();
 
-                return todayViews;
+                _logger.LogInformation("Movies by quality retrieved: {Count} groups", result.Length);
+                return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting today's views");
-                return 0;
+                _logger.LogError(ex, "Error retrieving movies by quality");
+                return [];
             }
+        }
+
+        public void InvalidateCache(string slug)
+        {
+            throw new NotImplementedException();
         }
     }
 }

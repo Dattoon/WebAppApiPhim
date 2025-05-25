@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WebAppApiPhim.Models;
+using WebAppApiPhim.Services.Interfaces;
 
 namespace WebAppApiPhim.Services
 {
@@ -179,6 +180,21 @@ namespace WebAppApiPhim.Services
                 _logger.LogError(ex, $"Error getting roles for user: {userId}");
                 return new List<string>();
             }
+        }
+
+        public Task<(bool Success, string Token, string ErrorMessage)> RegisterAsync(string email, string password, string displayName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<(bool Success, string Token, string ErrorMessage)> LoginAsync(string email, string password)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateUserAsync(string userId, string displayName)
+        {
+            throw new NotImplementedException();
         }
     }
 }

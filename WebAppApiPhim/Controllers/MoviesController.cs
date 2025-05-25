@@ -1,309 +1,215 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using WebAppApiPhim.Data;
 using WebAppApiPhim.Models;
-using WebAppApiPhim.Services;
+using WebAppApiPhim.Services.Interfaces;
+using System.Threading.Tasks;
+using System;
 
 namespace WebAppApiPhim.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
+    [ApiController]
     public class MoviesController : ControllerBase
     {
-        private readonly IMovieApiService _movieApiService;
+        private readonly ApplicationDbContext _context;
         private readonly IStreamingService _streamingService;
         private readonly ILogger<MoviesController> _logger;
 
-        public MoviesController(
-            IMovieApiService movieApiService,
-            IStreamingService streamingService,
-            ILogger<MoviesController> logger)
+        public MoviesController(ApplicationDbContext context, IStreamingService streamingService, ILogger<MoviesController> logger)
         {
-            _movieApiService = movieApiService;
-            _streamingService = streamingService;
-            _logger = logger;
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _streamingService = streamingService ?? throw new ArgumentNullException(nameof(streamingService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        [HttpGet("latest")]
-        public async Task<ActionResult<ApiResponse<MovieListResponse>>> GetLatestMovies(
-            [FromQuery] int page = 1,
-            [FromQuery] int limit = 10,
-            [FromQuery] string version = null)
+        // GET: api/movies/{slug}
+        [HttpGet("{slug}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<CachedMovie>> GetMovie(string slug)
         {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                _logger.LogWarning("Invalid slug parameter provided.");
+                return BadRequest("Slug is required.");
+            }
+
             try
             {
-                if (page < 1)
+                var movie = await _streamingService.GetCachedMovieAsync(slug);
+                if (movie == null)
                 {
-                    return BadRequest(new ApiResponse<MovieListResponse>
-                    {
-                        Success = false,
-                        Message = "Page must be greater than 0"
-                    });
-                }
-                if (limit < 1 || limit > 50)
-                {
-                    return BadRequest(new ApiResponse<MovieListResponse>
-                    {
-                        Success = false,
-                        Message = "Limit must be between 1 and 50"
-                    });
+                    _logger.LogWarning($"Movie with slug {slug} not found.");
+                    return NotFound($"Movie with slug {slug} not found.");
                 }
 
-                var result = await _movieApiService.GetLatestMoviesAsync(page, limit, version);
-
-                return Ok(new ApiResponse<MovieListResponse>
-                {
-                    Success = true,
-                    Message = "Latest movies retrieved successfully",
-                    Data = result
-                });
+                return Ok(movie);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting latest movies");
-                return StatusCode(500, new ApiResponse<MovieListResponse>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, $"Error retrieving movie with slug {slug}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the movie.");
             }
         }
 
-        [HttpGet("{slug}")]
-        public async Task<ActionResult<ApiResponse<MovieDetailViewModel>>> GetMovieDetail(
-            string slug,
-            [FromQuery] string version = null)
+        // GET: api/movies
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<MovieListResponse>> GetMovies(
+            [FromQuery] int page = 1,
+            [FromQuery] int limit = 10)
         {
+            if (page < 1 || limit < 1)
+            {
+                _logger.LogWarning("Invalid page or limit parameters provided.");
+                return BadRequest("Page and limit must be positive integers.");
+            }
+
             try
             {
-                if (string.IsNullOrWhiteSpace(slug))
+                var movies = await _context.CachedMovies
+                    .AsNoTracking()
+                    .Skip((page - 1) * limit)
+                    .Take(limit)
+                    .ToListAsync();
+
+                var totalItems = await _context.CachedMovies.CountAsync();
+                var totalPages = (int)Math.Ceiling((double)totalItems / limit);
+
+                var response = new MovieListResponse
                 {
-                    return BadRequest(new ApiResponse<MovieDetailViewModel>
+                    Data = movies.Select(m => new MovieItem
                     {
-                        Success = false,
-                        Message = "Movie slug is required"
-                    });
-                }
-
-                var movieDetail = await _movieApiService.GetMovieDetailBySlugAsync(slug, version);
-
-                if (movieDetail == null)
-                {
-                    return NotFound(new ApiResponse<MovieDetailViewModel>
+                        Slug = m.Slug,
+                        Title = m.Title,
+                        PosterUrl = m.PosterUrl,
+                        Year = m.Year,
+                        Modified = new ModifiedData { Time = m.LastUpdated.ToString("yyyy-MM-dd") }
+                    }).ToList(),
+                    Pagination = new Pagination
                     {
-                        Success = false,
-                        Message = "Movie not found"
-                    });
-                }
-
-                var cachedMovie = await _streamingService.GetCachedMovieAsync(slug);
-                var servers = await _streamingService.GetEpisodesAsync(slug);
-
-                var viewModel = new MovieDetailViewModel
-                {
-                    Slug = movieDetail.Slug,
-                    Name = movieDetail.Name,
-                    OriginalName = movieDetail.OriginalName,
-                    Description = movieDetail.Description,
-                    Year = movieDetail.Year,
-                    ThumbnailUrl = movieDetail.Thumb_url ?? movieDetail.Sub_thumb ?? "/placeholder.svg?height=450&width=300",
-                    PosterUrl = movieDetail.Poster_url ?? movieDetail.Sub_poster ?? "/placeholder.svg?height=450&width=300",
-                    Type = movieDetail.Format,
-                    Country = movieDetail.Countries,
-                    Genres = movieDetail.Genres,
-                    Director = movieDetail.Director ?? movieDetail.Directors,
-                    Actors = movieDetail.Casts ?? movieDetail.Actors,
-                    Duration = movieDetail.Time,
-                    Quality = movieDetail.Quality,
-                    Language = movieDetail.Language,
-                    ViewCount = cachedMovie?.ViewCount ?? movieDetail.View,
-                    AverageRating = cachedMovie?.Statistic?.AverageRating ?? 0,
-                    RatingCount = cachedMovie?.Statistic?.RatingCount ?? 0,
-                    IsFavorite = false,
-                    UserRating = null,
-                    Servers = servers
+                        CurrentPage = page,
+                        TotalPages = totalPages,
+                        TotalItems = totalItems,
+                        Limit = limit
+                    }
                 };
 
-                // Increment view count synchronously to ensure it executes
-                try
-                {
-                    await _streamingService.IncrementViewCountAsync(slug);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, $"Error incrementing view count for {slug}");
-                }
-
-                return Ok(new ApiResponse<MovieDetailViewModel>
-                {
-                    Success = true,
-                    Message = "Movie detail retrieved successfully",
-                    Data = viewModel
-                });
+                return Ok(response);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting movie detail for slug: {slug}");
-                return StatusCode(500, new ApiResponse<MovieDetailViewModel>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, "Error retrieving movie list");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the movie list.");
             }
         }
 
-        [HttpGet("search")]
-        public async Task<ActionResult<ApiResponse<MovieListResponse>>> SearchMovies(
-            [FromQuery] string query,
-            [FromQuery] int page = 1,
-            [FromQuery] int limit = 20)
+        // GET: api/movies/{slug}/episodes
+        [HttpGet("{slug}/episodes")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<List<ServerViewModel>>> GetEpisodes(string slug)
         {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                _logger.LogWarning("Invalid slug parameter provided.");
+                return BadRequest("Slug is required.");
+            }
+
             try
             {
-                if (string.IsNullOrWhiteSpace(query))
+                var episodes = await _streamingService.GetEpisodesAsync(slug);
+                if (episodes == null || !episodes.Any())
                 {
-                    return BadRequest(new ApiResponse<MovieListResponse>
-                    {
-                        Success = false,
-                        Message = "Search query is required"
-                    });
+                    _logger.LogWarning($"No episodes found for movie with slug {slug}.");
+                    return NotFound($"No episodes found for movie with slug {slug}.");
                 }
 
-                if (page < 1)
-                {
-                    return BadRequest(new ApiResponse<MovieListResponse>
-                    {
-                        Success = false,
-                        Message = "Page must be greater than 0"
-                    });
-                }
-                if (limit < 1 || limit > 50)
-                {
-                    return BadRequest(new ApiResponse<MovieListResponse>
-                    {
-                        Success = false,
-                        Message = "Limit must be between 1 and 50"
-                    });
-                }
-
-                var result = await _movieApiService.SearchMoviesAsync(query, page, limit);
-
-                return Ok(new ApiResponse<MovieListResponse>
-                {
-                    Success = true,
-                    Message = "Search completed successfully",
-                    Data = result
-                });
+                return Ok(episodes);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error searching movies with query: {query}");
-                return StatusCode(500, new ApiResponse<MovieListResponse>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, $"Error retrieving episodes for movie with slug {slug}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving episodes.");
             }
         }
 
-        [HttpGet("filter")]
-        public async Task<ActionResult<ApiResponse<MovieListResponse>>> FilterMovies(
-            [FromQuery] string type = null,
-            [FromQuery] string genre = null,
-            [FromQuery] string country = null,
-            [FromQuery] string year = null,
-            [FromQuery] int page = 1,
-            [FromQuery] int limit = 20)
+        // GET: api/movies/{slug}/episodes/{episodeId}
+        [HttpGet("{slug}/episodes/{episodeId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<EpisodeViewModel>> GetEpisode(string slug, string episodeId)
         {
+            if (string.IsNullOrWhiteSpace(slug) || string.IsNullOrWhiteSpace(episodeId))
+            {
+                _logger.LogWarning("Invalid slug or episodeId parameter provided.");
+                return BadRequest("Slug and episodeId are required.");
+            }
+
             try
             {
-                if (page < 1)
+                var episode = await _streamingService.GetEpisodeAsync(slug, episodeId);
+                if (episode == null)
                 {
-                    return BadRequest(new ApiResponse<MovieListResponse>
-                    {
-                        Success = false,
-                        Message = "Page must be greater than 0"
-                    });
-                }
-                if (limit < 1 || limit > 50)
-                {
-                    return BadRequest(new ApiResponse<MovieListResponse>
-                    {
-                        Success = false,
-                        Message = "Limit must be between 1 and 50"
-                    });
+                    _logger.LogWarning($"Episode {episodeId} not found for movie with slug {slug}.");
+                    return NotFound($"Episode {episodeId} not found for movie with slug {slug}.");
                 }
 
-                var result = await _movieApiService.FilterMoviesAsync(type, genre, country, year, page, limit);
-
-                return Ok(new ApiResponse<MovieListResponse>
-                {
-                    Success = true,
-                    Message = "Movies filtered successfully",
-                    Data = result
-                });
+                return Ok(episode);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error filtering movies");
-                return StatusCode(500, new ApiResponse<MovieListResponse>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, $"Error retrieving episode {episodeId} for movie with slug {slug}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the episode.");
             }
         }
 
-        [HttpGet("{slug}/related")]
-        public async Task<ActionResult<ApiResponse<MovieListResponse>>> GetRelatedMovies(
-            string slug,
-            [FromQuery] int limit = 6,
-            [FromQuery] string version = null)
+        // POST: api/movies/{slug}/views
+        [HttpPost("{slug}/views")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> IncrementViewCount(string slug)
         {
+            if (string.IsNullOrWhiteSpace(slug))
+            {
+                _logger.LogWarning("Invalid slug parameter provided.");
+                return BadRequest("Slug is required.");
+            }
+
             try
             {
-                if (string.IsNullOrWhiteSpace(slug))
-                {
-                    return BadRequest(new ApiResponse<MovieListResponse>
-                    {
-                        Success = false,
-                        Message = "Movie slug is required"
-                    });
-                }
-
-                if (limit < 1 || limit > 20)
-                {
-                    return BadRequest(new ApiResponse<MovieListResponse>
-                    {
-                        Success = false,
-                        Message = "Limit must be between 1 and 20"
-                    });
-                }
-
-                var result = await _movieApiService.GetRelatedMoviesAsync(slug, limit, version);
-
-                return Ok(new ApiResponse<MovieListResponse>
-                {
-                    Success = true,
-                    Message = "Related movies retrieved successfully",
-                    Data = result
-                });
+                await _streamingService.IncrementViewCountAsync(slug);
+                return NoContent();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting related movies for slug: {slug}");
-                return StatusCode(500, new ApiResponse<MovieListResponse>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, $"Error incrementing view count for movie with slug {slug}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while incrementing view count.");
+            }
+        }
+
+        // POST: api/movies/cache
+        [HttpPost("cache")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<CachedMovie>> CacheMovie([FromBody] MovieDetailResponse movieDetail)
+        {
+            if (movieDetail == null || string.IsNullOrWhiteSpace(movieDetail.Slug))
+            {
+                _logger.LogWarning("Invalid movie detail data provided.");
+                return BadRequest("Movie detail or slug is required.");
+            }
+
+            try
+            {
+                var cachedMovie = await _streamingService.CacheMovieAsync(movieDetail);
+                return Ok(cachedMovie);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error caching movie with slug {movieDetail.Slug}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while caching the movie.");
             }
         }
     }

@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using WebAppApiPhim.Services;
+using WebAppApiPhim.Services.Interfaces;
 
 namespace WebAppApiPhim.BackgroundServices
 {

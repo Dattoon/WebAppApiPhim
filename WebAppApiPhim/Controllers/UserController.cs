@@ -1,412 +1,172 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Threading.Tasks;
-using WebAppApiPhim.Data;
+using System.Text;
 using WebAppApiPhim.Models;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 
 namespace WebAppApiPhim.Controllers
 {
-    [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IConfiguration _configuration;
         private readonly ILogger<UserController> _logger;
 
         public UserController(
-            ApplicationDbContext context,
             UserManager<ApplicationUser> userManager,
+            SignInManager<ApplicationUser> signInManager,
+            IConfiguration configuration,
             ILogger<UserController> logger)
         {
-            _context = context;
-            _userManager = userManager;
-            _logger = logger;
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
+            _signInManager = signInManager ?? throw new ArgumentNullException(nameof(signInManager));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        /// <summary>
-        /// Get user profile
-        /// </summary>
-        [HttpGet("profile")]
-        public async Task<ActionResult<ApiResponse<UserProfileViewModel>>> GetProfile()
+        // POST: api/user/register
+        [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<string>> Register([FromQuery] string username, [FromQuery] string email, [FromQuery] string password)
         {
+            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            {
+                _logger.LogWarning("Invalid registration parameters provided.");
+                return BadRequest("Username, email, and password are required.");
+            }
+
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                var user = await _userManager.FindByIdAsync(userId);
+                var user = new ApplicationUser
+                {
+                    UserName = username,
+                    Email = email,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
+                var result = await _userManager.CreateAsync(user, password);
+                if (!result.Succeeded)
+                {
+                    var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+                    _logger.LogWarning($"Registration failed: {errors}");
+                    return BadRequest($"Registration failed: {errors}");
+                }
+
+                _logger.LogInformation($"User {username} registered successfully.");
+                var token = await GenerateJwtToken(user);
+                return Ok(new { token });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during registration");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred during registration.");
+            }
+        }
+
+        // POST: api/user/login
+        [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<string>> Login([FromQuery] string email, [FromQuery] string password)
+        {
+            if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password))
+            {
+                _logger.LogWarning("Invalid login parameters provided.");
+                return BadRequest("Email and password are required.");
+            }
+
+            try
+            {
+                var user = await _userManager.FindByEmailAsync(email);
                 if (user == null)
                 {
-                    return NotFound(new ApiResponse<UserProfileViewModel>
-                    {
-                        Success = false,
-                        Message = "User not found"
-                    });
+                    _logger.LogWarning($"Login failed: User with email {email} not found.");
+                    return BadRequest("Invalid email or password.");
                 }
 
-                var favoriteCount = await _context.UserFavorites.CountAsync(f => f.UserId == userId);
-                var ratingCount = await _context.UserRatings.CountAsync(r => r.UserId == userId);
-                var commentCount = await _context.UserComments.CountAsync(c => c.UserId == userId);
-
-                var profile = new UserProfileViewModel
+                var result = await _signInManager.PasswordSignInAsync(user.UserName, password, false, false);
+                if (!result.Succeeded)
                 {
-                    Id = user.Id,
-                    UserName = user.UserName,
-                    Email = user.Email,
-                    DisplayName = user.DisplayName,
-                    AvatarUrl = user.AvatarUrl,
-                    CreatedAt = user.CreatedAt,
-                    LastLoginAt = user.LastLoginAt,
-                    FavoriteCount = favoriteCount,
-                    RatingCount = ratingCount,
-                    CommentCount = commentCount
-                };
+                    _logger.LogWarning($"Login failed for user {email}.");
+                    return BadRequest("Invalid email or password.");
+                }
 
-                return Ok(new ApiResponse<UserProfileViewModel>
-                {
-                    Success = true,
-                    Message = "Profile retrieved successfully",
-                    Data = profile
-                });
+                user.UpdatedAt = DateTime.UtcNow;
+                await _userManager.UpdateAsync(user);
+                _logger.LogInformation($"User {user.UserName} logged in successfully.");
+                var token = await GenerateJwtToken(user);
+                return Ok(new { token });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting user profile");
-                return StatusCode(500, new ApiResponse<UserProfileViewModel>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, "Error during login");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred during login.");
             }
         }
 
-        /// <summary>
-        /// Get user favorites
-        /// </summary>
-        [HttpGet("favorites")]
-        public async Task<ActionResult<ApiResponse<List<MovieListItemViewModel>>>> GetFavorites(
-            [FromQuery] int page = 1,
-            [FromQuery] int limit = 20)
+        // GET: api/user/profile
+        [HttpGet("profile")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<ActionResult<ApplicationUser>> GetProfile()
         {
             try
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (page < 1) page = 1;
-                if (limit < 1 || limit > 50) limit = 20;
-
-                var favorites = await _context.UserFavorites
-                    .Where(f => f.UserId == userId)
-                    .Join(_context.CachedMovies,
-                        f => f.MovieSlug,
-                        m => m.Slug,
-                        (f, m) => new MovieListItemViewModel
-                        {
-                            Slug = m.Slug,
-                            Name = m.Name,
-                            OriginalName = m.OriginalName,
-                            Year = m.Year,
-                            ThumbUrl = m.ThumbUrl,
-                            PosterUrl = m.PosterUrl,
-                            Type = m.Type,
-                            Quality = m.Quality,
-                            ViewCount = m.ViewCount,
-                            AverageRating = m.Statistic != null ? m.Statistic.AverageRating : 0,
-                            IsFavorite = true,
-                            WatchedPercentage = null
-                        })
-                    .OrderByDescending(f => f.ViewCount)
-                    .Skip((page - 1) * limit)
-                    .Take(limit)
-                    .ToListAsync();
-
-                return Ok(new ApiResponse<List<MovieListItemViewModel>>
+                if (string.IsNullOrWhiteSpace(userId))
                 {
-                    Success = true,
-                    Message = "Favorites retrieved successfully",
-                    Data = favorites
-                });
+                    return Unauthorized("User not authenticated.");
+                }
+
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    _logger.LogWarning($"User with ID {userId} not found.");
+                    return NotFound($"User with ID {userId} not found.");
+                }
+
+                return Ok(user);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting user favorites");
-                return StatusCode(500, new ApiResponse<List<MovieListItemViewModel>>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
+                _logger.LogError(ex, "Error retrieving user profile");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the user profile.");
             }
         }
 
-        /// <summary>
-        /// Add movie to favorites
-        /// </summary>
-        [HttpPost("favorites/{slug}")]
-        public async Task<ActionResult<ApiResponse<object>>> AddToFavorites(string slug)
+        private async Task<string> GenerateJwtToken(ApplicationUser user)
         {
-            try
+            var claims = new List<Claim>
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Email, user.Email)
+            };
 
-                var existingFavorite = await _context.UserFavorites
-                    .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == slug);
+            var roles = await _userManager.GetRolesAsync(user);
+            claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-                if (existingFavorite != null)
-                {
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Movie is already in favorites"
-                    });
-                }
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-                var favorite = new UserFavorite
-                {
-                    UserId = userId,
-                    MovieSlug = slug,
-                    CreatedAt = DateTime.Now
-                };
+            var token = new JwtSecurityToken(
+                issuer: _configuration["Jwt:Issuer"],
+                audience: _configuration["Jwt:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(1),
+                signingCredentials: creds);
 
-                _context.UserFavorites.Add(favorite);
-                await _context.SaveChangesAsync();
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = "Movie added to favorites successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error adding movie {slug} to favorites");
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
-            }
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
-
-        /// <summary>
-        /// Remove movie from favorites
-        /// </summary>
-        [HttpDelete("favorites/{slug}")]
-        public async Task<ActionResult<ApiResponse<object>>> RemoveFromFavorites(string slug)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                var favorite = await _context.UserFavorites
-                    .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == slug);
-
-                if (favorite == null)
-                {
-                    return NotFound(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Movie not found in favorites"
-                    });
-                }
-
-                _context.UserFavorites.Remove(favorite);
-                await _context.SaveChangesAsync();
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = "Movie removed from favorites successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error removing movie {slug} from favorites");
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
-            }
-        }
-
-        /// <summary>
-        /// Rate a movie
-        /// </summary>
-        [HttpPost("ratings/{slug}")]
-        public async Task<ActionResult<ApiResponse<object>>> RateMovie(
-            string slug,
-            [FromBody] RateMovieRequest request)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (request.Rating < 1 || request.Rating > 10)
-                {
-                    return BadRequest(new ApiResponse<object>
-                    {
-                        Success = false,
-                        Message = "Rating must be between 1 and 10"
-                    });
-                }
-
-                var existingRating = await _context.UserRatings
-                    .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieSlug == slug);
-
-                if (existingRating != null)
-                {
-                    // Update existing rating
-                    existingRating.Rating = request.Rating;
-                    existingRating.Comment = request.Comment;
-                    existingRating.UpdatedAt = DateTime.Now;
-                    _context.UserRatings.Update(existingRating);
-                }
-                else
-                {
-                    // Create new rating
-                    var rating = new UserRating
-                    {
-                        UserId = userId,
-                        MovieSlug = slug,
-                        Rating = request.Rating,
-                        Comment = request.Comment,
-                        CreatedAt = DateTime.Now,
-                        UpdatedAt = DateTime.Now
-                    };
-                    _context.UserRatings.Add(rating);
-                }
-
-                await _context.SaveChangesAsync();
-
-                // Update movie statistics asynchronously
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        await UpdateMovieRatingStatisticsAsync(slug);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error updating rating statistics for movie {slug}");
-                    }
-                });
-
-                return Ok(new ApiResponse<object>
-                {
-                    Success = true,
-                    Message = "Movie rated successfully"
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error rating movie {slug}");
-                return StatusCode(500, new ApiResponse<object>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
-            }
-        }
-
-        /// <summary>
-        /// Get watch history
-        /// </summary>
-        [HttpGet("history")]
-        public async Task<ActionResult<ApiResponse<List<EpisodeProgress>>>> GetWatchHistory(
-            [FromQuery] int page = 1,
-            [FromQuery] int limit = 20)
-        {
-            try
-            {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-                if (page < 1) page = 1;
-                if (limit < 1 || limit > 50) limit = 20;
-
-                var history = await _context.EpisodeProgresses
-                    .Where(p => p.UserId == userId)
-                    .OrderByDescending(p => p.UpdatedAt)
-                    .Skip((page - 1) * limit)
-                    .Take(limit)
-                    .ToListAsync();
-
-                return Ok(new ApiResponse<List<EpisodeProgress>>
-                {
-                    Success = true,
-                    Message = "Watch history retrieved successfully",
-                    Data = history
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting watch history");
-                return StatusCode(500, new ApiResponse<List<EpisodeProgress>>
-                {
-                    Success = false,
-                    Message = "Internal server error",
-                    Errors = ex.Message
-                });
-            }
-        }
-
-        private async Task UpdateMovieRatingStatisticsAsync(string movieSlug)
-        {
-            var ratings = await _context.UserRatings
-                .Where(r => r.MovieSlug == movieSlug)
-                .ToListAsync();
-
-            if (ratings.Any())
-            {
-                var averageRating = ratings.Average(r => r.Rating);
-                var ratingCount = ratings.Count;
-
-                var statistic = await _context.MovieStatistics
-                    .FirstOrDefaultAsync(s => s.MovieSlug == movieSlug);
-
-                if (statistic != null)
-                {
-                    statistic.AverageRating = averageRating;
-                    statistic.RatingCount = ratingCount;
-                    statistic.LastUpdated = DateTime.Now;
-                    _context.MovieStatistics.Update(statistic);
-                }
-                else
-                {
-                    statistic = new MovieStatistic
-                    {
-                        MovieSlug = movieSlug,
-                        ViewCount = 0,
-                        FavoriteCount = 0,
-                        CommentCount = 0,
-                        AverageRating = averageRating,
-                        RatingCount = ratingCount,
-                        LastUpdated = DateTime.Now
-                    };
-                    _context.MovieStatistics.Add(statistic);
-                }
-
-                await _context.SaveChangesAsync();
-            }
-        }
-    }
-
-    // Request models
-    public class RateMovieRequest
-    {
-        public double Rating { get; set; }
-        public string Comment { get; set; }
     }
 }

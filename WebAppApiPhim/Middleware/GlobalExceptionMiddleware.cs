@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -53,52 +54,55 @@ namespace WebAppApiPhim.Middleware
                 case ArgumentException argEx:
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     response.Message = "Invalid argument provided";
-                    response.Errors = argEx.Message;
+                    response.Errors = new List<string> { argEx.Message };
                     break;
 
                 case UnauthorizedAccessException:
                     context.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
                     response.Message = "Unauthorized access";
+                    response.Errors = new List<string> { exception.Message };
                     break;
 
                 case KeyNotFoundException:
                     context.Response.StatusCode = (int)HttpStatusCode.NotFound;
                     response.Message = "Resource not found";
+                    response.Errors = new List<string> { exception.Message };
                     break;
 
                 case TimeoutException:
                     context.Response.StatusCode = (int)HttpStatusCode.RequestTimeout;
                     response.Message = "Request timeout";
+                    response.Errors = new List<string> { exception.Message };
                     break;
 
                 case HttpRequestException httpEx:
                     context.Response.StatusCode = (int)HttpStatusCode.BadGateway;
                     response.Message = "External service error";
-                    response.Errors = "Unable to connect to external service";
+                    response.Errors = new List<string> { "Unable to connect to external service", httpEx.Message };
                     break;
 
                 case TaskCanceledException:
                     context.Response.StatusCode = (int)HttpStatusCode.RequestTimeout;
                     response.Message = "Request was cancelled or timed out";
+                    response.Errors = new List<string> { exception.Message };
                     break;
 
                 default:
                     context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                     response.Message = "An internal server error occurred";
 
-                    // Only include detailed error information in development
                     if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
                     {
-                        response.Errors = new
+                        response.Errors = new List<string>
                         {
-                            Message = exception.Message,
-                            StackTrace = exception.StackTrace,
-                            InnerException = exception.InnerException?.Message
+                            exception.Message,
+                            exception.StackTrace ?? "No stack trace available",
+                            exception.InnerException?.Message ?? "No inner exception"
                         };
                     }
                     else
                     {
-                        response.Errors = "Please contact support if the problem persists";
+                        response.Errors = new List<string> { "Please contact support if the problem persists" };
                     }
                     break;
             }
@@ -110,5 +114,13 @@ namespace WebAppApiPhim.Middleware
 
             await context.Response.WriteAsync(jsonResponse);
         }
+    }
+
+    public class ApiResponse<T>
+    {
+        public bool Success { get; set; }
+        public string Message { get; set; }
+        public T Data { get; set; }
+        public List<string> Errors { get; set; }
     }
 }

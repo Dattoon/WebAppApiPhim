@@ -6,119 +6,85 @@ namespace WebAppApiPhim.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-            : base(options)
+        public DbSet<CachedMovie> CachedMovies { get; set; }
+        public DbSet<CachedEpisode> CachedEpisodes { get; set; }
+        public DbSet<EpisodeServer> EpisodeServers { get; set; }
+        public DbSet<MovieStatistic> MovieStatistics { get; set; }
+        public DbSet<UserFavorite> UserFavorites { get; set; }
+        public DbSet<MovieRating> MovieRatings { get; set; }
+        public DbSet<UserComment> UserComments { get; set; }
+        public DbSet<UserMovie> UserMovies { get; set; }
+        public DbSet<EpisodeProgress> EpisodeProgresses { get; set; }
+        public DbSet<MovieGenre> MovieGenres { get; set; }
+        public DbSet<MovieCountry> MovieCountries { get; set; }
+        public DbSet<MovieType> MovieTypes { get; set; }
+        public DbSet<ProductionCompany> ProductionCompanies { get; set; }
+        public DbSet<StreamingPlatform> StreamingPlatforms { get; set; }
+        public DbSet<Actor> Actors { get; set; }
+        public DbSet<MovieGenreMapping> MovieGenreMappings { get; set; }
+        public DbSet<MovieCountryMapping> MovieCountryMappings { get; set; }
+        public DbSet<MovieTypeMapping> MovieTypeMappings { get; set; }
+        public DbSet<MovieProductionCompany> MovieProductionCompanies { get; set; }
+        public DbSet<MovieStreamingPlatform> MovieStreamingPlatforms { get; set; }
+        public DbSet<MovieActor> MovieActors { get; set; }
+        public DbSet<DailyView> DailyViews { get; set; }
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
 
-        public DbSet<CachedMovie> CachedMovies { get; set; }
-        public DbSet<CachedEpisode> CachedEpisodes { get; set; }
-        public DbSet<MovieStatistic> MovieStatistics { get; set; }
-        public DbSet<Genre> Genres { get; set; }
-        public DbSet<Country> Countries { get; set; }
-        public DbSet<MovieType> MovieTypes { get; set; }
-        public DbSet<EpisodeProgress> EpisodeProgresses { get; set; }
-        public DbSet<UserFavorite> UserFavorites { get; set; }
-        public DbSet<UserRating> UserRatings { get; set; }
-        public DbSet<UserComment> UserComments { get; set; }
-
-        protected override void OnModelCreating(ModelBuilder builder)
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(builder);
+            base.OnModelCreating(modelBuilder);
 
-            // CachedMovie configuration
-            builder.Entity<CachedMovie>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Slug).IsUnique();
-                entity.HasIndex(e => e.Name);
-                entity.HasIndex(e => e.Year);
-                entity.HasIndex(e => e.Type);
-                entity.HasIndex(e => e.Genres);
-                entity.HasIndex(e => e.Country);
+            // Cấu hình unique constraint cho Email
+            modelBuilder.Entity<ApplicationUser>()
+                .HasIndex(u => u.Email)
+                .IsUnique();
 
-                entity.HasOne(e => e.Statistic)
-                    .WithOne(s => s.Movie)
-                    .HasForeignKey<MovieStatistic>(s => s.MovieSlug)
-                    .HasPrincipalKey<CachedMovie>(m => m.Slug)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            // Cấu hình các mối quan hệ
+            modelBuilder.Entity<CachedMovie>()
+                .HasMany(m => m.Episodes)
+                .WithOne(e => e.Movie)
+                .HasForeignKey(e => e.MovieSlug);
 
-            // CachedEpisode configuration
-            builder.Entity<CachedEpisode>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.MovieSlug, e.EpisodeSlug }).IsUnique();
+            modelBuilder.Entity<CachedEpisode>()
+                .HasMany(e => e.EpisodeServers)
+                .WithOne(s => s.Episode)
+                .HasForeignKey(s => s.EpisodeId);
 
-                entity.HasOne(e => e.Movie)
-                    .WithMany(m => m.Episodes)
-                    .HasForeignKey(e => e.MovieSlug)
-                    .HasPrincipalKey(m => m.Slug)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.Entity<UserFavorite>()
+                .HasKey(uf => new { uf.UserId, uf.MovieSlug });
 
-            // MovieStatistic configuration
-            builder.Entity<MovieStatistic>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.MovieSlug).IsUnique();
-                entity.HasIndex(e => e.ViewCount);
-                entity.HasIndex(e => e.AverageRating);
-            });
+            modelBuilder.Entity<MovieRating>()
+                .HasKey(mr => new { mr.UserId, mr.MovieSlug });
 
-            // EpisodeProgress configuration
-            builder.Entity<EpisodeProgress>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.UserId, e.MovieSlug, e.EpisodeSlug }).IsUnique();
-            });
+            modelBuilder.Entity<UserComment>()
+                .HasKey(uc => uc.Id);
 
-            // UserFavorite configuration
-            builder.Entity<UserFavorite>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.UserId, e.MovieSlug }).IsUnique();
-            });
+            modelBuilder.Entity<UserMovie>()
+                .HasKey(um => new { um.UserId, um.MovieSlug });
 
-            // UserRating configuration
-            builder.Entity<UserRating>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => new { e.UserId, e.MovieSlug }).IsUnique();
-            });
+            modelBuilder.Entity<EpisodeProgress>()
+                .HasKey(ep => new { ep.UserId, ep.EpisodeId });
 
-            // UserComment configuration
-            builder.Entity<UserComment>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.MovieSlug);
-                entity.HasIndex(e => e.UserId);
-                entity.HasIndex(e => e.CreatedAt);
-            });
+            modelBuilder.Entity<MovieGenreMapping>()
+                .HasKey(mgm => new { mgm.MovieSlug, mgm.GenreId });
 
-            // Genre configuration
-            builder.Entity<Genre>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Name).IsUnique();
-                entity.HasIndex(e => e.Slug).IsUnique();
-            });
+            modelBuilder.Entity<MovieCountryMapping>()
+                .HasKey(mcm => new { mcm.MovieSlug, mcm.CountryId });
 
-            // Country configuration
-            builder.Entity<Country>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Name).IsUnique();
-                entity.HasIndex(e => e.Code).IsUnique();
-            });
+            modelBuilder.Entity<MovieTypeMapping>()
+                .HasKey(mtm => new { mtm.MovieSlug, mtm.TypeId });
 
-            // MovieType configuration
-            builder.Entity<MovieType>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.HasIndex(e => e.Name).IsUnique();
-                entity.HasIndex(e => e.Slug).IsUnique();
-            });
+            modelBuilder.Entity<MovieProductionCompany>()
+                .HasKey(mpc => new { mpc.MovieSlug, mpc.ProductionCompanyId });
+
+            modelBuilder.Entity<MovieStreamingPlatform>()
+                .HasKey(msp => new { msp.MovieSlug, msp.StreamingPlatformId });
+
+            modelBuilder.Entity<MovieActor>()
+                .HasKey(ma => new { ma.MovieSlug, ma.ActorId });
         }
     }
 }
