@@ -56,7 +56,8 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             errorNumbersToAdd: new List<int> { 1205 })));
 
 // Add Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
+
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
@@ -245,7 +246,8 @@ using (var scope = app.Services.CreateScope())
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
+
         await context.Database.MigrateAsync();
         await DbSeeder.Initialize(services, context, userManager, roleManager); // Sửa thành DbSeeder
     }

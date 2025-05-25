@@ -105,7 +105,7 @@ namespace WebAppApiPhim.Repositories
             }
         }
 
-        public async Task<MovieGenre> GetGenreByIdAsync(int id)
+        public async Task<MovieGenre> GetGenreByIdAsync(string id)
         {
             string cacheKey = $"genre_{id}";
             if (_cache.TryGetValue(cacheKey, out MovieGenre cachedGenre))
@@ -138,7 +138,7 @@ namespace WebAppApiPhim.Repositories
             }
         }
 
-        public async Task<MovieCountry> GetCountryByIdAsync(int id)
+        public async Task<MovieCountry> GetCountryByIdAsync(string id)
         {
             string cacheKey = $"country_{id}";
             if (_cache.TryGetValue(cacheKey, out MovieCountry cachedCountry))
@@ -171,7 +171,7 @@ namespace WebAppApiPhim.Repositories
             }
         }
 
-        public async Task<MovieType> GetMovieTypeByIdAsync(int id)
+        public async Task<MovieType> GetMovieTypeByIdAsync(string id)
         {
             string cacheKey = $"movie_type_{id}";
             if (_cache.TryGetValue(cacheKey, out MovieType cachedType))

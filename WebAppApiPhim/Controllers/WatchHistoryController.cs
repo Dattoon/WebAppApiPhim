@@ -41,7 +41,7 @@ namespace WebAppApiPhim.Controllers
                 var watchHistory = await _context.UserMovies
                     .AsNoTracking()
                     .Include(um => um.Movie)
-                    .Where(um => um.UserId == userId)
+                    .Where(um => um.UserId == Guid.Parse(userId))
                     .OrderByDescending(um => um.AddedAt)
                     .ToListAsync();
 
@@ -88,7 +88,7 @@ namespace WebAppApiPhim.Controllers
                 }
 
                 var existingEntry = await _context.UserMovies
-                    .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieSlug == movieSlug);
+                    .FirstOrDefaultAsync(um => um.UserId == Guid.Parse(userId) && um.MovieSlug == movieSlug);
 
                 if (existingEntry != null)
                 {
@@ -102,7 +102,7 @@ namespace WebAppApiPhim.Controllers
                     var newEntry = new UserMovie
                     {
                         Id = Guid.NewGuid().ToString(),
-                        UserId = userId,
+                        UserId = Guid.Parse(userId),
                         MovieSlug = movieSlug,
                         AddedAt = DateTime.UtcNow
                     };
@@ -138,7 +138,7 @@ namespace WebAppApiPhim.Controllers
                 }
 
                 var entry = await _context.UserMovies
-                    .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieSlug == movieSlug);
+                    .FirstOrDefaultAsync(um => um.UserId == Guid.Parse(userId) && um.MovieSlug == movieSlug);
 
                 if (entry == null)
                 {

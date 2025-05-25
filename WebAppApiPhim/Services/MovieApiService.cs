@@ -354,7 +354,7 @@ namespace WebAppApiPhim.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error fetching production data for: {slug}");
-                return new ProductionApiResponse { Status = "error" };
+                return new ProductionApiResponse { Success = false };
             }
         }
 
@@ -404,9 +404,37 @@ namespace WebAppApiPhim.Services
             throw new NotImplementedException();
         }
 
-        public Task<Models.MovieListResponse> GetLatestMoviesAsync(int page = 1, int limit = 20, string version = null)
+        public async Task<Models.MovieListResponse> GetLatestMoviesAsync(int page = 1, int limit = 20, string? version = null)
         {
-            throw new NotImplementedException();
+            // Implement the method (example implementation below)
+            string cacheKey = $"latest_movies_{page}_{limit}_{version ?? "default"}";
+            if (_memoryCache.TryGetValue(cacheKey, out Models.MovieListResponse? cachedResponse))
+            {
+                _logger.LogInformation($"Cache hit for latest movies: page {page}, limit {limit}, version {version}");
+                return cachedResponse ?? new Models.MovieListResponse();
+            }
+
+            try
+            {
+                var query = version != null ? $"api/movies/latest?page={page}&limit={limit}&v={version}" : $"api/movies/latest?page={page}&limit={limit}";
+                var response = await _httpClient.GetAsync(query);
+                response.EnsureSuccessStatusCode();
+                var content = await response.Content.ReadAsStringAsync();
+                var movies = JsonSerializer.Deserialize<Models.MovieListResponse>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new Models.MovieListResponse();
+
+                _memoryCache.Set(cacheKey, movies, new MemoryCacheEntryOptions
+                {
+                    Size = EstimateCacheSize(movies),
+                    AbsoluteExpirationRelativeToNow = _cacheTime
+                });
+                _logger.LogInformation($"Fetched and cached latest movies: page {page}, limit {limit}, version {version}");
+                return movies;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching latest movies: page {page}, limit {limit}, version {version}");
+                return new Models.MovieListResponse { Data = new List<Models.MovieItem>(), Pagination = new Models.Pagination() };
+            }
         }
     }
 }

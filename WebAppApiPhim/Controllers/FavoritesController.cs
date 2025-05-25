@@ -50,7 +50,7 @@ namespace WebAppApiPhim.Controllers
                 }
 
                 var existingFavorite = await _context.UserFavorites
-                    .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
+                    .FirstOrDefaultAsync(f => f.UserId == Guid.Parse(userId) && f.MovieSlug == movieSlug);
 
                 if (existingFavorite != null)
                 {
@@ -60,7 +60,7 @@ namespace WebAppApiPhim.Controllers
                 var favorite = new UserFavorite
                 {
                     Id = Guid.NewGuid().ToString(),
-                    UserId = userId,
+                    UserId = Guid.Parse(userId),
                     MovieSlug = movieSlug,
                     AddedAt = DateTime.UtcNow
                 };
@@ -103,14 +103,14 @@ namespace WebAppApiPhim.Controllers
                 var favorites = await _context.UserFavorites
                     .AsNoTracking()
                     .Include(f => f.Movie)
-                    .Where(f => f.UserId == userId)
+                    .Where(f => f.UserId == Guid.Parse(userId))
                     .OrderByDescending(f => f.AddedAt)
                     .ToListAsync();
 
                 if (!favorites.Any())
                 {
-                    _logger.LogWarning($"No favorites found for user {userId}.");
-                    return NotFound($"No favorites found for user {userId}.");
+                    _logger.LogWarning($"No favorites found for user {Guid.Parse(userId)}.");
+                    return NotFound($"No favorites found for user {Guid.Parse(userId)}.");
                 }
 
                 return Ok(favorites);
@@ -143,11 +143,11 @@ namespace WebAppApiPhim.Controllers
                 }
 
                 var favorite = await _context.UserFavorites
-                    .FirstOrDefaultAsync(f => f.UserId == userId && f.MovieSlug == movieSlug);
+                    .FirstOrDefaultAsync(f => f.UserId == Guid.Parse(userId) && f.MovieSlug == movieSlug);
 
                 if (favorite == null)
                 {
-                    _logger.LogWarning($"Favorite not found for movie {movieSlug} by user {userId}.");
+                    _logger.LogWarning($"Favorite not found for movie {movieSlug} by user {Guid.Parse(userId)}.");
                     return NotFound($"Favorite not found for movie {movieSlug}.");
                 }
 

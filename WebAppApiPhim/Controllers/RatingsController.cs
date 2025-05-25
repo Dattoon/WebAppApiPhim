@@ -52,14 +52,14 @@ namespace WebAppApiPhim.Controllers
                 }
 
                 var existingRating = await _context.MovieRatings
-                    .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieSlug == movieSlug);
+                    .FirstOrDefaultAsync(r => r.UserId == Guid.Parse(userId) && r.MovieSlug == movieSlug);
 
                 if (existingRating == null)
                 {
                     var newRating = new MovieRating
                     {
                         Id = Guid.NewGuid().ToString(),
-                        UserId = userId,
+                        UserId = Guid.Parse(userId),
                         MovieSlug = movieSlug,
                         Rating = rating,
                         CreatedAt = DateTime.UtcNow
@@ -119,7 +119,7 @@ namespace WebAppApiPhim.Controllers
 
                 var rating = await _context.MovieRatings
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(r => r.UserId == userId && r.MovieSlug == movieSlug);
+                    .FirstOrDefaultAsync(r => r.UserId == Guid.Parse(userId) && r.MovieSlug == movieSlug);
 
                 if (rating == null)
                 {

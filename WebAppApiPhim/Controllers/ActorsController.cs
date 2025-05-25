@@ -44,7 +44,7 @@ namespace WebAppApiPhim.Controllers
         [HttpGet("{actorId}/movies")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<List<CachedMovie>>> GetMoviesByActor(int actorId)
+        public async Task<ActionResult<List<CachedMovie>>> GetMoviesByActor(string actorId)
         {
             try
             {

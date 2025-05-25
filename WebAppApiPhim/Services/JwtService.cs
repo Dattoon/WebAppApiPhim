@@ -34,13 +34,14 @@ namespace WebAppApiPhim.Services
             try
             {
                 var claims = new[]
-                {
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Id),
-                    new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
-                    new Claim("userName", user.UserName ?? string.Empty),
-                    new Claim("displayName", user.DisplayName ?? string.Empty),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
-                };
+                      {
+                        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                        new Claim(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
+                        new Claim("userName", user.UserName ?? string.Empty),
+                        new Claim("displayName", user.DisplayName ?? string.Empty),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                    };
+
 
                 var jwtSecret = _configuration["JwtSettings:Secret"]
                     ?? throw new InvalidOperationException("JWT Secret is not configured.");

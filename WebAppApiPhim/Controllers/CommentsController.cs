@@ -54,7 +54,7 @@ namespace WebAppApiPhim.Controllers
                 var comment = new UserComment
                 {
                     Id = Guid.NewGuid().ToString(),
-                    UserId = userId,
+                    UserId = Guid.Parse(userId),
                     MovieSlug = movieSlug,
                     Content = content,
                     CreatedAt = DateTime.UtcNow

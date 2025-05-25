@@ -39,7 +39,7 @@ namespace WebAppApiPhim.Services.Helpers
                         Director = movie.Director,
                         Duration = movie.Duration,
                         Language = movie.Language,
-                        Views = movie.View,
+                        Views = movie.Views,
                         LastUpdated = DateTime.UtcNow,
                         TmdbId = movie.TmdbId,
                         TrailerUrl = movie.TrailerUrl, // Bổ sung TrailerUrl
@@ -57,7 +57,7 @@ namespace WebAppApiPhim.Services.Helpers
                     existingMovie.Director = movie.Director;
                     existingMovie.Duration = movie.Duration;
                     existingMovie.Language = movie.Language;
-                    existingMovie.Views = movie.View;
+                    existingMovie.Views = movie.Views;
                     existingMovie.LastUpdated = DateTime.UtcNow;
                     existingMovie.TmdbId = movie.TmdbId;
                     existingMovie.TrailerUrl = movie.TrailerUrl ?? existingMovie.TrailerUrl; 
@@ -208,7 +208,7 @@ namespace WebAppApiPhim.Services.Helpers
                     dbContext.MovieStatistics.Add(new MovieStatistic
                     {
                         MovieSlug = movie.Slug,
-                        Views = (int)movie.View,
+                        Views = (int)movie.Views,
                         AverageRating = movie.Rating ?? 0, // Bổ sung Rating
                         FavoriteCount = 0,
                         LastUpdated = DateTime.UtcNow
@@ -216,7 +216,7 @@ namespace WebAppApiPhim.Services.Helpers
                 }
                 else
                 {
-                    statistic.Views = (int)movie.View;
+                    statistic.Views = (int)movie.Views;
                     statistic.AverageRating = movie.Rating ?? statistic.AverageRating; // Cập nhật Rating
                     statistic.LastUpdated = DateTime.UtcNow;
                     dbContext.MovieStatistics.Update(statistic);

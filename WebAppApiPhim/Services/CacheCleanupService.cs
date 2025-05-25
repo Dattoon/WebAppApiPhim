@@ -63,7 +63,7 @@ namespace WebAppApiPhim.Services
 
                 // Find old movies with no views
                 var oldMovies = await dbContext.CachedMovies
-                    .Where(m => m.LastUpdated < threshold && m.ViewCount == 0)
+                    .Where(m => m.LastUpdated < threshold && m.Views == 0)
                     .ToListAsync(stoppingToken);
 
                 if (oldMovies.Any())

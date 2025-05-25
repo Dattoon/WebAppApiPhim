@@ -108,7 +108,7 @@ namespace WebAppApiPhim.Services
                         Language = movieDetail.Language,
                         Director = movieDetail.Director,
                         TmdbId = movieDetail.TmdbId,
-                        Views = movieDetail.View, 
+                        Views = movieDetail.Views, 
                         LastUpdated = DateTime.UtcNow,
                         RawData = JsonSerializer.Serialize(movieDetail, _jsonOptions),
                         MovieGenreMappings = new List<MovieGenreMapping>(),
@@ -121,7 +121,7 @@ namespace WebAppApiPhim.Services
                         Statistic = new MovieStatistic
                         {
                             MovieSlug = movieDetail.Slug,
-                            Views = movieDetail.View,
+                            Views = movieDetail.Views,
                             LastUpdated = DateTime.UtcNow
                         }
                     };
@@ -139,7 +139,7 @@ namespace WebAppApiPhim.Services
                     cachedMovie.Language = movieDetail.Language;
                     cachedMovie.Director = movieDetail.Director;
                     cachedMovie.TmdbId = movieDetail.TmdbId;
-                    cachedMovie.Views = movieDetail.View; // Consistent with long
+                    cachedMovie.Views = movieDetail.Views; // Consistent with long
                     cachedMovie.LastUpdated = DateTime.UtcNow;
                     cachedMovie.RawData = JsonSerializer.Serialize(movieDetail, _jsonOptions);
 
@@ -148,13 +148,13 @@ namespace WebAppApiPhim.Services
                         cachedMovie.Statistic = new MovieStatistic
                         {
                             MovieSlug = movieDetail.Slug,
-                            Views = movieDetail.View, // Consistent with long
+                            Views = movieDetail.Views, // Consistent with long
                             LastUpdated = DateTime.UtcNow
                         };
                     }
                     else
                     {
-                        cachedMovie.Statistic.Views = movieDetail.View; // Consistent with long
+                        cachedMovie.Statistic.Views = movieDetail.Views; // Consistent with long
                         cachedMovie.Statistic.LastUpdated = DateTime.UtcNow;
                     }
 
@@ -311,7 +311,8 @@ namespace WebAppApiPhim.Services
                 if (!string.IsNullOrWhiteSpace(userId))
                 {
                     var existingEntry = await _context.UserMovies
-                        .FirstOrDefaultAsync(um => um.UserId == userId && um.MovieSlug == slug);
+                        .FirstOrDefaultAsync(um => um.UserId == Guid.Parse(userId) && um.MovieSlug == slug);
+
 
                     if (existingEntry != null)
                     {
@@ -323,7 +324,8 @@ namespace WebAppApiPhim.Services
                         var newEntry = new UserMovie
                         {
                             Id = Guid.NewGuid().ToString(),
-                            UserId = userId,
+                            UserId = Guid.Parse(userId),
+
                             MovieSlug = slug,
                             AddedAt = DateTime.UtcNow
                         };
@@ -361,7 +363,8 @@ namespace WebAppApiPhim.Services
             {
                 var progress = await _context.EpisodeProgresses
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.UserId == userId && p.EpisodeId == episodeId);
+                    .FirstOrDefaultAsync(p => p.UserId == Guid.Parse(userId) && p.EpisodeId == episodeId);
+
 
                 if (progress == null)
                 {
@@ -388,7 +391,7 @@ namespace WebAppApiPhim.Services
             try
             {
                 var progress = await _context.EpisodeProgresses
-                    .FirstOrDefaultAsync(p => p.UserId == userId && p.EpisodeId == episodeId);
+               .FirstOrDefaultAsync(p => p.UserId == Guid.Parse(userId) && p.EpisodeId == episodeId);
 
                 double watchedPercentage = duration > 0 ? Math.Min((currentTime / duration) * 100, 100) : 0;
 
@@ -397,7 +400,7 @@ namespace WebAppApiPhim.Services
                     progress = new EpisodeProgress
                     {
                         Id = Guid.NewGuid().ToString(),
-                        UserId = userId,
+                        UserId = Guid.Parse(userId),
                         EpisodeId = episodeId,
                         WatchedPercentage = watchedPercentage,
                         LastWatched = DateTime.UtcNow

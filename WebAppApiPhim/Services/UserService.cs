@@ -21,7 +21,7 @@ namespace WebAppApiPhim.Services
             _logger = logger;
         }
 
-        public async Task<ApplicationUser> GetUserByIdAsync(string userId)
+        public async Task<ApplicationUser?> GetUserByIdAsync(string userId)
         {
             try
             {
@@ -34,7 +34,7 @@ namespace WebAppApiPhim.Services
             }
         }
 
-        public async Task<ApplicationUser> GetUserByEmailAsync(string email)
+        public async Task<ApplicationUser?> GetUserByEmailAsync(string email)
         {
             try
             {
@@ -47,7 +47,7 @@ namespace WebAppApiPhim.Services
             }
         }
 
-        public async Task<ApplicationUser> CreateUserAsync(ApplicationUser user, string password)
+        public async Task<ApplicationUser?> CreateUserAsync(ApplicationUser user, string password)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace WebAppApiPhim.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error creating user: {user.Email}");
+                _logger.LogError(ex, $"Error creating user: {user?.Email}");
                 return null;
             }
         }

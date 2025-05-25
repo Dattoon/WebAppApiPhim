@@ -41,8 +41,7 @@ namespace WebAppApiPhim.Services
         {
             try
             {
-                // Since ApplicationDbContext uses Identity, users are stored in AspNetUsers table
-                var count = await _dbContext.UserMovies.CountAsync();
+                var count = await _dbContext.Users.CountAsync(); // Use AspNetUsers table
                 _logger.LogInformation("Total users retrieved: {Count}", count);
                 return count;
             }
@@ -53,7 +52,7 @@ namespace WebAppApiPhim.Services
             }
         }
 
-        public async Task<int> GetMovieViewCountAsync(string movieSlug)
+        public async Task<long> GetMovieViewCountAsync(string movieSlug)
         {
             if (string.IsNullOrWhiteSpace(movieSlug))
             {
@@ -72,9 +71,8 @@ namespace WebAppApiPhim.Services
                     return 0;
                 }
 
-                // Assuming CachedMovie has a Views property; adjust based on your model
                 _logger.LogInformation("View count for movie {MovieSlug}: {ViewCount}", movieSlug, movie.Views);
-                return movie.ViewCount;
+                return movie.Views;
             }
             catch (Exception ex)
             {
@@ -88,7 +86,7 @@ namespace WebAppApiPhim.Services
             try
             {
                 var moviesByQuality = await _dbContext.CachedMovies
-                    .GroupBy(m => m.Resolution) // Assuming Resolution represents quality (e.g., "HD", "4K")
+                    .GroupBy(m => m.Resolution)
                     .Select(g => new { Quality = g.Key, Count = g.Count() })
                     .ToArrayAsync();
 

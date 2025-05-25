@@ -8,7 +8,7 @@ namespace WebAppApiPhim.Services.Interfaces
         void InvalidateCache(string slug);
         Task<int> GetTotalMoviesAsync();
         Task<int> GetTotalUsersAsync();
-        Task<int> GetMovieViewCountAsync(string movieSlug);
+        Task<long> GetMovieViewCountAsync(string movieSlug);
         Task<(string Quality, int Count)[]> GetMoviesByQualityAsync();
     }
 }

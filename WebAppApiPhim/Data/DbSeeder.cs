@@ -14,22 +14,23 @@ namespace WebAppApiPhim.Data
             await Task.CompletedTask;
         }
 
-        public static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+        public static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager)
+
         {
             // Seed Roles
             if (!await roleManager.RoleExistsAsync("Admin"))
             {
-                await roleManager.CreateAsync(new IdentityRole("Admin"));
+                await roleManager.CreateAsync(new IdentityRole<Guid>("Admin"));
             }
 
             if (!await roleManager.RoleExistsAsync("Moderator"))
             {
-                await roleManager.CreateAsync(new IdentityRole("Moderator"));
+                await roleManager.CreateAsync(new IdentityRole<Guid>("Moderator"));
             }
 
             if (!await roleManager.RoleExistsAsync("User"))
             {
-                await roleManager.CreateAsync(new IdentityRole("User"));
+                await roleManager.CreateAsync(new IdentityRole<Guid>("User"));
             }
         }
 
@@ -61,7 +62,8 @@ namespace WebAppApiPhim.Data
             }
         }
 
-        public static async Task Initialize(IServiceProvider serviceProvider, ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public static async Task Initialize(IServiceProvider serviceProvider, ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<Guid>> roleManager)
+
         {
             await SeedAsync(context);
             await SeedRolesAsync(roleManager);
