@@ -291,31 +291,23 @@ namespace WebAppApiPhim.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("Director")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Duration")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Language")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<DateTime>("LastUpdated")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("MovieSlug")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PosterUrl")
                         .IsRequired()
@@ -326,7 +318,6 @@ namespace WebAppApiPhim.Migrations
                         .HasColumnType("float");
 
                     b.Property<string>("RawData")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Resolution")
@@ -334,7 +325,6 @@ namespace WebAppApiPhim.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("ThumbUrl")
-                        .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
 
@@ -344,7 +334,6 @@ namespace WebAppApiPhim.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("TmdbId")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -356,7 +345,6 @@ namespace WebAppApiPhim.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("Year")
-                        .IsRequired()
                         .HasMaxLength(4)
                         .HasColumnType("nvarchar(4)");
 
@@ -1128,8 +1116,7 @@ namespace WebAppApiPhim.Migrations
 
                     b.Navigation("Ratings");
 
-                    b.Navigation("Statistic")
-                        .IsRequired();
+                    b.Navigation("Statistic");
 
                     b.Navigation("Watchlist");
                 });

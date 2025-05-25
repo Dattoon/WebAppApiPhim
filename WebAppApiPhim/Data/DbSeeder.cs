@@ -10,27 +10,25 @@ namespace WebAppApiPhim.Data
     {
         public static async Task SeedAsync(ApplicationDbContext context)
         {
-            // Có thể thêm logic khởi tạo dữ liệu khác nếu cần
             await Task.CompletedTask;
         }
 
         public static async Task SeedRolesAsync(RoleManager<IdentityRole<Guid>> roleManager)
-
         {
             // Seed Roles
             if (!await roleManager.RoleExistsAsync("Admin"))
             {
-                await roleManager.CreateAsync(new IdentityRole<Guid>("Admin"));
+                await roleManager.CreateAsync(new IdentityRole<Guid>("Admin") { Id = Guid.NewGuid() });
             }
 
             if (!await roleManager.RoleExistsAsync("Moderator"))
             {
-                await roleManager.CreateAsync(new IdentityRole<Guid>("Moderator"));
+                await roleManager.CreateAsync(new IdentityRole<Guid>("Moderator") { Id = Guid.NewGuid() });
             }
 
             if (!await roleManager.RoleExistsAsync("User"))
             {
-                await roleManager.CreateAsync(new IdentityRole<Guid>("User"));
+                await roleManager.CreateAsync(new IdentityRole<Guid>("User") { Id = Guid.NewGuid() });
             }
         }
 
@@ -38,16 +36,18 @@ namespace WebAppApiPhim.Data
         {
             // Seed Admin User
             const string adminEmail = "admin@movieapi.com";
-            const string adminPassword = "Admin@123456";
+            const string adminPassword = "Admin123456"; // Removed special character requirement
 
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
             if (adminUser == null)
             {
                 adminUser = new ApplicationUser
                 {
+                    Id = Guid.NewGuid(),
                     UserName = adminEmail,
                     Email = adminEmail,
-                    EmailConfirmed = true
+                    EmailConfirmed = true,
+                    DisplayName = "Administrator"
                 };
 
                 var result = await userManager.CreateAsync(adminUser, adminPassword);
@@ -62,8 +62,11 @@ namespace WebAppApiPhim.Data
             }
         }
 
-        public static async Task Initialize(IServiceProvider serviceProvider, ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole<Guid>> roleManager)
-
+        public static async Task Initialize(
+            IServiceProvider serviceProvider,
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole<Guid>> roleManager)
         {
             await SeedAsync(context);
             await SeedRolesAsync(roleManager);

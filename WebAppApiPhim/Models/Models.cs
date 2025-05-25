@@ -380,37 +380,38 @@ namespace WebAppApiPhim.Models
         [StringLength(500)]
         public string Title { get; set; }
 
+        // Make these nullable in the model but provide defaults in code
         [StringLength(2000)]
-        public string Description { get; set; }
+        public string? Description { get; set; }
 
         [Required]
         [StringLength(1000)]
-        public string PosterUrl { get; set; }
+        public string PosterUrl { get; set; } = "/placeholder.svg?height=450&width=300";
 
         [StringLength(1000)]
-        public string ThumbUrl { get; set; }
+        public string? ThumbUrl { get; set; }
 
         [StringLength(4)]
-        public string Year { get; set; }
+        public string? Year { get; set; }
 
         [StringLength(100)]
-        public string Director { get; set; }
+        public string? Director { get; set; }
 
         [StringLength(50)]
-        public string Duration { get; set; }
+        public string? Duration { get; set; }
 
         [StringLength(50)]
-        public string Language { get; set; }
+        public string? Language { get; set; }
 
-        public long Views { get; set; }
+        public long Views { get; set; } = 0;
 
         [Required]
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 
-        public string RawData { get; set; }
+        public string? RawData { get; set; }
 
         [StringLength(50)]
-        public string TmdbId { get; set; }
+        public string? TmdbId { get; set; }
 
         [StringLength(50)]
         public string? Resolution { get; set; }
@@ -421,6 +422,7 @@ namespace WebAppApiPhim.Models
         [Range(0, 10)]
         public double? Rating { get; set; }
 
+        // Navigation Properties
         public List<CachedEpisode> Episodes { get; set; } = new List<CachedEpisode>();
         public List<MovieGenreMapping> MovieGenreMappings { get; set; } = new List<MovieGenreMapping>();
         public List<MovieCountryMapping> MovieCountryMappings { get; set; } = new List<MovieCountryMapping>();
@@ -434,10 +436,14 @@ namespace WebAppApiPhim.Models
         public List<UserComment> Comments { get; set; } = new List<UserComment>();
         public List<DailyView> DailyViews { get; set; } = new List<DailyView>();
 
-        [ForeignKey("MovieStatistic")]
-        public string MovieSlug { get; set; }
-        public MovieStatistic Statistic { get; set; }
+        public MovieStatistic? Statistic { get; set; }
     }
+
+
+
+
+
+
     public class CachedEpisode
     {
         [Key]

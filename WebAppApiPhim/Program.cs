@@ -44,22 +44,46 @@ builder.Services.AddControllers()
     {
         options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
-    })
-    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Program>());
+    });
 
-// Configure DbContext with retry-on-failure
+// Configure DbContext with retry-on-failure and query splitting
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: new List<int> { 1205 })));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DevConnection"),
+        sqlOptions =>
+        {
+            sqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 5,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorNumbersToAdd: new List<int> { 1205 });
 
-// Add Identity
-builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>()
+            sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+        }
+    )
+);
 
-    .AddEntityFrameworkStores<ApplicationDbContext>()
-    .AddDefaultTokenProviders();
+// Add Identity with custom password requirements
+builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
+{
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = false; // Allow passwords without special characters
+    options.Password.RequireUppercase = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
+
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+
+    // User settings
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    options.User.RequireUniqueEmail = true;
+})
+.AddEntityFrameworkStores<ApplicationDbContext>()
+.AddDefaultTokenProviders();
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
@@ -93,10 +117,14 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Add HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
 // Add HttpClient with Resilience
 builder.Services.AddHttpClient<IMovieApiService, MovieApiService>(client =>
 {
     client.BaseAddress = new Uri("https://api.dulieuphim.ink/");
+    client.DefaultRequestHeaders.Add("User-Agent", "MovieAPI/1.0");
 })
 .AddResilienceHandler("MovieApiResilience", config =>
 {
@@ -117,35 +145,47 @@ builder.Services.AddHttpClient<IMovieApiService, MovieApiService>(client =>
 // Add Caching
 builder.Services.AddMemoryCache(options =>
 {
-    options.SizeLimit = 1024 * 1024 * 100; // 100MB
+    // Remove SizeLimit to avoid cache size errors
+    // options.SizeLimit = 1024 * 1024 * 100; // Comment out this line
+    options.CompactionPercentage = 0.25;
+    options.ExpirationScanFrequency = TimeSpan.FromMinutes(5);
 });
 
-builder.Services.AddStackExchangeRedisCache(options =>
+// Add Redis Cache (optional, comment out if Redis is not available)
+try
 {
-    options.Configuration = builder.Configuration.GetConnectionString("Redis")
-        ?? throw new ArgumentException("Redis connection string is not configured.");
-    options.InstanceName = "MovieApi_";
-});
+    var redisConnection = builder.Configuration.GetConnectionString("Redis");
+    if (!string.IsNullOrEmpty(redisConnection))
+    {
+        builder.Services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnection;
+            options.InstanceName = "MovieApi_";
+        });
+    }
+}
+catch (Exception ex)
+{
+    Log.Warning("Redis cache not configured: {Error}", ex.Message);
+}
 
 // Register Services
-builder.Services.AddScoped<IMetadataService, MetadataService>(); // ✅ Required
-
+builder.Services.AddScoped<IMetadataService, MetadataService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IStreamingService, StreamingService>();
-builder.Services.AddScoped<JwtService>();
+builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
-builder.Services.AddScoped<MovieCacheService>();
 
-// Register Hosted Services
+// Register Background Services
 builder.Services.AddHostedService<SyncMoviesService>();
-builder.Services.AddHostedService<MovieCacheService>();
 builder.Services.AddHostedService<CacheCleanupService>();
 
 // Add Health Checks
 builder.Services.AddHealthChecks()
-    .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), name: "sqlserver", failureStatus: HealthStatus.Degraded, tags: new[] { "db" })
-    .AddRedis(builder.Configuration.GetConnectionString("Redis"), "redis_cache", failureStatus: HealthStatus.Degraded, tags: new[] { "cache" })
-    .AddUrlGroup(new Uri(builder.Configuration.GetConnectionString("Elasticsearch") ?? "http://localhost:9200"), "elasticsearch", failureStatus: HealthStatus.Degraded, tags: new[] { "search" });
+    .AddSqlServer(builder.Configuration.GetConnectionString("DevConnection"),
+        name: "sqlserver",
+        failureStatus: HealthStatus.Degraded,
+        tags: new[] { "db" });
 
 // Add Swagger
 builder.Services.AddSwaggerGen(c =>
@@ -167,28 +207,6 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-// Add Rate Limiting
-builder.Services.AddRateLimiter(options =>
-{
-    options.AddPolicy("default", context =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Connection.RemoteIpAddress?.ToString(),
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = builder.Configuration.GetValue<int>("RateLimiting:DefaultLimit", 100),
-                Window = TimeSpan.FromMinutes(1)
-            }));
-
-    options.AddPolicy("search", context =>
-        RateLimitPartition.GetFixedWindowLimiter(
-            partitionKey: context.Connection.RemoteIpAddress?.ToString(),
-            factory: partition => new FixedWindowRateLimiterOptions
-            {
-                PermitLimit = builder.Configuration.GetValue<int>("RateLimiting:SearchLimit", 30),
-                Window = TimeSpan.FromMinutes(1)
-            }));
-});
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -202,12 +220,10 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowSpecificOrigin");
 
+// IMPORTANT: Correct middleware order
+app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.UseRouting();
-
-app.UseRateLimiter();
 
 app.UseHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
 {
@@ -229,13 +245,6 @@ app.UseHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
     }
 });
 
-// Load thêm file appsettings.enhanced.json
-builder.Configuration
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
-    .AddJsonFile("appsettings.enhanced.json", optional: true)
-    .AddEnvironmentVariables(); // dùng cho docker hoặc môi trường cài biến ENV
-
 app.MapControllers();
 
 // Seed Database
@@ -249,7 +258,7 @@ using (var scope = app.Services.CreateScope())
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole<Guid>>>();
 
         await context.Database.MigrateAsync();
-        await DbSeeder.Initialize(services, context, userManager, roleManager); // Sửa thành DbSeeder
+        await DbSeeder.Initialize(services, context, userManager, roleManager);
     }
     catch (Exception ex)
     {

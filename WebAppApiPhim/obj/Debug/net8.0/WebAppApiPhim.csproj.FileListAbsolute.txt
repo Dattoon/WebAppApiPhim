@@ -195,3 +195,4 @@ C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\WebAppApiPhim.pdb
 C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\WebAppApiPhim.genruntimeconfig.cache
 C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\ref\WebAppApiPhim.dll
 C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\HealthChecks.Redis.dll
+C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\appsettings.Development.json
