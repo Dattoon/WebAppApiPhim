@@ -49,7 +49,7 @@ builder.Services.AddControllers()
 // Configure DbContext with retry-on-failure and query splitting
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DevConnection"),
+        builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions =>
         {
             sqlOptions.EnableRetryOnFailure(
@@ -182,7 +182,7 @@ builder.Services.AddHostedService<CacheCleanupService>();
 
 // Add Health Checks
 builder.Services.AddHealthChecks()
-    .AddSqlServer(builder.Configuration.GetConnectionString("DevConnection"),
+    .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
         name: "sqlserver",
         failureStatus: HealthStatus.Degraded,
         tags: new[] { "db" });

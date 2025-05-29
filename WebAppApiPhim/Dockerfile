@@ -16,7 +16,7 @@ ENV ASPNETCORE_URLS=http://+:80
 
 COPY --from=build /app/out .
 COPY appsettings.json .
-COPY appsettings.enhanced.json .
+
 COPY appsettings.Production.json .
 
 EXPOSE 80

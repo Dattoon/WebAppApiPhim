@@ -6,7 +6,6 @@ C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\WebAppApiPhim.csproj.Cor
 C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\WebAppApiPhim.MvcApplicationPartsAssemblyInfo.cs
 C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\WebAppApiPhim.MvcApplicationPartsAssemblyInfo.cache
 C:\D\Leaning\API\APICode\WebAppApiPhim\obj\Debug\net8.0\WebAppApiPhim.sourcelink.json
-C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\appsettings.enhanced.json
 C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\appsettings.json
 C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\appsettings.Production.json
 C:\D\Leaning\API\APICode\WebAppApiPhim\bin\Debug\net8.0\libman.json

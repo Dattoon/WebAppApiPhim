@@ -13,16 +13,16 @@ namespace WebAppApiPhim.Data
             var configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", optional: true)
-                .AddJsonFile("appsettings.Development.json", optional: true)
+                .AddJsonFile("appsettings.Production.json", optional: true)
                 .AddEnvironmentVariables()
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
-            var connectionString = configuration.GetConnectionString("DevConnection");
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
 
             if (string.IsNullOrEmpty(connectionString))
-                throw new InvalidOperationException("Could not find 'DevConnection' in configuration.");
+                throw new InvalidOperationException("Could not find 'DefaultConnection' in configuration.");
 
             optionsBuilder.UseSqlServer(connectionString);
 

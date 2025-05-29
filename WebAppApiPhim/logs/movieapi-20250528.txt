@@ -1,0 +1,29 @@
+2025-05-28 09:45:21.033 +07:00 [INF] SyncMoviesService is starting.
+2025-05-28 09:45:21.101 +07:00 [INF] CacheCleanupService is starting.
+2025-05-28 09:45:23.359 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-05-28 10:03:46.734 +07:00 [INF] SyncMoviesService is starting.
+2025-05-28 10:03:46.861 +07:00 [INF] CacheCleanupService is starting.
+2025-05-28 10:03:48.689 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-05-28 10:04:46.875 +07:00 [INF] Starting safe movie synchronization...
+2025-05-28 10:04:46.925 +07:00 [INF] Calling API endpoint: phim-moi/v1?page=1&limit=20
+2025-05-28 10:04:50.215 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '3176.2638'
+2025-05-28 10:04:50.243 +07:00 [INF] Raw API Response (first 500 chars): {"data":[{"id":"1a08d68b5124c82c0131d4e61c85dd8a","name":"Ng\u00e0y Thay \u0110\u1ed5i T\u1eed M\u1ec7nh","slug":"leap-day","year":"2025","loai_phim":"Phim b\u1ed9, Phim \u0111ang chi\u1ebfu","quoc_gia":"Th\u00e1i Lan","modified":"2025-05-27 16:59:33"},{"id":"a39878ae282a18ea051ad89e7875a272","name":"Khi M\u1eb7t Tr\u1eddi L\u1eb7n C\u0169ng L\u00e0 L\u00fac C\u00e1c V\u00ec Sao Xu\u1ea5t Hi\u1ec7n","slug":"khi-mat-troi-lan-cung-la-luc-cac-vi-sao-xuat-hien","year":"2025","loai_phim":"Phim b\u1ed...
+2025-05-28 10:04:50.251 +07:00 [INF] Parsed 20 movies from API response
+2025-05-28 10:04:50.255 +07:00 [INF] Successfully cached 20 movies for page 1
+2025-05-28 10:04:53.572 +07:00 [INF] Calling API endpoint: phim-moi/v1?page=2&limit=20
+2025-05-28 10:04:53.950 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '374.8292'
+2025-05-28 10:04:53.957 +07:00 [INF] Raw API Response (first 500 chars): {"data":[{"id":"2f8ad0a8b0f357680b14408c30c53a11","name":"Trinh S\u00e1t H\u00ecnh S\u1ef1 12","slug":"trinh-sat-hinh-su-12","year":"2025","loai_phim":"Phim b\u1ed9, Phim \u0111ang chi\u1ebfu","quoc_gia":"H\u1ed3ng K\u00f4ng","modified":"2025-05-27 11:41:02"},{"id":"0e1b703e310abf1b3932abf6806f9c39","name":"Nh\u1ea5t Ni\u1ec7m V\u0129nh H\u1eb1ng 3","slug":"nhat-niem-vinh-hang-3","year":"2024","loai_phim":"Phim b\u1ed9","quoc_gia":"Trung Qu\u1ed1c","modified":"2025-05-27 11:40:25"},{"id":"33463b...
+2025-05-28 10:04:53.960 +07:00 [INF] Parsed 20 movies from API response
+2025-05-28 10:04:53.962 +07:00 [INF] Successfully cached 20 movies for page 2
+2025-05-28 10:04:57.032 +07:00 [INF] Calling API endpoint: phim-moi/v1?page=3&limit=20
+2025-05-28 10:04:57.615 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '580.2569'
+2025-05-28 10:04:57.838 +07:00 [INF] Raw API Response (first 500 chars): {"data":[{"id":"f2a5e3992379aff98f056365b14be2e4","name":"Th\u00e1i C\u1ed5 Chi\u1ebfn H\u1ed3n","slug":"thai-co-chien-hon","year":"2025","loai_phim":"Phim b\u1ed9","quoc_gia":"Trung Qu\u1ed1c","modified":"2025-05-27 03:43:54"},{"id":"0bff2aa05a6d99cad062133e6c589de1","name":"S\u01b0 Huynh C\u1ee7a Ta Qu\u00e1 M\u1ea1nh","slug":"su-huynh-cua-ta-qua-manh","year":"2025","loai_phim":"Phim b\u1ed9","quoc_gia":"Trung Qu\u1ed1c","modified":"2025-05-27 03:43:49"},{"id":"cf997fc1f9dcc27496e350d4d0f6a79f...
+2025-05-28 10:04:57.843 +07:00 [INF] Parsed 20 movies from API response
+2025-05-28 10:04:57.845 +07:00 [INF] Successfully cached 20 movies for page 3
+2025-05-28 10:05:00.883 +07:00 [INF] Movie synchronization completed. Synced 0 new movies.
+2025-05-28 10:08:10.304 +07:00 [INF] SyncMoviesService is starting.
+2025-05-28 10:08:10.399 +07:00 [INF] CacheCleanupService is starting.
+2025-05-28 10:08:11.766 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-05-28 10:09:54.448 +07:00 [INF] SyncMoviesService is starting.
+2025-05-28 10:09:54.540 +07:00 [INF] CacheCleanupService is starting.
+2025-05-28 10:09:56.008 +07:00 [WRN] Failed to determine the https port for redirect.

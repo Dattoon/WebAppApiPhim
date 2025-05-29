@@ -1,0 +1,490 @@
+2025-05-29 13:21:49.049 +07:00 [INF] SyncMoviesService is starting.
+2025-05-29 13:21:49.149 +07:00 [INF] CacheCleanupService is starting.
+2025-05-29 13:21:53.631 +07:00 [WRN] Failed to determine the https port for redirect.
+2025-05-29 13:22:49.156 +07:00 [INF] Starting safe movie synchronization...
+2025-05-29 13:22:49.233 +07:00 [INF] Calling API endpoint: phim-moi/v1?page=1&limit=20
+2025-05-29 13:22:50.373 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '1060.1005'
+2025-05-29 13:22:50.393 +07:00 [INF] Raw API Response (first 500 chars): {"data":[{"id":"2272f36ac8ee821bb87bfff301370308","name":"Ch\u1ecb D\u00e2u","slug":"chi-dau","year":"2024","loai_phim":"Phim l\u1ebb","quoc_gia":"Vi\u1ec7t Nam","modified":"2025-05-29 05:32:07"},{"id":"039b28c0e2a52524890797e9e0f29899","name":"Thanh Kh\u00e2m Ch\u00ed","slug":"thanh-kham-chi","year":"2025","loai_phim":"Phim b\u1ed9, Phim \u0111ang chi\u1ebfu","quoc_gia":"Trung Qu\u1ed1c","modified":"2025-05-29 04:28:59"},{"id":"5e13d1e382d895a5a58b40173eb7abfd","name":"Tri\u00eau D\u01b0\u01a1n...
+2025-05-29 13:22:50.398 +07:00 [INF] Parsed 20 movies from API response
+2025-05-29 13:22:50.401 +07:00 [INF] Successfully cached 20 movies for page 1
+2025-05-29 13:22:50.701 +07:00 [WRN] Failed to process movie: doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy
+System.InvalidOperationException: The instance of entity type 'CachedMovie' cannot be tracked because another instance with the same key value for {'Slug'} is already being tracked. When attaching existing entities, ensure that only one entity instance with a given key value is attached. Consider using 'DbContextOptionsBuilder.EnableSensitiveDataLogging' to see the conflicting key values.
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IdentityMap`1.ThrowIdentityConflict(InternalEntityEntry entry)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IdentityMap`1.Add(TKey key, InternalEntityEntry entry, Boolean updateDuplicate)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.IdentityMap`1.Add(TKey key, InternalEntityEntry entry)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.NullableKeyIdentityMap`1.Add(InternalEntityEntry entry)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.StartTracking(InternalEntityEntry entry)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.InternalEntityEntry.SetEntityState(EntityState oldState, EntityState newState, Boolean acceptChanges, Boolean modifyProperties)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.InternalEntityEntry.SetEntityState(EntityState entityState, Boolean acceptChanges, Boolean modifyProperties, Nullable`1 forceStateWhenUnknownKey, Nullable`1 fallbackState)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.EntityGraphAttacher.PaintAction(EntityEntryGraphNode`1 node)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.EntityEntryGraphIterator.TraverseGraph[TState](EntityEntryGraphNode`1 node, Func`2 handleNode)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.EntityGraphAttacher.AttachGraph(InternalEntityEntry rootEntry, EntityState targetState, EntityState storeGeneratedWithKeySetTargetState, Boolean forceStateWhenUnknownKey)
+   at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.SetEntityState(InternalEntityEntry entry, EntityState entityState)
+   at Microsoft.EntityFrameworkCore.Internal.InternalDbSet`1.Add(TEntity entity)
+   at WebAppApiPhim.BackgroundServices.SyncMoviesService.SafeSyncMovies(CancellationToken stoppingToken) in C:\D\Leaning\API\APICode\WebAppApiPhim\Services\SyncMoviesService.cs:line 105
+2025-05-29 13:22:50.978 +07:00 [ERR] Failed executing DbCommand (74ms) [Parameters=[@p0='?' (Size = 100), @p1='?' (Size = 2000), @p2='?' (Size = 100), @p3='?' (Size = 50), @p4='?' (Size = 50), @p5='?' (DbType = DateTime2), @p6='?' (Size = 1000), @p7='?' (DbType = Double), @p8='?' (Size = 4000), @p9='?' (Size = 50), @p10='?' (Size = 1000), @p11='?' (Size = 500), @p12='?' (Size = 50), @p13='?' (Size = 1000), @p14='?' (DbType = Int64), @p15='?' (Size = 4), @p16='?' (Size = 100), @p17='?' (Size = 2000), @p18='?' (Size = 100), @p19='?' (Size = 50), @p20='?' (Size = 50), @p21='?' (DbType = DateTime2), @p22='?' (Size = 1000), @p23='?' (DbType = Double), @p24='?' (Size = 4000), @p25='?' (Size = 50), @p26='?' (Size = 1000), @p27='?' (Size = 500), @p28='?' (Size = 50), @p29='?' (Size = 1000), @p30='?' (DbType = Int64), @p31='?' (Size = 4), @p32='?' (Size = 100), @p33='?' (Size = 2000), @p34='?' (Size = 100), @p35='?' (Size = 50), @p36='?' (Size = 50), @p37='?' (DbType = DateTime2), @p38='?' (Size = 1000), @p39='?' (DbType = Double), @p40='?' (Size = 4000), @p41='?' (Size = 50), @p42='?' (Size = 1000), @p43='?' (Size = 500), @p44='?' (Size = 50), @p45='?' (Size = 1000), @p46='?' (DbType = Int64), @p47='?' (Size = 4), @p48='?' (Size = 100), @p49='?' (Size = 2000), @p50='?' (Size = 100), @p51='?' (Size = 50), @p52='?' (Size = 50), @p53='?' (DbType = DateTime2), @p54='?' (Size = 1000), @p55='?' (DbType = Double), @p56='?' (Size = 4000), @p57='?' (Size = 50), @p58='?' (Size = 1000), @p59='?' (Size = 500), @p60='?' (Size = 50), @p61='?' (Size = 1000), @p62='?' (DbType = Int64), @p63='?' (Size = 4), @p64='?' (Size = 100), @p65='?' (Size = 2000), @p66='?' (Size = 100), @p67='?' (Size = 50), @p68='?' (Size = 50), @p69='?' (DbType = DateTime2), @p70='?' (Size = 1000), @p71='?' (DbType = Double), @p72='?' (Size = 4000), @p73='?' (Size = 50), @p74='?' (Size = 1000), @p75='?' (Size = 500), @p76='?' (Size = 50), @p77='?' (Size = 1000), @p78='?' (DbType = Int64), @p79='?' (Size = 4), @p80='?' (Size = 100), @p81='?' (Size = 2000), @p82='?' (Size = 100), @p83='?' (Size = 50), @p84='?' (Size = 50), @p85='?' (DbType = DateTime2), @p86='?' (Size = 1000), @p87='?' (DbType = Double), @p88='?' (Size = 4000), @p89='?' (Size = 50), @p90='?' (Size = 1000), @p91='?' (Size = 500), @p92='?' (Size = 50), @p93='?' (Size = 1000), @p94='?' (DbType = Int64), @p95='?' (Size = 4), @p96='?' (Size = 100), @p97='?' (Size = 2000), @p98='?' (Size = 100), @p99='?' (Size = 50), @p100='?' (Size = 50), @p101='?' (DbType = DateTime2), @p102='?' (Size = 1000), @p103='?' (DbType = Double), @p104='?' (Size = 4000), @p105='?' (Size = 50), @p106='?' (Size = 1000), @p107='?' (Size = 500), @p108='?' (Size = 50), @p109='?' (Size = 1000), @p110='?' (DbType = Int64), @p111='?' (Size = 4), @p112='?' (Size = 100), @p113='?' (Size = 2000), @p114='?' (Size = 100), @p115='?' (Size = 50), @p116='?' (Size = 50), @p117='?' (DbType = DateTime2), @p118='?' (Size = 1000), @p119='?' (DbType = Double), @p120='?' (Size = 4000), @p121='?' (Size = 50), @p122='?' (Size = 1000), @p123='?' (Size = 500), @p124='?' (Size = 50), @p125='?' (Size = 1000), @p126='?' (DbType = Int64), @p127='?' (Size = 4), @p128='?' (Size = 100), @p129='?' (Size = 2000), @p130='?' (Size = 100), @p131='?' (Size = 50), @p132='?' (Size = 50), @p133='?' (DbType = DateTime2), @p134='?' (Size = 1000), @p135='?' (DbType = Double), @p136='?' (Size = 4000), @p137='?' (Size = 50), @p138='?' (Size = 1000), @p139='?' (Size = 500), @p140='?' (Size = 50), @p141='?' (Size = 1000), @p142='?' (DbType = Int64), @p143='?' (Size = 4), @p144='?' (Size = 100), @p145='?' (Size = 2000), @p146='?' (Size = 100), @p147='?' (Size = 50), @p148='?' (Size = 50), @p149='?' (DbType = DateTime2), @p150='?' (Size = 1000), @p151='?' (DbType = Double), @p152='?' (Size = 4000), @p153='?' (Size = 50), @p154='?' (Size = 1000), @p155='?' (Size = 500), @p156='?' (Size = 50), @p157='?' (Size = 1000), @p158='?' (DbType = Int64), @p159='?' (Size = 4), @p160='?' (Size = 100), @p161='?' (Size = 2000), @p162='?' (Size = 100), @p163='?' (Size = 50), @p164='?' (Size = 50), @p165='?' (DbType = DateTime2), @p166='?' (Size = 1000), @p167='?' (DbType = Double), @p168='?' (Size = 4000), @p169='?' (Size = 50), @p170='?' (Size = 1000), @p171='?' (Size = 500), @p172='?' (Size = 50), @p173='?' (Size = 1000), @p174='?' (DbType = Int64), @p175='?' (Size = 4), @p176='?' (Size = 100), @p177='?' (Size = 2000), @p178='?' (Size = 100), @p179='?' (Size = 50), @p180='?' (Size = 50), @p181='?' (DbType = DateTime2), @p182='?' (Size = 1000), @p183='?' (DbType = Double), @p184='?' (Size = 4000), @p185='?' (Size = 50), @p186='?' (Size = 1000), @p187='?' (Size = 500), @p188='?' (Size = 50), @p189='?' (Size = 1000), @p190='?' (DbType = Int64), @p191='?' (Size = 4), @p192='?' (Size = 100), @p193='?' (Size = 2000), @p194='?' (Size = 100), @p195='?' (Size = 50), @p196='?' (Size = 50), @p197='?' (DbType = DateTime2), @p198='?' (Size = 1000), @p199='?' (DbType = Double), @p200='?' (Size = 4000), @p201='?' (Size = 50), @p202='?' (Size = 1000), @p203='?' (Size = 500), @p204='?' (Size = 50), @p205='?' (Size = 1000), @p206='?' (DbType = Int64), @p207='?' (Size = 4), @p208='?' (Size = 100), @p209='?' (Size = 2000), @p210='?' (Size = 100), @p211='?' (Size = 50), @p212='?' (Size = 50), @p213='?' (DbType = DateTime2), @p214='?' (Size = 1000), @p215='?' (DbType = Double), @p216='?' (Size = 4000), @p217='?' (Size = 50), @p218='?' (Size = 1000), @p219='?' (Size = 500), @p220='?' (Size = 50), @p221='?' (Size = 1000), @p222='?' (DbType = Int64), @p223='?' (Size = 4)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [CachedMovies] ([Slug], [Description], [Director], [Duration], [Language], [LastUpdated], [PosterUrl], [Rating], [RawData], [Resolution], [ThumbUrl], [Title], [TmdbId], [TrailerUrl], [Views], [Year])
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15),
+(@p16, @p17, @p18, @p19, @p20, @p21, @p22, @p23, @p24, @p25, @p26, @p27, @p28, @p29, @p30, @p31),
+(@p32, @p33, @p34, @p35, @p36, @p37, @p38, @p39, @p40, @p41, @p42, @p43, @p44, @p45, @p46, @p47),
+(@p48, @p49, @p50, @p51, @p52, @p53, @p54, @p55, @p56, @p57, @p58, @p59, @p60, @p61, @p62, @p63),
+(@p64, @p65, @p66, @p67, @p68, @p69, @p70, @p71, @p72, @p73, @p74, @p75, @p76, @p77, @p78, @p79),
+(@p80, @p81, @p82, @p83, @p84, @p85, @p86, @p87, @p88, @p89, @p90, @p91, @p92, @p93, @p94, @p95),
+(@p96, @p97, @p98, @p99, @p100, @p101, @p102, @p103, @p104, @p105, @p106, @p107, @p108, @p109, @p110, @p111),
+(@p112, @p113, @p114, @p115, @p116, @p117, @p118, @p119, @p120, @p121, @p122, @p123, @p124, @p125, @p126, @p127),
+(@p128, @p129, @p130, @p131, @p132, @p133, @p134, @p135, @p136, @p137, @p138, @p139, @p140, @p141, @p142, @p143),
+(@p144, @p145, @p146, @p147, @p148, @p149, @p150, @p151, @p152, @p153, @p154, @p155, @p156, @p157, @p158, @p159),
+(@p160, @p161, @p162, @p163, @p164, @p165, @p166, @p167, @p168, @p169, @p170, @p171, @p172, @p173, @p174, @p175),
+(@p176, @p177, @p178, @p179, @p180, @p181, @p182, @p183, @p184, @p185, @p186, @p187, @p188, @p189, @p190, @p191),
+(@p192, @p193, @p194, @p195, @p196, @p197, @p198, @p199, @p200, @p201, @p202, @p203, @p204, @p205, @p206, @p207),
+(@p208, @p209, @p210, @p211, @p212, @p213, @p214, @p215, @p216, @p217, @p218, @p219, @p220, @p221, @p222, @p223);
+2025-05-29 13:22:51.012 +07:00 [ERR] An exception occurred in the database while saving changes for context type 'WebAppApiPhim.Data.ApplicationDbContext'.
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Violation of PRIMARY KEY constraint 'PK_CachedMovies'. Cannot insert duplicate key in object 'dbo.CachedMovies'. The duplicate key value is (doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy).
+The statement has been terminated.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:076b3b4d-b9b6-4eb9-97d8-da016d9cf9b9
+Error Number:2627,State:1,Class:14
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Violation of PRIMARY KEY constraint 'PK_CachedMovies'. Cannot insert duplicate key in object 'dbo.CachedMovies'. The duplicate key value is (doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy).
+The statement has been terminated.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:076b3b4d-b9b6-4eb9-97d8-da016d9cf9b9
+Error Number:2627,State:1,Class:14
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+2025-05-29 13:22:51.100 +07:00 [ERR] Failed to sync page 1
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Violation of PRIMARY KEY constraint 'PK_CachedMovies'. Cannot insert duplicate key in object 'dbo.CachedMovies'. The duplicate key value is (doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy).
+The statement has been terminated.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:076b3b4d-b9b6-4eb9-97d8-da016d9cf9b9
+Error Number:2627,State:1,Class:14
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at WebAppApiPhim.BackgroundServices.SyncMoviesService.SafeSyncMovies(CancellationToken stoppingToken) in C:\D\Leaning\API\APICode\WebAppApiPhim\Services\SyncMoviesService.cs:line 118
+2025-05-29 13:22:51.114 +07:00 [INF] Calling API endpoint: phim-moi/v1?page=2&limit=20
+2025-05-29 13:22:53.730 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '2614.6717'
+2025-05-29 13:22:53.736 +07:00 [INF] Raw API Response (first 500 chars): {"data":[{"id":"8ac95544093983249829baf38f28cb25","name":"Khom L\u01b0ng (Phong Ho\u1ea3 H\u1ed3ng Ti\u00eau)","slug":"khom-lung","year":"2025","loai_phim":"Phim b\u1ed9, Phim \u0111ang chi\u1ebfu","quoc_gia":"Trung Qu\u1ed1c","modified":"2025-05-28 19:08:08"},{"id":"be068d693cfefdf2afe808d90e2a9031","name":"T\u00e0ng H\u1ea3i Truy\u1ec7n","slug":"tang-hai-truyen","year":"2025","loai_phim":"Phim b\u1ed9, Phim \u0111ang chi\u1ebfu","quoc_gia":"Trung Qu\u1ed1c","modified":"2025-05-28 19:07:44"},{"...
+2025-05-29 13:22:53.738 +07:00 [INF] Parsed 20 movies from API response
+2025-05-29 13:22:53.740 +07:00 [INF] Successfully cached 20 movies for page 2
+2025-05-29 13:22:53.845 +07:00 [ERR] Failed executing DbCommand (45ms) [Parameters=[@p0='?' (Size = 100), @p1='?' (Size = 2000), @p2='?' (Size = 100), @p3='?' (Size = 50), @p4='?' (Size = 50), @p5='?' (DbType = DateTime2), @p6='?' (Size = 1000), @p7='?' (DbType = Double), @p8='?' (Size = 4000), @p9='?' (Size = 50), @p10='?' (Size = 1000), @p11='?' (Size = 500), @p12='?' (Size = 50), @p13='?' (Size = 1000), @p14='?' (DbType = Int64), @p15='?' (Size = 4), @p16='?' (Size = 100), @p17='?' (Size = 2000), @p18='?' (Size = 100), @p19='?' (Size = 50), @p20='?' (Size = 50), @p21='?' (DbType = DateTime2), @p22='?' (Size = 1000), @p23='?' (DbType = Double), @p24='?' (Size = 4000), @p25='?' (Size = 50), @p26='?' (Size = 1000), @p27='?' (Size = 500), @p28='?' (Size = 50), @p29='?' (Size = 1000), @p30='?' (DbType = Int64), @p31='?' (Size = 4), @p32='?' (Size = 100), @p33='?' (Size = 2000), @p34='?' (Size = 100), @p35='?' (Size = 50), @p36='?' (Size = 50), @p37='?' (DbType = DateTime2), @p38='?' (Size = 1000), @p39='?' (DbType = Double), @p40='?' (Size = 4000), @p41='?' (Size = 50), @p42='?' (Size = 1000), @p43='?' (Size = 500), @p44='?' (Size = 50), @p45='?' (Size = 1000), @p46='?' (DbType = Int64), @p47='?' (Size = 4), @p48='?' (Size = 100), @p49='?' (Size = 2000), @p50='?' (Size = 100), @p51='?' (Size = 50), @p52='?' (Size = 50), @p53='?' (DbType = DateTime2), @p54='?' (Size = 1000), @p55='?' (DbType = Double), @p56='?' (Size = 4000), @p57='?' (Size = 50), @p58='?' (Size = 1000), @p59='?' (Size = 500), @p60='?' (Size = 50), @p61='?' (Size = 1000), @p62='?' (DbType = Int64), @p63='?' (Size = 4), @p64='?' (Size = 100), @p65='?' (Size = 2000), @p66='?' (Size = 100), @p67='?' (Size = 50), @p68='?' (Size = 50), @p69='?' (DbType = DateTime2), @p70='?' (Size = 1000), @p71='?' (DbType = Double), @p72='?' (Size = 4000), @p73='?' (Size = 50), @p74='?' (Size = 1000), @p75='?' (Size = 500), @p76='?' (Size = 50), @p77='?' (Size = 1000), @p78='?' (DbType = Int64), @p79='?' (Size = 4), @p80='?' (Size = 100), @p81='?' (Size = 2000), @p82='?' (Size = 100), @p83='?' (Size = 50), @p84='?' (Size = 50), @p85='?' (DbType = DateTime2), @p86='?' (Size = 1000), @p87='?' (DbType = Double), @p88='?' (Size = 4000), @p89='?' (Size = 50), @p90='?' (Size = 1000), @p91='?' (Size = 500), @p92='?' (Size = 50), @p93='?' (Size = 1000), @p94='?' (DbType = Int64), @p95='?' (Size = 4), @p96='?' (Size = 100), @p97='?' (Size = 2000), @p98='?' (Size = 100), @p99='?' (Size = 50), @p100='?' (Size = 50), @p101='?' (DbType = DateTime2), @p102='?' (Size = 1000), @p103='?' (DbType = Double), @p104='?' (Size = 4000), @p105='?' (Size = 50), @p106='?' (Size = 1000), @p107='?' (Size = 500), @p108='?' (Size = 50), @p109='?' (Size = 1000), @p110='?' (DbType = Int64), @p111='?' (Size = 4), @p112='?' (Size = 100), @p113='?' (Size = 2000), @p114='?' (Size = 100), @p115='?' (Size = 50), @p116='?' (Size = 50), @p117='?' (DbType = DateTime2), @p118='?' (Size = 1000), @p119='?' (DbType = Double), @p120='?' (Size = 4000), @p121='?' (Size = 50), @p122='?' (Size = 1000), @p123='?' (Size = 500), @p124='?' (Size = 50), @p125='?' (Size = 1000), @p126='?' (DbType = Int64), @p127='?' (Size = 4), @p128='?' (Size = 100), @p129='?' (Size = 2000), @p130='?' (Size = 100), @p131='?' (Size = 50), @p132='?' (Size = 50), @p133='?' (DbType = DateTime2), @p134='?' (Size = 1000), @p135='?' (DbType = Double), @p136='?' (Size = 4000), @p137='?' (Size = 50), @p138='?' (Size = 1000), @p139='?' (Size = 500), @p140='?' (Size = 50), @p141='?' (Size = 1000), @p142='?' (DbType = Int64), @p143='?' (Size = 4), @p144='?' (Size = 100), @p145='?' (Size = 2000), @p146='?' (Size = 100), @p147='?' (Size = 50), @p148='?' (Size = 50), @p149='?' (DbType = DateTime2), @p150='?' (Size = 1000), @p151='?' (DbType = Double), @p152='?' (Size = 4000), @p153='?' (Size = 50), @p154='?' (Size = 1000), @p155='?' (Size = 500), @p156='?' (Size = 50), @p157='?' (Size = 1000), @p158='?' (DbType = Int64), @p159='?' (Size = 4), @p160='?' (Size = 100), @p161='?' (Size = 2000), @p162='?' (Size = 100), @p163='?' (Size = 50), @p164='?' (Size = 50), @p165='?' (DbType = DateTime2), @p166='?' (Size = 1000), @p167='?' (DbType = Double), @p168='?' (Size = 4000), @p169='?' (Size = 50), @p170='?' (Size = 1000), @p171='?' (Size = 500), @p172='?' (Size = 50), @p173='?' (Size = 1000), @p174='?' (DbType = Int64), @p175='?' (Size = 4), @p176='?' (Size = 100), @p177='?' (Size = 2000), @p178='?' (Size = 100), @p179='?' (Size = 50), @p180='?' (Size = 50), @p181='?' (DbType = DateTime2), @p182='?' (Size = 1000), @p183='?' (DbType = Double), @p184='?' (Size = 4000), @p185='?' (Size = 50), @p186='?' (Size = 1000), @p187='?' (Size = 500), @p188='?' (Size = 50), @p189='?' (Size = 1000), @p190='?' (DbType = Int64), @p191='?' (Size = 4), @p192='?' (Size = 100), @p193='?' (Size = 2000), @p194='?' (Size = 100), @p195='?' (Size = 50), @p196='?' (Size = 50), @p197='?' (DbType = DateTime2), @p198='?' (Size = 1000), @p199='?' (DbType = Double), @p200='?' (Size = 4000), @p201='?' (Size = 50), @p202='?' (Size = 1000), @p203='?' (Size = 500), @p204='?' (Size = 50), @p205='?' (Size = 1000), @p206='?' (DbType = Int64), @p207='?' (Size = 4), @p208='?' (Size = 100), @p209='?' (Size = 2000), @p210='?' (Size = 100), @p211='?' (Size = 50), @p212='?' (Size = 50), @p213='?' (DbType = DateTime2), @p214='?' (Size = 1000), @p215='?' (DbType = Double), @p216='?' (Size = 4000), @p217='?' (Size = 50), @p218='?' (Size = 1000), @p219='?' (Size = 500), @p220='?' (Size = 50), @p221='?' (Size = 1000), @p222='?' (DbType = Int64), @p223='?' (Size = 4), @p224='?' (Size = 100), @p225='?' (Size = 2000), @p226='?' (Size = 100), @p227='?' (Size = 50), @p228='?' (Size = 50), @p229='?' (DbType = DateTime2), @p230='?' (Size = 1000), @p231='?' (DbType = Double), @p232='?' (Size = 4000), @p233='?' (Size = 50), @p234='?' (Size = 1000), @p235='?' (Size = 500), @p236='?' (Size = 50), @p237='?' (Size = 1000), @p238='?' (DbType = Int64), @p239='?' (Size = 4), @p240='?' (Size = 100), @p241='?' (Size = 2000), @p242='?' (Size = 100), @p243='?' (Size = 50), @p244='?' (Size = 50), @p245='?' (DbType = DateTime2), @p246='?' (Size = 1000), @p247='?' (DbType = Double), @p248='?' (Size = 4000), @p249='?' (Size = 50), @p250='?' (Size = 1000), @p251='?' (Size = 500), @p252='?' (Size = 50), @p253='?' (Size = 1000), @p254='?' (DbType = Int64), @p255='?' (Size = 4), @p256='?' (Size = 100), @p257='?' (Size = 2000), @p258='?' (Size = 100), @p259='?' (Size = 50), @p260='?' (Size = 50), @p261='?' (DbType = DateTime2), @p262='?' (Size = 1000), @p263='?' (DbType = Double), @p264='?' (Size = 4000), @p265='?' (Size = 50), @p266='?' (Size = 1000), @p267='?' (Size = 500), @p268='?' (Size = 50), @p269='?' (Size = 1000), @p270='?' (DbType = Int64), @p271='?' (Size = 4), @p272='?' (Size = 100), @p273='?' (Size = 2000), @p274='?' (Size = 100), @p275='?' (Size = 50), @p276='?' (Size = 50), @p277='?' (DbType = DateTime2), @p278='?' (Size = 1000), @p279='?' (DbType = Double), @p280='?' (Size = 4000), @p281='?' (Size = 50), @p282='?' (Size = 1000), @p283='?' (Size = 500), @p284='?' (Size = 50), @p285='?' (Size = 1000), @p286='?' (DbType = Int64), @p287='?' (Size = 4), @p288='?' (Size = 100), @p289='?' (Size = 2000), @p290='?' (Size = 100), @p291='?' (Size = 50), @p292='?' (Size = 50), @p293='?' (DbType = DateTime2), @p294='?' (Size = 1000), @p295='?' (DbType = Double), @p296='?' (Size = 4000), @p297='?' (Size = 50), @p298='?' (Size = 1000), @p299='?' (Size = 500), @p300='?' (Size = 50), @p301='?' (Size = 1000), @p302='?' (DbType = Int64), @p303='?' (Size = 4), @p304='?' (Size = 100), @p305='?' (Size = 2000), @p306='?' (Size = 100), @p307='?' (Size = 50), @p308='?' (Size = 50), @p309='?' (DbType = DateTime2), @p310='?' (Size = 1000), @p311='?' (DbType = Double), @p312='?' (Size = 4000), @p313='?' (Size = 50), @p314='?' (Size = 1000), @p315='?' (Size = 500), @p316='?' (Size = 50), @p317='?' (Size = 1000), @p318='?' (DbType = Int64), @p319='?' (Size = 4), @p320='?' (Size = 100), @p321='?' (Size = 2000), @p322='?' (Size = 100), @p323='?' (Size = 50), @p324='?' (Size = 50), @p325='?' (DbType = DateTime2), @p326='?' (Size = 1000), @p327='?' (DbType = Double), @p328='?' (Size = 4000), @p329='?' (Size = 50), @p330='?' (Size = 1000), @p331='?' (Size = 500), @p332='?' (Size = 50), @p333='?' (Size = 1000), @p334='?' (DbType = Int64), @p335='?' (Size = 4), @p336='?' (Size = 100), @p337='?' (Size = 2000), @p338='?' (Size = 100), @p339='?' (Size = 50), @p340='?' (Size = 50), @p341='?' (DbType = DateTime2), @p342='?' (Size = 1000), @p343='?' (DbType = Double), @p344='?' (Size = 4000), @p345='?' (Size = 50), @p346='?' (Size = 1000), @p347='?' (Size = 500), @p348='?' (Size = 50), @p349='?' (Size = 1000), @p350='?' (DbType = Int64), @p351='?' (Size = 4), @p352='?' (Size = 100), @p353='?' (Size = 2000), @p354='?' (Size = 100), @p355='?' (Size = 50), @p356='?' (Size = 50), @p357='?' (DbType = DateTime2), @p358='?' (Size = 1000), @p359='?' (DbType = Double), @p360='?' (Size = 4000), @p361='?' (Size = 50), @p362='?' (Size = 1000), @p363='?' (Size = 500), @p364='?' (Size = 50), @p365='?' (Size = 1000), @p366='?' (DbType = Int64), @p367='?' (Size = 4), @p368='?' (Size = 100), @p369='?' (Size = 2000), @p370='?' (Size = 100), @p371='?' (Size = 50), @p372='?' (Size = 50), @p373='?' (DbType = DateTime2), @p374='?' (Size = 1000), @p375='?' (DbType = Double), @p376='?' (Size = 4000), @p377='?' (Size = 50), @p378='?' (Size = 1000), @p379='?' (Size = 500), @p380='?' (Size = 50), @p381='?' (Size = 1000), @p382='?' (DbType = Int64), @p383='?' (Size = 4), @p384='?' (Size = 100), @p385='?' (Size = 2000), @p386='?' (Size = 100), @p387='?' (Size = 50), @p388='?' (Size = 50), @p389='?' (DbType = DateTime2), @p390='?' (Size = 1000), @p391='?' (DbType = Double), @p392='?' (Size = 4000), @p393='?' (Size = 50), @p394='?' (Size = 1000), @p395='?' (Size = 500), @p396='?' (Size = 50), @p397='?' (Size = 1000), @p398='?' (DbType = Int64), @p399='?' (Size = 4), @p400='?' (Size = 100), @p401='?' (Size = 2000), @p402='?' (Size = 100), @p403='?' (Size = 50), @p404='?' (Size = 50), @p405='?' (DbType = DateTime2), @p406='?' (Size = 1000), @p407='?' (DbType = Double), @p408='?' (Size = 4000), @p409='?' (Size = 50), @p410='?' (Size = 1000), @p411='?' (Size = 500), @p412='?' (Size = 50), @p413='?' (Size = 1000), @p414='?' (DbType = Int64), @p415='?' (Size = 4), @p416='?' (Size = 100), @p417='?' (Size = 2000), @p418='?' (Size = 100), @p419='?' (Size = 50), @p420='?' (Size = 50), @p421='?' (DbType = DateTime2), @p422='?' (Size = 1000), @p423='?' (DbType = Double), @p424='?' (Size = 4000), @p425='?' (Size = 50), @p426='?' (Size = 1000), @p427='?' (Size = 500), @p428='?' (Size = 50), @p429='?' (Size = 1000), @p430='?' (DbType = Int64), @p431='?' (Size = 4), @p432='?' (Size = 100), @p433='?' (Size = 2000), @p434='?' (Size = 100), @p435='?' (Size = 50), @p436='?' (Size = 50), @p437='?' (DbType = DateTime2), @p438='?' (Size = 1000), @p439='?' (DbType = Double), @p440='?' (Size = 4000), @p441='?' (Size = 50), @p442='?' (Size = 1000), @p443='?' (Size = 500), @p444='?' (Size = 50), @p445='?' (Size = 1000), @p446='?' (DbType = Int64), @p447='?' (Size = 4), @p448='?' (Size = 100), @p449='?' (Size = 2000), @p450='?' (Size = 100), @p451='?' (Size = 50), @p452='?' (Size = 50), @p453='?' (DbType = DateTime2), @p454='?' (Size = 1000), @p455='?' (DbType = Double), @p456='?' (Size = 4000), @p457='?' (Size = 50), @p458='?' (Size = 1000), @p459='?' (Size = 500), @p460='?' (Size = 50), @p461='?' (Size = 1000), @p462='?' (DbType = Int64), @p463='?' (Size = 4), @p464='?' (Size = 100), @p465='?' (Size = 2000), @p466='?' (Size = 100), @p467='?' (Size = 50), @p468='?' (Size = 50), @p469='?' (DbType = DateTime2), @p470='?' (Size = 1000), @p471='?' (DbType = Double), @p472='?' (Size = 4000), @p473='?' (Size = 50), @p474='?' (Size = 1000), @p475='?' (Size = 500), @p476='?' (Size = 50), @p477='?' (Size = 1000), @p478='?' (DbType = Int64), @p479='?' (Size = 4), @p480='?' (Size = 100), @p481='?' (Size = 2000), @p482='?' (Size = 100), @p483='?' (Size = 50), @p484='?' (Size = 50), @p485='?' (DbType = DateTime2), @p486='?' (Size = 1000), @p487='?' (DbType = Double), @p488='?' (Size = 4000), @p489='?' (Size = 50), @p490='?' (Size = 1000), @p491='?' (Size = 500), @p492='?' (Size = 50), @p493='?' (Size = 1000), @p494='?' (DbType = Int64), @p495='?' (Size = 4)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [CachedMovies] ([Slug], [Description], [Director], [Duration], [Language], [LastUpdated], [PosterUrl], [Rating], [RawData], [Resolution], [ThumbUrl], [Title], [TmdbId], [TrailerUrl], [Views], [Year])
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15),
+(@p16, @p17, @p18, @p19, @p20, @p21, @p22, @p23, @p24, @p25, @p26, @p27, @p28, @p29, @p30, @p31),
+(@p32, @p33, @p34, @p35, @p36, @p37, @p38, @p39, @p40, @p41, @p42, @p43, @p44, @p45, @p46, @p47),
+(@p48, @p49, @p50, @p51, @p52, @p53, @p54, @p55, @p56, @p57, @p58, @p59, @p60, @p61, @p62, @p63),
+(@p64, @p65, @p66, @p67, @p68, @p69, @p70, @p71, @p72, @p73, @p74, @p75, @p76, @p77, @p78, @p79),
+(@p80, @p81, @p82, @p83, @p84, @p85, @p86, @p87, @p88, @p89, @p90, @p91, @p92, @p93, @p94, @p95),
+(@p96, @p97, @p98, @p99, @p100, @p101, @p102, @p103, @p104, @p105, @p106, @p107, @p108, @p109, @p110, @p111),
+(@p112, @p113, @p114, @p115, @p116, @p117, @p118, @p119, @p120, @p121, @p122, @p123, @p124, @p125, @p126, @p127),
+(@p128, @p129, @p130, @p131, @p132, @p133, @p134, @p135, @p136, @p137, @p138, @p139, @p140, @p141, @p142, @p143),
+(@p144, @p145, @p146, @p147, @p148, @p149, @p150, @p151, @p152, @p153, @p154, @p155, @p156, @p157, @p158, @p159),
+(@p160, @p161, @p162, @p163, @p164, @p165, @p166, @p167, @p168, @p169, @p170, @p171, @p172, @p173, @p174, @p175),
+(@p176, @p177, @p178, @p179, @p180, @p181, @p182, @p183, @p184, @p185, @p186, @p187, @p188, @p189, @p190, @p191),
+(@p192, @p193, @p194, @p195, @p196, @p197, @p198, @p199, @p200, @p201, @p202, @p203, @p204, @p205, @p206, @p207),
+(@p208, @p209, @p210, @p211, @p212, @p213, @p214, @p215, @p216, @p217, @p218, @p219, @p220, @p221, @p222, @p223),
+(@p224, @p225, @p226, @p227, @p228, @p229, @p230, @p231, @p232, @p233, @p234, @p235, @p236, @p237, @p238, @p239),
+(@p240, @p241, @p242, @p243, @p244, @p245, @p246, @p247, @p248, @p249, @p250, @p251, @p252, @p253, @p254, @p255),
+(@p256, @p257, @p258, @p259, @p260, @p261, @p262, @p263, @p264, @p265, @p266, @p267, @p268, @p269, @p270, @p271),
+(@p272, @p273, @p274, @p275, @p276, @p277, @p278, @p279, @p280, @p281, @p282, @p283, @p284, @p285, @p286, @p287),
+(@p288, @p289, @p290, @p291, @p292, @p293, @p294, @p295, @p296, @p297, @p298, @p299, @p300, @p301, @p302, @p303),
+(@p304, @p305, @p306, @p307, @p308, @p309, @p310, @p311, @p312, @p313, @p314, @p315, @p316, @p317, @p318, @p319),
+(@p320, @p321, @p322, @p323, @p324, @p325, @p326, @p327, @p328, @p329, @p330, @p331, @p332, @p333, @p334, @p335),
+(@p336, @p337, @p338, @p339, @p340, @p341, @p342, @p343, @p344, @p345, @p346, @p347, @p348, @p349, @p350, @p351),
+(@p352, @p353, @p354, @p355, @p356, @p357, @p358, @p359, @p360, @p361, @p362, @p363, @p364, @p365, @p366, @p367),
+(@p368, @p369, @p370, @p371, @p372, @p373, @p374, @p375, @p376, @p377, @p378, @p379, @p380, @p381, @p382, @p383),
+(@p384, @p385, @p386, @p387, @p388, @p389, @p390, @p391, @p392, @p393, @p394, @p395, @p396, @p397, @p398, @p399),
+(@p400, @p401, @p402, @p403, @p404, @p405, @p406, @p407, @p408, @p409, @p410, @p411, @p412, @p413, @p414, @p415),
+(@p416, @p417, @p418, @p419, @p420, @p421, @p422, @p423, @p424, @p425, @p426, @p427, @p428, @p429, @p430, @p431),
+(@p432, @p433, @p434, @p435, @p436, @p437, @p438, @p439, @p440, @p441, @p442, @p443, @p444, @p445, @p446, @p447),
+(@p448, @p449, @p450, @p451, @p452, @p453, @p454, @p455, @p456, @p457, @p458, @p459, @p460, @p461, @p462, @p463),
+(@p464, @p465, @p466, @p467, @p468, @p469, @p470, @p471, @p472, @p473, @p474, @p475, @p476, @p477, @p478, @p479),
+(@p480, @p481, @p482, @p483, @p484, @p485, @p486, @p487, @p488, @p489, @p490, @p491, @p492, @p493, @p494, @p495);
+2025-05-29 13:22:53.857 +07:00 [ERR] An exception occurred in the database while saving changes for context type 'WebAppApiPhim.Data.ApplicationDbContext'.
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Violation of PRIMARY KEY constraint 'PK_CachedMovies'. Cannot insert duplicate key in object 'dbo.CachedMovies'. The duplicate key value is (doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy).
+The statement has been terminated.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:076b3b4d-b9b6-4eb9-97d8-da016d9cf9b9
+Error Number:2627,State:1,Class:14
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Violation of PRIMARY KEY constraint 'PK_CachedMovies'. Cannot insert duplicate key in object 'dbo.CachedMovies'. The duplicate key value is (doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy).
+The statement has been terminated.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:076b3b4d-b9b6-4eb9-97d8-da016d9cf9b9
+Error Number:2627,State:1,Class:14
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+2025-05-29 13:22:53.931 +07:00 [ERR] Failed to sync page 2
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Violation of PRIMARY KEY constraint 'PK_CachedMovies'. Cannot insert duplicate key in object 'dbo.CachedMovies'. The duplicate key value is (doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy).
+The statement has been terminated.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:076b3b4d-b9b6-4eb9-97d8-da016d9cf9b9
+Error Number:2627,State:1,Class:14
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at WebAppApiPhim.BackgroundServices.SyncMoviesService.SafeSyncMovies(CancellationToken stoppingToken) in C:\D\Leaning\API\APICode\WebAppApiPhim\Services\SyncMoviesService.cs:line 118
+2025-05-29 13:22:53.945 +07:00 [INF] Calling API endpoint: phim-moi/v1?page=3&limit=20
+2025-05-29 13:22:54.276 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '328.1197'
+2025-05-29 13:22:54.283 +07:00 [INF] Raw API Response (first 500 chars): {"data":[{"id":"87faa3ca9f7c03da0bbb0ed17fefa346","name":"Zatsu Tabi: That's Journey","slug":"zatsu-tabi-thats-journey","year":"2025","loai_phim":"Phim b\u1ed9","quoc_gia":"Nh\u1eadt B\u1ea3n","modified":"2025-05-28 11:33:10"},{"id":"27a1e0e31bf1a18797d26f7796f1ae4e","name":"Thanh G\u01b0\u01a1m Di\u1ec7t Qu\u1ef7 (Ph\u1ea7n 5)","slug":"thanh-guom-diet-quy-dai-tru-dac-huan","year":"2024","loai_phim":"Phim b\u1ed9","quoc_gia":"Nh\u1eadt B\u1ea3n","modified":"2025-05-28 11:30:17"},{"id":"e1f236269...
+2025-05-29 13:22:54.286 +07:00 [INF] Parsed 20 movies from API response
+2025-05-29 13:22:54.288 +07:00 [INF] Successfully cached 20 movies for page 3
+2025-05-29 13:22:54.439 +07:00 [ERR] Failed executing DbCommand (71ms) [Parameters=[@p0='?' (Size = 100), @p1='?' (Size = 2000), @p2='?' (Size = 100), @p3='?' (Size = 50), @p4='?' (Size = 50), @p5='?' (DbType = DateTime2), @p6='?' (Size = 1000), @p7='?' (DbType = Double), @p8='?' (Size = 4000), @p9='?' (Size = 50), @p10='?' (Size = 1000), @p11='?' (Size = 500), @p12='?' (Size = 50), @p13='?' (Size = 1000), @p14='?' (DbType = Int64), @p15='?' (Size = 4), @p16='?' (Size = 100), @p17='?' (Size = 2000), @p18='?' (Size = 100), @p19='?' (Size = 50), @p20='?' (Size = 50), @p21='?' (DbType = DateTime2), @p22='?' (Size = 1000), @p23='?' (DbType = Double), @p24='?' (Size = 4000), @p25='?' (Size = 50), @p26='?' (Size = 1000), @p27='?' (Size = 500), @p28='?' (Size = 50), @p29='?' (Size = 1000), @p30='?' (DbType = Int64), @p31='?' (Size = 4), @p32='?' (Size = 100), @p33='?' (Size = 2000), @p34='?' (Size = 100), @p35='?' (Size = 50), @p36='?' (Size = 50), @p37='?' (DbType = DateTime2), @p38='?' (Size = 1000), @p39='?' (DbType = Double), @p40='?' (Size = 4000), @p41='?' (Size = 50), @p42='?' (Size = 1000), @p43='?' (Size = 500), @p44='?' (Size = 50), @p45='?' (Size = 1000), @p46='?' (DbType = Int64), @p47='?' (Size = 4), @p48='?' (Size = 100), @p49='?' (Size = 2000), @p50='?' (Size = 100), @p51='?' (Size = 50), @p52='?' (Size = 50), @p53='?' (DbType = DateTime2), @p54='?' (Size = 1000), @p55='?' (DbType = Double), @p56='?' (Size = 4000), @p57='?' (Size = 50), @p58='?' (Size = 1000), @p59='?' (Size = 500), @p60='?' (Size = 50), @p61='?' (Size = 1000), @p62='?' (DbType = Int64), @p63='?' (Size = 4), @p64='?' (Size = 100), @p65='?' (Size = 2000), @p66='?' (Size = 100), @p67='?' (Size = 50), @p68='?' (Size = 50), @p69='?' (DbType = DateTime2), @p70='?' (Size = 1000), @p71='?' (DbType = Double), @p72='?' (Size = 4000), @p73='?' (Size = 50), @p74='?' (Size = 1000), @p75='?' (Size = 500), @p76='?' (Size = 50), @p77='?' (Size = 1000), @p78='?' (DbType = Int64), @p79='?' (Size = 4), @p80='?' (Size = 100), @p81='?' (Size = 2000), @p82='?' (Size = 100), @p83='?' (Size = 50), @p84='?' (Size = 50), @p85='?' (DbType = DateTime2), @p86='?' (Size = 1000), @p87='?' (DbType = Double), @p88='?' (Size = 4000), @p89='?' (Size = 50), @p90='?' (Size = 1000), @p91='?' (Size = 500), @p92='?' (Size = 50), @p93='?' (Size = 1000), @p94='?' (DbType = Int64), @p95='?' (Size = 4), @p96='?' (Size = 100), @p97='?' (Size = 2000), @p98='?' (Size = 100), @p99='?' (Size = 50), @p100='?' (Size = 50), @p101='?' (DbType = DateTime2), @p102='?' (Size = 1000), @p103='?' (DbType = Double), @p104='?' (Size = 4000), @p105='?' (Size = 50), @p106='?' (Size = 1000), @p107='?' (Size = 500), @p108='?' (Size = 50), @p109='?' (Size = 1000), @p110='?' (DbType = Int64), @p111='?' (Size = 4), @p112='?' (Size = 100), @p113='?' (Size = 2000), @p114='?' (Size = 100), @p115='?' (Size = 50), @p116='?' (Size = 50), @p117='?' (DbType = DateTime2), @p118='?' (Size = 1000), @p119='?' (DbType = Double), @p120='?' (Size = 4000), @p121='?' (Size = 50), @p122='?' (Size = 1000), @p123='?' (Size = 500), @p124='?' (Size = 50), @p125='?' (Size = 1000), @p126='?' (DbType = Int64), @p127='?' (Size = 4), @p128='?' (Size = 100), @p129='?' (Size = 2000), @p130='?' (Size = 100), @p131='?' (Size = 50), @p132='?' (Size = 50), @p133='?' (DbType = DateTime2), @p134='?' (Size = 1000), @p135='?' (DbType = Double), @p136='?' (Size = 4000), @p137='?' (Size = 50), @p138='?' (Size = 1000), @p139='?' (Size = 500), @p140='?' (Size = 50), @p141='?' (Size = 1000), @p142='?' (DbType = Int64), @p143='?' (Size = 4), @p144='?' (Size = 100), @p145='?' (Size = 2000), @p146='?' (Size = 100), @p147='?' (Size = 50), @p148='?' (Size = 50), @p149='?' (DbType = DateTime2), @p150='?' (Size = 1000), @p151='?' (DbType = Double), @p152='?' (Size = 4000), @p153='?' (Size = 50), @p154='?' (Size = 1000), @p155='?' (Size = 500), @p156='?' (Size = 50), @p157='?' (Size = 1000), @p158='?' (DbType = Int64), @p159='?' (Size = 4), @p160='?' (Size = 100), @p161='?' (Size = 2000), @p162='?' (Size = 100), @p163='?' (Size = 50), @p164='?' (Size = 50), @p165='?' (DbType = DateTime2), @p166='?' (Size = 1000), @p167='?' (DbType = Double), @p168='?' (Size = 4000), @p169='?' (Size = 50), @p170='?' (Size = 1000), @p171='?' (Size = 500), @p172='?' (Size = 50), @p173='?' (Size = 1000), @p174='?' (DbType = Int64), @p175='?' (Size = 4), @p176='?' (Size = 100), @p177='?' (Size = 2000), @p178='?' (Size = 100), @p179='?' (Size = 50), @p180='?' (Size = 50), @p181='?' (DbType = DateTime2), @p182='?' (Size = 1000), @p183='?' (DbType = Double), @p184='?' (Size = 4000), @p185='?' (Size = 50), @p186='?' (Size = 1000), @p187='?' (Size = 500), @p188='?' (Size = 50), @p189='?' (Size = 1000), @p190='?' (DbType = Int64), @p191='?' (Size = 4), @p192='?' (Size = 100), @p193='?' (Size = 2000), @p194='?' (Size = 100), @p195='?' (Size = 50), @p196='?' (Size = 50), @p197='?' (DbType = DateTime2), @p198='?' (Size = 1000), @p199='?' (DbType = Double), @p200='?' (Size = 4000), @p201='?' (Size = 50), @p202='?' (Size = 1000), @p203='?' (Size = 500), @p204='?' (Size = 50), @p205='?' (Size = 1000), @p206='?' (DbType = Int64), @p207='?' (Size = 4), @p208='?' (Size = 100), @p209='?' (Size = 2000), @p210='?' (Size = 100), @p211='?' (Size = 50), @p212='?' (Size = 50), @p213='?' (DbType = DateTime2), @p214='?' (Size = 1000), @p215='?' (DbType = Double), @p216='?' (Size = 4000), @p217='?' (Size = 50), @p218='?' (Size = 1000), @p219='?' (Size = 500), @p220='?' (Size = 50), @p221='?' (Size = 1000), @p222='?' (DbType = Int64), @p223='?' (Size = 4), @p224='?' (Size = 100), @p225='?' (Size = 2000), @p226='?' (Size = 100), @p227='?' (Size = 50), @p228='?' (Size = 50), @p229='?' (DbType = DateTime2), @p230='?' (Size = 1000), @p231='?' (DbType = Double), @p232='?' (Size = 4000), @p233='?' (Size = 50), @p234='?' (Size = 1000), @p235='?' (Size = 500), @p236='?' (Size = 50), @p237='?' (Size = 1000), @p238='?' (DbType = Int64), @p239='?' (Size = 4), @p240='?' (Size = 100), @p241='?' (Size = 2000), @p242='?' (Size = 100), @p243='?' (Size = 50), @p244='?' (Size = 50), @p245='?' (DbType = DateTime2), @p246='?' (Size = 1000), @p247='?' (DbType = Double), @p248='?' (Size = 4000), @p249='?' (Size = 50), @p250='?' (Size = 1000), @p251='?' (Size = 500), @p252='?' (Size = 50), @p253='?' (Size = 1000), @p254='?' (DbType = Int64), @p255='?' (Size = 4), @p256='?' (Size = 100), @p257='?' (Size = 2000), @p258='?' (Size = 100), @p259='?' (Size = 50), @p260='?' (Size = 50), @p261='?' (DbType = DateTime2), @p262='?' (Size = 1000), @p263='?' (DbType = Double), @p264='?' (Size = 4000), @p265='?' (Size = 50), @p266='?' (Size = 1000), @p267='?' (Size = 500), @p268='?' (Size = 50), @p269='?' (Size = 1000), @p270='?' (DbType = Int64), @p271='?' (Size = 4), @p272='?' (Size = 100), @p273='?' (Size = 2000), @p274='?' (Size = 100), @p275='?' (Size = 50), @p276='?' (Size = 50), @p277='?' (DbType = DateTime2), @p278='?' (Size = 1000), @p279='?' (DbType = Double), @p280='?' (Size = 4000), @p281='?' (Size = 50), @p282='?' (Size = 1000), @p283='?' (Size = 500), @p284='?' (Size = 50), @p285='?' (Size = 1000), @p286='?' (DbType = Int64), @p287='?' (Size = 4), @p288='?' (Size = 100), @p289='?' (Size = 2000), @p290='?' (Size = 100), @p291='?' (Size = 50), @p292='?' (Size = 50), @p293='?' (DbType = DateTime2), @p294='?' (Size = 1000), @p295='?' (DbType = Double), @p296='?' (Size = 4000), @p297='?' (Size = 50), @p298='?' (Size = 1000), @p299='?' (Size = 500), @p300='?' (Size = 50), @p301='?' (Size = 1000), @p302='?' (DbType = Int64), @p303='?' (Size = 4), @p304='?' (Size = 100), @p305='?' (Size = 2000), @p306='?' (Size = 100), @p307='?' (Size = 50), @p308='?' (Size = 50), @p309='?' (DbType = DateTime2), @p310='?' (Size = 1000), @p311='?' (DbType = Double), @p312='?' (Size = 4000), @p313='?' (Size = 50), @p314='?' (Size = 1000), @p315='?' (Size = 500), @p316='?' (Size = 50), @p317='?' (Size = 1000), @p318='?' (DbType = Int64), @p319='?' (Size = 4), @p320='?' (Size = 100), @p321='?' (Size = 2000), @p322='?' (Size = 100), @p323='?' (Size = 50), @p324='?' (Size = 50), @p325='?' (DbType = DateTime2), @p326='?' (Size = 1000), @p327='?' (DbType = Double), @p328='?' (Size = 4000), @p329='?' (Size = 50), @p330='?' (Size = 1000), @p331='?' (Size = 500), @p332='?' (Size = 50), @p333='?' (Size = 1000), @p334='?' (DbType = Int64), @p335='?' (Size = 4), @p336='?' (Size = 100), @p337='?' (Size = 2000), @p338='?' (Size = 100), @p339='?' (Size = 50), @p340='?' (Size = 50), @p341='?' (DbType = DateTime2), @p342='?' (Size = 1000), @p343='?' (DbType = Double), @p344='?' (Size = 4000), @p345='?' (Size = 50), @p346='?' (Size = 1000), @p347='?' (Size = 500), @p348='?' (Size = 50), @p349='?' (Size = 1000), @p350='?' (DbType = Int64), @p351='?' (Size = 4), @p352='?' (Size = 100), @p353='?' (Size = 2000), @p354='?' (Size = 100), @p355='?' (Size = 50), @p356='?' (Size = 50), @p357='?' (DbType = DateTime2), @p358='?' (Size = 1000), @p359='?' (DbType = Double), @p360='?' (Size = 4000), @p361='?' (Size = 50), @p362='?' (Size = 1000), @p363='?' (Size = 500), @p364='?' (Size = 50), @p365='?' (Size = 1000), @p366='?' (DbType = Int64), @p367='?' (Size = 4), @p368='?' (Size = 100), @p369='?' (Size = 2000), @p370='?' (Size = 100), @p371='?' (Size = 50), @p372='?' (Size = 50), @p373='?' (DbType = DateTime2), @p374='?' (Size = 1000), @p375='?' (DbType = Double), @p376='?' (Size = 4000), @p377='?' (Size = 50), @p378='?' (Size = 1000), @p379='?' (Size = 500), @p380='?' (Size = 50), @p381='?' (Size = 1000), @p382='?' (DbType = Int64), @p383='?' (Size = 4), @p384='?' (Size = 100), @p385='?' (Size = 2000), @p386='?' (Size = 100), @p387='?' (Size = 50), @p388='?' (Size = 50), @p389='?' (DbType = DateTime2), @p390='?' (Size = 1000), @p391='?' (DbType = Double), @p392='?' (Size = 4000), @p393='?' (Size = 50), @p394='?' (Size = 1000), @p395='?' (Size = 500), @p396='?' (Size = 50), @p397='?' (Size = 1000), @p398='?' (DbType = Int64), @p399='?' (Size = 4), @p400='?' (Size = 100), @p401='?' (Size = 2000), @p402='?' (Size = 100), @p403='?' (Size = 50), @p404='?' (Size = 50), @p405='?' (DbType = DateTime2), @p406='?' (Size = 1000), @p407='?' (DbType = Double), @p408='?' (Size = 4000), @p409='?' (Size = 50), @p410='?' (Size = 1000), @p411='?' (Size = 500), @p412='?' (Size = 50), @p413='?' (Size = 1000), @p414='?' (DbType = Int64), @p415='?' (Size = 4), @p416='?' (Size = 100), @p417='?' (Size = 2000), @p418='?' (Size = 100), @p419='?' (Size = 50), @p420='?' (Size = 50), @p421='?' (DbType = DateTime2), @p422='?' (Size = 1000), @p423='?' (DbType = Double), @p424='?' (Size = 4000), @p425='?' (Size = 50), @p426='?' (Size = 1000), @p427='?' (Size = 500), @p428='?' (Size = 50), @p429='?' (Size = 1000), @p430='?' (DbType = Int64), @p431='?' (Size = 4), @p432='?' (Size = 100), @p433='?' (Size = 2000), @p434='?' (Size = 100), @p435='?' (Size = 50), @p436='?' (Size = 50), @p437='?' (DbType = DateTime2), @p438='?' (Size = 1000), @p439='?' (DbType = Double), @p440='?' (Size = 4000), @p441='?' (Size = 50), @p442='?' (Size = 1000), @p443='?' (Size = 500), @p444='?' (Size = 50), @p445='?' (Size = 1000), @p446='?' (DbType = Int64), @p447='?' (Size = 4), @p448='?' (Size = 100), @p449='?' (Size = 2000), @p450='?' (Size = 100), @p451='?' (Size = 50), @p452='?' (Size = 50), @p453='?' (DbType = DateTime2), @p454='?' (Size = 1000), @p455='?' (DbType = Double), @p456='?' (Size = 4000), @p457='?' (Size = 50), @p458='?' (Size = 1000), @p459='?' (Size = 500), @p460='?' (Size = 50), @p461='?' (Size = 1000), @p462='?' (DbType = Int64), @p463='?' (Size = 4), @p464='?' (Size = 100), @p465='?' (Size = 2000), @p466='?' (Size = 100), @p467='?' (Size = 50), @p468='?' (Size = 50), @p469='?' (DbType = DateTime2), @p470='?' (Size = 1000), @p471='?' (DbType = Double), @p472='?' (Size = 4000), @p473='?' (Size = 50), @p474='?' (Size = 1000), @p475='?' (Size = 500), @p476='?' (Size = 50), @p477='?' (Size = 1000), @p478='?' (DbType = Int64), @p479='?' (Size = 4), @p480='?' (Size = 100), @p481='?' (Size = 2000), @p482='?' (Size = 100), @p483='?' (Size = 50), @p484='?' (Size = 50), @p485='?' (DbType = DateTime2), @p486='?' (Size = 1000), @p487='?' (DbType = Double), @p488='?' (Size = 4000), @p489='?' (Size = 50), @p490='?' (Size = 1000), @p491='?' (Size = 500), @p492='?' (Size = 50), @p493='?' (Size = 1000), @p494='?' (DbType = Int64), @p495='?' (Size = 4), @p496='?' (Size = 100), @p497='?' (Size = 2000), @p498='?' (Size = 100), @p499='?' (Size = 50), @p500='?' (Size = 50), @p501='?' (DbType = DateTime2), @p502='?' (Size = 1000), @p503='?' (DbType = Double), @p504='?' (Size = 4000), @p505='?' (Size = 50), @p506='?' (Size = 1000), @p507='?' (Size = 500), @p508='?' (Size = 50), @p509='?' (Size = 1000), @p510='?' (DbType = Int64), @p511='?' (Size = 4), @p512='?' (Size = 100), @p513='?' (Size = 2000), @p514='?' (Size = 100), @p515='?' (Size = 50), @p516='?' (Size = 50), @p517='?' (DbType = DateTime2), @p518='?' (Size = 1000), @p519='?' (DbType = Double), @p520='?' (Size = 4000), @p521='?' (Size = 50), @p522='?' (Size = 1000), @p523='?' (Size = 500), @p524='?' (Size = 50), @p525='?' (Size = 1000), @p526='?' (DbType = Int64), @p527='?' (Size = 4), @p528='?' (Size = 100), @p529='?' (Size = 2000), @p530='?' (Size = 100), @p531='?' (Size = 50), @p532='?' (Size = 50), @p533='?' (DbType = DateTime2), @p534='?' (Size = 1000), @p535='?' (DbType = Double), @p536='?' (Size = 4000), @p537='?' (Size = 50), @p538='?' (Size = 1000), @p539='?' (Size = 500), @p540='?' (Size = 50), @p541='?' (Size = 1000), @p542='?' (DbType = Int64), @p543='?' (Size = 4), @p544='?' (Size = 100), @p545='?' (Size = 2000), @p546='?' (Size = 100), @p547='?' (Size = 50), @p548='?' (Size = 50), @p549='?' (DbType = DateTime2), @p550='?' (Size = 1000), @p551='?' (DbType = Double), @p552='?' (Size = 4000), @p553='?' (Size = 50), @p554='?' (Size = 1000), @p555='?' (Size = 500), @p556='?' (Size = 50), @p557='?' (Size = 1000), @p558='?' (DbType = Int64), @p559='?' (Size = 4), @p560='?' (Size = 100), @p561='?' (Size = 2000), @p562='?' (Size = 100), @p563='?' (Size = 50), @p564='?' (Size = 50), @p565='?' (DbType = DateTime2), @p566='?' (Size = 1000), @p567='?' (DbType = Double), @p568='?' (Size = 4000), @p569='?' (Size = 50), @p570='?' (Size = 1000), @p571='?' (Size = 500), @p572='?' (Size = 50), @p573='?' (Size = 1000), @p574='?' (DbType = Int64), @p575='?' (Size = 4), @p576='?' (Size = 100), @p577='?' (Size = 2000), @p578='?' (Size = 100), @p579='?' (Size = 50), @p580='?' (Size = 50), @p581='?' (DbType = DateTime2), @p582='?' (Size = 1000), @p583='?' (DbType = Double), @p584='?' (Size = 4000), @p585='?' (Size = 50), @p586='?' (Size = 1000), @p587='?' (Size = 500), @p588='?' (Size = 50), @p589='?' (Size = 1000), @p590='?' (DbType = Int64), @p591='?' (Size = 4), @p592='?' (Size = 100), @p593='?' (Size = 2000), @p594='?' (Size = 100), @p595='?' (Size = 50), @p596='?' (Size = 50), @p597='?' (DbType = DateTime2), @p598='?' (Size = 1000), @p599='?' (DbType = Double), @p600='?' (Size = 4000), @p601='?' (Size = 50), @p602='?' (Size = 1000), @p603='?' (Size = 500), @p604='?' (Size = 50), @p605='?' (Size = 1000), @p606='?' (DbType = Int64), @p607='?' (Size = 4), @p608='?' (Size = 100), @p609='?' (Size = 2000), @p610='?' (Size = 100), @p611='?' (Size = 50), @p612='?' (Size = 50), @p613='?' (DbType = DateTime2), @p614='?' (Size = 1000), @p615='?' (DbType = Double), @p616='?' (Size = 4000), @p617='?' (Size = 50), @p618='?' (Size = 1000), @p619='?' (Size = 500), @p620='?' (Size = 50), @p621='?' (Size = 1000), @p622='?' (DbType = Int64), @p623='?' (Size = 4), @p624='?' (Size = 100), @p625='?' (Size = 2000), @p626='?' (Size = 100), @p627='?' (Size = 50), @p628='?' (Size = 50), @p629='?' (DbType = DateTime2), @p630='?' (Size = 1000), @p631='?' (DbType = Double), @p632='?' (Size = 4000), @p633='?' (Size = 50), @p634='?' (Size = 1000), @p635='?' (Size = 500), @p636='?' (Size = 50), @p637='?' (Size = 1000), @p638='?' (DbType = Int64), @p639='?' (Size = 4), @p640='?' (Size = 100), @p641='?' (Size = 2000), @p642='?' (Size = 100), @p643='?' (Size = 50), @p644='?' (Size = 50), @p645='?' (DbType = DateTime2), @p646='?' (Size = 1000), @p647='?' (DbType = Double), @p648='?' (Size = 4000), @p649='?' (Size = 50), @p650='?' (Size = 1000), @p651='?' (Size = 500), @p652='?' (Size = 50), @p653='?' (Size = 1000), @p654='?' (DbType = Int64), @p655='?' (Size = 4), @p656='?' (Size = 100), @p657='?' (Size = 2000), @p658='?' (Size = 100), @p659='?' (Size = 50), @p660='?' (Size = 50), @p661='?' (DbType = DateTime2), @p662='?' (Size = 1000), @p663='?' (DbType = Double), @p664='?' (Size = 4000), @p665='?' (Size = 50), @p666='?' (Size = 1000), @p667='?' (Size = 500), @p668='?' (Size = 50), @p669='?' (Size = 1000), @p670='?' (DbType = Int64), @p671='?' (Size = 4)], CommandType='"Text"', CommandTimeout='30']
+SET IMPLICIT_TRANSACTIONS OFF;
+SET NOCOUNT ON;
+INSERT INTO [CachedMovies] ([Slug], [Description], [Director], [Duration], [Language], [LastUpdated], [PosterUrl], [Rating], [RawData], [Resolution], [ThumbUrl], [Title], [TmdbId], [TrailerUrl], [Views], [Year])
+VALUES (@p0, @p1, @p2, @p3, @p4, @p5, @p6, @p7, @p8, @p9, @p10, @p11, @p12, @p13, @p14, @p15),
+(@p16, @p17, @p18, @p19, @p20, @p21, @p22, @p23, @p24, @p25, @p26, @p27, @p28, @p29, @p30, @p31),
+(@p32, @p33, @p34, @p35, @p36, @p37, @p38, @p39, @p40, @p41, @p42, @p43, @p44, @p45, @p46, @p47),
+(@p48, @p49, @p50, @p51, @p52, @p53, @p54, @p55, @p56, @p57, @p58, @p59, @p60, @p61, @p62, @p63),
+(@p64, @p65, @p66, @p67, @p68, @p69, @p70, @p71, @p72, @p73, @p74, @p75, @p76, @p77, @p78, @p79),
+(@p80, @p81, @p82, @p83, @p84, @p85, @p86, @p87, @p88, @p89, @p90, @p91, @p92, @p93, @p94, @p95),
+(@p96, @p97, @p98, @p99, @p100, @p101, @p102, @p103, @p104, @p105, @p106, @p107, @p108, @p109, @p110, @p111),
+(@p112, @p113, @p114, @p115, @p116, @p117, @p118, @p119, @p120, @p121, @p122, @p123, @p124, @p125, @p126, @p127),
+(@p128, @p129, @p130, @p131, @p132, @p133, @p134, @p135, @p136, @p137, @p138, @p139, @p140, @p141, @p142, @p143),
+(@p144, @p145, @p146, @p147, @p148, @p149, @p150, @p151, @p152, @p153, @p154, @p155, @p156, @p157, @p158, @p159),
+(@p160, @p161, @p162, @p163, @p164, @p165, @p166, @p167, @p168, @p169, @p170, @p171, @p172, @p173, @p174, @p175),
+(@p176, @p177, @p178, @p179, @p180, @p181, @p182, @p183, @p184, @p185, @p186, @p187, @p188, @p189, @p190, @p191),
+(@p192, @p193, @p194, @p195, @p196, @p197, @p198, @p199, @p200, @p201, @p202, @p203, @p204, @p205, @p206, @p207),
+(@p208, @p209, @p210, @p211, @p212, @p213, @p214, @p215, @p216, @p217, @p218, @p219, @p220, @p221, @p222, @p223),
+(@p224, @p225, @p226, @p227, @p228, @p229, @p230, @p231, @p232, @p233, @p234, @p235, @p236, @p237, @p238, @p239),
+(@p240, @p241, @p242, @p243, @p244, @p245, @p246, @p247, @p248, @p249, @p250, @p251, @p252, @p253, @p254, @p255),
+(@p256, @p257, @p258, @p259, @p260, @p261, @p262, @p263, @p264, @p265, @p266, @p267, @p268, @p269, @p270, @p271),
+(@p272, @p273, @p274, @p275, @p276, @p277, @p278, @p279, @p280, @p281, @p282, @p283, @p284, @p285, @p286, @p287),
+(@p288, @p289, @p290, @p291, @p292, @p293, @p294, @p295, @p296, @p297, @p298, @p299, @p300, @p301, @p302, @p303),
+(@p304, @p305, @p306, @p307, @p308, @p309, @p310, @p311, @p312, @p313, @p314, @p315, @p316, @p317, @p318, @p319),
+(@p320, @p321, @p322, @p323, @p324, @p325, @p326, @p327, @p328, @p329, @p330, @p331, @p332, @p333, @p334, @p335),
+(@p336, @p337, @p338, @p339, @p340, @p341, @p342, @p343, @p344, @p345, @p346, @p347, @p348, @p349, @p350, @p351),
+(@p352, @p353, @p354, @p355, @p356, @p357, @p358, @p359, @p360, @p361, @p362, @p363, @p364, @p365, @p366, @p367),
+(@p368, @p369, @p370, @p371, @p372, @p373, @p374, @p375, @p376, @p377, @p378, @p379, @p380, @p381, @p382, @p383),
+(@p384, @p385, @p386, @p387, @p388, @p389, @p390, @p391, @p392, @p393, @p394, @p395, @p396, @p397, @p398, @p399),
+(@p400, @p401, @p402, @p403, @p404, @p405, @p406, @p407, @p408, @p409, @p410, @p411, @p412, @p413, @p414, @p415),
+(@p416, @p417, @p418, @p419, @p420, @p421, @p422, @p423, @p424, @p425, @p426, @p427, @p428, @p429, @p430, @p431),
+(@p432, @p433, @p434, @p435, @p436, @p437, @p438, @p439, @p440, @p441, @p442, @p443, @p444, @p445, @p446, @p447),
+(@p448, @p449, @p450, @p451, @p452, @p453, @p454, @p455, @p456, @p457, @p458, @p459, @p460, @p461, @p462, @p463),
+(@p464, @p465, @p466, @p467, @p468, @p469, @p470, @p471, @p472, @p473, @p474, @p475, @p476, @p477, @p478, @p479),
+(@p480, @p481, @p482, @p483, @p484, @p485, @p486, @p487, @p488, @p489, @p490, @p491, @p492, @p493, @p494, @p495),
+(@p496, @p497, @p498, @p499, @p500, @p501, @p502, @p503, @p504, @p505, @p506, @p507, @p508, @p509, @p510, @p511),
+(@p512, @p513, @p514, @p515, @p516, @p517, @p518, @p519, @p520, @p521, @p522, @p523, @p524, @p525, @p526, @p527),
+(@p528, @p529, @p530, @p531, @p532, @p533, @p534, @p535, @p536, @p537, @p538, @p539, @p540, @p541, @p542, @p543),
+(@p544, @p545, @p546, @p547, @p548, @p549, @p550, @p551, @p552, @p553, @p554, @p555, @p556, @p557, @p558, @p559),
+(@p560, @p561, @p562, @p563, @p564, @p565, @p566, @p567, @p568, @p569, @p570, @p571, @p572, @p573, @p574, @p575),
+(@p576, @p577, @p578, @p579, @p580, @p581, @p582, @p583, @p584, @p585, @p586, @p587, @p588, @p589, @p590, @p591),
+(@p592, @p593, @p594, @p595, @p596, @p597, @p598, @p599, @p600, @p601, @p602, @p603, @p604, @p605, @p606, @p607),
+(@p608, @p609, @p610, @p611, @p612, @p613, @p614, @p615, @p616, @p617, @p618, @p619, @p620, @p621, @p622, @p623),
+(@p624, @p625, @p626, @p627, @p628, @p629, @p630, @p631, @p632, @p633, @p634, @p635, @p636, @p637, @p638, @p639),
+(@p640, @p641, @p642, @p643, @p644, @p645, @p646, @p647, @p648, @p649, @p650, @p651, @p652, @p653, @p654, @p655),
+(@p656, @p657, @p658, @p659, @p660, @p661, @p662, @p663, @p664, @p665, @p666, @p667, @p668, @p669, @p670, @p671);
+2025-05-29 13:22:54.464 +07:00 [ERR] An exception occurred in the database while saving changes for context type 'WebAppApiPhim.Data.ApplicationDbContext'.
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Violation of PRIMARY KEY constraint 'PK_CachedMovies'. Cannot insert duplicate key in object 'dbo.CachedMovies'. The duplicate key value is (doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy).
+The statement has been terminated.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:076b3b4d-b9b6-4eb9-97d8-da016d9cf9b9
+Error Number:2627,State:1,Class:14
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Violation of PRIMARY KEY constraint 'PK_CachedMovies'. Cannot insert duplicate key in object 'dbo.CachedMovies'. The duplicate key value is (doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy).
+The statement has been terminated.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:076b3b4d-b9b6-4eb9-97d8-da016d9cf9b9
+Error Number:2627,State:1,Class:14
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+2025-05-29 13:22:54.532 +07:00 [ERR] Failed to sync page 3
+Microsoft.EntityFrameworkCore.DbUpdateException: An error occurred while saving the entity changes. See the inner exception for details.
+ ---> Microsoft.Data.SqlClient.SqlException (0x80131904): Violation of PRIMARY KEY constraint 'PK_CachedMovies'. Cannot insert duplicate key in object 'dbo.CachedMovies'. The duplicate key value is (doraemon-nobita-va-chuyen-phieu-luu-vao-xu-quy).
+The statement has been terminated.
+   at Microsoft.Data.SqlClient.SqlCommand.<>c.<ExecuteDbDataReaderAsync>b__209_0(Task`1 result)
+   at System.Threading.Tasks.ContinuationResultTaskFromResultTask`2.InnerInvoke()
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+--- End of stack trace from previous location ---
+   at System.Threading.ExecutionContext.RunInternal(ExecutionContext executionContext, ContextCallback callback, Object state)
+   at System.Threading.Tasks.Task.ExecuteWithThreadLocal(Task& currentTaskSlot, Thread threadPoolThread)
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.RelationalCommand.ExecuteReaderAsync(RelationalCommandParameterObject parameterObject, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+ClientConnectionId:076b3b4d-b9b6-4eb9-97d8-da016d9cf9b9
+Error Number:2627,State:1,Class:14
+   --- End of inner exception stack trace ---
+   at Microsoft.EntityFrameworkCore.Update.ReaderModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.SqlServer.Update.Internal.SqlServerModificationCommandBatch.ExecuteAsync(IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Update.Internal.BatchExecutor.ExecuteAsync(IEnumerable`1 commandBatches, IRelationalConnection connection, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(IList`1 entriesToSave, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.ChangeTracking.Internal.StateManager.SaveChangesAsync(StateManager stateManager, Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.<>c__DisplayClass30_0`2.<<ExecuteAsync>b__0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteImplementationAsync[TState,TResult](Func`4 operation, Func`4 verifySucceeded, TState state, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.Storage.ExecutionStrategy.ExecuteAsync[TState,TResult](TState state, Func`4 operation, Func`4 verifySucceeded, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at Microsoft.EntityFrameworkCore.DbContext.SaveChangesAsync(Boolean acceptAllChangesOnSuccess, CancellationToken cancellationToken)
+   at WebAppApiPhim.BackgroundServices.SyncMoviesService.SafeSyncMovies(CancellationToken stoppingToken) in C:\D\Leaning\API\APICode\WebAppApiPhim\Services\SyncMoviesService.cs:line 118
+2025-05-29 13:22:54.548 +07:00 [INF] Movie synchronization completed. Synced 45 new movies.
+2025-05-29 13:26:36.903 +07:00 [INF] User test1 registered successfully.
+2025-05-29 13:27:21.426 +07:00 [INF] User test1 logged in successfully.
+2025-05-29 13:27:47.804 +07:00 [WRN] No watch history found for user 4902dd81-682b-4d18-8e84-d238b959eac4.
+2025-05-29 13:28:33.695 +07:00 [WRN] Movie with slug con-trai-ban-me not found.
+2025-05-29 13:30:51.748 +07:00 [INF] Fetching movie detail from: phim-chi-tiet/v2?slug=latest
+2025-05-29 13:30:51.751 +07:00 [INF] Fetching movie detail from: phim-chi-tiet/v2?slug=popular
+2025-05-29 13:30:55.851 +07:00 [INF] Fetching movie detail from: phim-chi-tiet/v2?slug=popular
+2025-05-29 13:30:55.867 +07:00 [INF] Fetching movie detail from: phim-chi-tiet/v2?slug=latest
+2025-05-29 13:30:56.129 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '4373.9099'
+2025-05-29 13:30:56.138 +07:00 [INF] Fetched and cached movie detail for: latest
+2025-05-29 13:30:56.652 +07:00 [INF] Cache hit for movie detail: latest
+2025-05-29 13:30:56.688 +07:00 [INF] Cache hit for movie detail: latest
+2025-05-29 13:30:56.698 +07:00 [INF] Fetching movie detail from: phim-chi-tiet/v2?slug=popular
+2025-05-29 13:30:56.706 +07:00 [INF] Cache hit for movie detail: latest
+2025-05-29 13:30:58.676 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '6914.7218'
+2025-05-29 13:30:59.628 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '3754.5169'
+2025-05-29 13:30:59.636 +07:00 [INF] Fetched and cached movie detail for: latest
+2025-05-29 13:30:59.853 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '3146.6522'
+2025-05-29 13:30:59.859 +07:00 [INF] Fetched and cached movie detail for: popular
+2025-05-29 13:30:59.871 +07:00 [INF] Cache hit for movie detail: popular
+2025-05-29 13:30:59.878 +07:00 [INF] Fetched and cached movie detail for: popular
+2025-05-29 13:30:59.888 +07:00 [INF] Cache hit for movie detail: popular
+2025-05-29 13:32:35.862 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: 'The operation was canceled.', Handled: 'false', Attempt: '0', Execution Time: '100000.8417'
+System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+ ---> System.IO.IOException: Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request..
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   --- End of inner exception stack trace ---
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Int32>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](CancellationToken cancellationToken, Int32 estimatedSize)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.ReadAsyncInternal[TIOAdapter](Memory`1 buffer, CancellationToken cancellationToken)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Http.HttpConnection.InitialFillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Resilience.Internal.ResilienceHandler.<>c.<<SendAsync>b__2_0>d.MoveNext()
+2025-05-29 13:32:36.011 +07:00 [ERR] Error fetching movie detail for: popular
+System.Threading.Tasks.TaskCanceledException: The request was canceled due to the configured HttpClient.Timeout of 100 seconds elapsing.
+ ---> System.TimeoutException: The operation was canceled.
+ ---> System.Threading.Tasks.TaskCanceledException: The operation was canceled.
+ ---> System.IO.IOException: Unable to read data from the transport connection: The I/O operation has been aborted because of either a thread exit or an application request..
+ ---> System.Net.Sockets.SocketException (995): The I/O operation has been aborted because of either a thread exit or an application request.
+   --- End of inner exception stack trace ---
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.ThrowException(SocketError error, CancellationToken cancellationToken)
+   at System.Net.Sockets.Socket.AwaitableSocketAsyncEventArgs.System.Threading.Tasks.Sources.IValueTaskSource<System.Int32>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.EnsureFullTlsFrameAsync[TIOAdapter](CancellationToken cancellationToken, Int32 estimatedSize)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Security.SslStream.ReadAsyncInternal[TIOAdapter](Memory`1 buffer, CancellationToken cancellationToken)
+   at System.Runtime.CompilerServices.PoolingAsyncValueTaskMethodBuilder`1.StateMachineBox`1.System.Threading.Tasks.Sources.IValueTaskSource<TResult>.GetResult(Int16 token)
+   at System.Net.Http.HttpConnection.InitialFillAsync(Boolean async)
+   at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpConnection.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.HttpConnectionPool.SendWithVersionDetectionAndRetryAsync(HttpRequestMessage request, Boolean async, Boolean doRequestAuth, CancellationToken cancellationToken)
+   at System.Net.Http.DiagnosticsHandler.SendAsyncCore(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at System.Net.Http.RedirectHandler.SendAsync(HttpRequestMessage request, Boolean async, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Resilience.Internal.ResilienceHandler.<>c.<<SendAsync>b__2_0>d.MoveNext()
+--- End of stack trace from previous location ---
+   at Polly.Outcome`1.ThrowIfException()
+   at Microsoft.Extensions.Http.Resilience.Internal.ResilienceHandler.SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+   at Microsoft.Extensions.Http.Logging.LoggingScopeHttpMessageHandler.<SendCoreAsync>g__Core|5_0(HttpRequestMessage request, Boolean useAsync, CancellationToken cancellationToken)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   --- End of inner exception stack trace ---
+   --- End of inner exception stack trace ---
+   at System.Net.Http.HttpClient.HandleFailure(Exception e, Boolean telemetryStarted, HttpResponseMessage response, CancellationTokenSource cts, CancellationToken cancellationToken, CancellationTokenSource pendingRequestsCts)
+   at System.Net.Http.HttpClient.<SendAsync>g__Core|83_0(HttpRequestMessage request, HttpCompletionOption completionOption, CancellationTokenSource cts, Boolean disposeCts, CancellationTokenSource pendingRequestsCts, CancellationToken originalCancellationToken)
+   at WebAppApiPhim.Services.MovieApiService.GetMovieDetailBySlugAsync(String slug, String version) in C:\D\Leaning\API\APICode\WebAppApiPhim\Services\MovieApiService.cs:line 263
+2025-05-29 13:33:31.122 +07:00 [INF] Fetching movie detail from: phim-chi-tiet/v1?slug=slug
+2025-05-29 13:33:33.014 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '1888.9322'
+2025-05-29 13:33:33.019 +07:00 [INF] Fetched and cached movie detail for: slug
+2025-05-29 13:33:50.638 +07:00 [INF] Execution attempt. Source: 'IMovieApiService-MovieApiResilience//Retry', Operation Key: 'null', Result: '200', Handled: 'false', Attempt: '0', Execution Time: '484.0682'
+2025-05-29 13:34:15.793 +07:00 [INF] Cache hit for movie detail: popular
+2025-05-29 13:34:15.793 +07:00 [INF] Cache hit for movie detail: latest
+2025-05-29 13:34:15.891 +07:00 [INF] Cache hit for movie detail: latest
+2025-05-29 13:34:15.893 +07:00 [INF] Cache hit for movie detail: popular
+2025-05-29 13:34:15.943 +07:00 [INF] Cache hit for movie detail: popular
