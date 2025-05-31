@@ -15,7 +15,7 @@ function App() {
     const fetchMovies = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("https://localhost:7056/api/movies/latest", {
+        const response = await axios.get("http://26.147.177.177:5000/api/Movies?page=1&limit=10&version=v2", {
           params: { page, limit: 20 },
         });
 

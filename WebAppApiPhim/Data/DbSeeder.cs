@@ -36,7 +36,7 @@ namespace WebAppApiPhim.Data
         {
             // Seed Admin User
             const string adminEmail = "admin@movieapi.com";
-            const string adminPassword = "Admin123456"; // Removed special character requirement
+            const string adminPassword = "Admin123456"; 
 
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
             if (adminUser == null)

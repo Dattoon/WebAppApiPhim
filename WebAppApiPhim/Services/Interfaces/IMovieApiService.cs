@@ -15,5 +15,6 @@ namespace WebAppApiPhim.Services.Interfaces
         Task<ProductionApiResponse> GetProductionDataAsync(string slug);
         Task<Models.MovieListResponse> GetLatestMoviesAsync(int page = 1, int limit = 20, string? version = null);
         Task<Models.MovieDetailResponse> GetMovieDetailBySlugAsync(string slug, string? version = null);
+        void ClearCache();
     }
 }

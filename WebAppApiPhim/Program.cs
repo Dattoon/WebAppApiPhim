@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.StackExchangeRedis;
 using Microsoft.OpenApi.Models;
 using WebAppApiPhim.Data;
@@ -46,46 +45,36 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull;
     });
 
-// Configure DbContext with retry-on-failure and query splitting
+// Configure DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection"),
         sqlOptions =>
         {
-            sqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorNumbersToAdd: new List<int> { 1205 });
-
+            sqlOptions.EnableRetryOnFailure(5, TimeSpan.FromSeconds(30), new List<int> { 1205 });
             sqlOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
         }
     )
 );
 
-// Add Identity with custom password requirements
+// Add Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 {
-    // Password settings
     options.Password.RequireDigit = true;
     options.Password.RequireLowercase = true;
-    options.Password.RequireNonAlphanumeric = false; // Allow passwords without special characters
+    options.Password.RequireNonAlphanumeric = false;
     options.Password.RequireUppercase = false;
     options.Password.RequiredLength = 6;
     options.Password.RequiredUniqueChars = 1;
-
-    // Lockout settings
     options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
     options.Lockout.MaxFailedAccessAttempts = 5;
-    options.Lockout.AllowedForNewUsers = true;
-
-    // User settings
     options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
     options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<ApplicationDbContext>()
 .AddDefaultTokenProviders();
 
-// Configure JWT Authentication
+// JWT Authentication
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
     ?? throw new ArgumentException("JWT Secret is not configured.");
 builder.Services.AddAuthentication("Bearer")
@@ -103,24 +92,30 @@ builder.Services.AddAuthentication("Bearer")
         };
     });
 
-// Add Authorization
 builder.Services.AddAuthorization();
 
-// Add CORS
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowSpecificOrigin", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "https://yourproductiondomain.com")
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy
+            .WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "http://127.0.0.1:3000",
+                "http://26.147.177.177:5000"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
-// Add HttpContextAccessor
+// HTTP Context Accessor
 builder.Services.AddHttpContextAccessor();
 
-// Add HttpClient with Resilience
+// HttpClient with Polly resilience
 builder.Services.AddHttpClient<IMovieApiService, MovieApiService>(client =>
 {
     client.BaseAddress = new Uri("https://api.dulieuphim.ink/");
@@ -142,16 +137,14 @@ builder.Services.AddHttpClient<IMovieApiService, MovieApiService>(client =>
     });
 });
 
-// Add Caching
+// Memory Cache
 builder.Services.AddMemoryCache(options =>
 {
-    // Remove SizeLimit to avoid cache size errors
-    // options.SizeLimit = 1024 * 1024 * 100; // Comment out this line
     options.CompactionPercentage = 0.25;
     options.ExpirationScanFrequency = TimeSpan.FromMinutes(5);
 });
 
-// Add Redis Cache (optional, comment out if Redis is not available)
+// Redis Cache
 try
 {
     var redisConnection = builder.Configuration.GetConnectionString("Redis");
@@ -169,25 +162,55 @@ catch (Exception ex)
     Log.Warning("Redis cache not configured: {Error}", ex.Message);
 }
 
-// Register Services
+// --- Application & External Services ---
+
+// External API client
+builder.Services.AddHttpClient<IMovieApiService, MovieApiService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.dulieuphim.ink/");
+    client.DefaultRequestHeaders.Add("User-Agent", "MovieAPI/1.0");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+// Đăng ký HttpClient và DuLieuPhimService
+builder.Services.AddHttpClient<IDuLieuPhimService, DuLieuPhimService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.dulieuphim.ink");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+// Hoặc nếu bạn muốn đăng ký service mà không cấu hình HttpClient ở đây
+// builder.Services.AddScoped<IDuLieuPhimService, DuLieuPhimService>();
+// Add IHttpClientFactory support
+builder.Services.AddHttpClient();
+
+// App Services
 builder.Services.AddScoped<IMetadataService, MetadataService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IStreamingService, StreamingService>();
 builder.Services.AddScoped<IJwtService, JwtService>();
 builder.Services.AddScoped<IStatisticsService, StatisticsService>();
+builder.Services.AddScoped<ISmartEpisodeService, SmartEpisodeService>();
+builder.Services.AddScoped<IExistingUserService, ExistingUserService>();
+builder.Services.AddScoped<IEpisodeSyncService, EpisodeSyncService>();
 
-// Register Background Services
+
+// Thêm dòng này vào phần đăng ký services trong Program.cs hoặc Startup.cs
+
+
+
+// Background Services
 builder.Services.AddHostedService<SyncMoviesService>();
 builder.Services.AddHostedService<CacheCleanupService>();
+builder.Services.AddHostedService<EpisodeSyncBackgroundService>();
 
-// Add Health Checks
+// Health Checks
 builder.Services.AddHealthChecks()
     .AddSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
         name: "sqlserver",
         failureStatus: HealthStatus.Degraded,
         tags: new[] { "db" });
 
-// Add Swagger
+// Swagger
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Movie API", Version = "v1" });
@@ -202,14 +225,14 @@ builder.Services.AddSwaggerGen(c =>
     {
         {
             new OpenApiSecurityScheme { Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" } },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// HTTP pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -217,11 +240,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
-app.UseCors("AllowSpecificOrigin");
-
-// IMPORTANT: Correct middleware order
 app.UseRouting();
+app.UseCors("AllowSpecificOrigin");
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -247,7 +267,7 @@ app.UseHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks
 
 app.MapControllers();
 
-// Seed Database
+// Database seeding
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -259,6 +279,9 @@ using (var scope = app.Services.CreateScope())
 
         await context.Database.MigrateAsync();
         await DbSeeder.Initialize(services, context, userManager, roleManager);
+
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Database seeded successfully.");
     }
     catch (Exception ex)
     {

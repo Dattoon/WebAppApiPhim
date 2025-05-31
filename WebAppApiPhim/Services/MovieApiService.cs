@@ -551,5 +551,10 @@ namespace WebAppApiPhim.Services
         {
             return new List<string> { "Phim Lẻ", "Phim Bộ", "Hoạt Hình", "TV Shows" };
         }
+
+        public void ClearCache()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
