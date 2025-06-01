@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using WebAppApiPhim.Data;
 using WebAppApiPhim.Models;
-using System.Threading.Tasks;
-using System;
+using System.Security.Claims;
 
 namespace WebAppApiPhim.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class FavoritesController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -26,6 +26,7 @@ namespace WebAppApiPhim.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<UserFavorite>> AddFavorite([FromQuery] string movieSlug)
         {
             if (string.IsNullOrWhiteSpace(movieSlug))
@@ -36,7 +37,7 @@ namespace WebAppApiPhim.Controllers
 
             try
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userId = GetUserIdFromClaims();
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     return Unauthorized("User not authenticated.");
@@ -67,16 +68,12 @@ namespace WebAppApiPhim.Controllers
 
                 _context.UserFavorites.Add(favorite);
 
-                // Cập nhật số lượng yêu thích trong MovieStatistic
-                var statistic = await _context.MovieStatistics.FirstOrDefaultAsync(s => s.MovieSlug == movieSlug);
-                if (statistic != null)
-                {
-                    statistic.FavoriteCount++;
-                    statistic.LastUpdated = DateTime.UtcNow;
-                    _context.MovieStatistics.Update(statistic);
-                }
+                // Update favorite count in MovieStatistic
+                await UpdateMovieStatistics(movieSlug, incrementFavorites: true);
 
                 await _context.SaveChangesAsync();
+                _logger.LogInformation($"Added movie {movieSlug} to favorites for user {userId}");
+
                 return CreatedAtAction(nameof(GetFavorites), new { }, favorite);
             }
             catch (Exception ex)
@@ -88,13 +85,14 @@ namespace WebAppApiPhim.Controllers
 
         // GET: api/favorites
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<List<UserFavorite>>> GetFavorites()
         {
             try
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userId = GetUserIdFromClaims();
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     return Unauthorized("User not authenticated.");
@@ -107,12 +105,7 @@ namespace WebAppApiPhim.Controllers
                     .OrderByDescending(f => f.AddedAt)
                     .ToListAsync();
 
-                if (!favorites.Any())
-                {
-                    _logger.LogWarning($"No favorites found for user {Guid.Parse(userId)}.");
-                    return NotFound($"No favorites found for user {Guid.Parse(userId)}.");
-                }
-
+                _logger.LogInformation($"Retrieved {favorites.Count} favorites for user {userId}");
                 return Ok(favorites);
             }
             catch (Exception ex)
@@ -126,6 +119,7 @@ namespace WebAppApiPhim.Controllers
         [HttpDelete("{movieSlug}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RemoveFavorite(string movieSlug)
         {
             if (string.IsNullOrWhiteSpace(movieSlug))
@@ -136,7 +130,7 @@ namespace WebAppApiPhim.Controllers
 
             try
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userId = GetUserIdFromClaims();
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     return Unauthorized("User not authenticated.");
@@ -147,22 +141,18 @@ namespace WebAppApiPhim.Controllers
 
                 if (favorite == null)
                 {
-                    _logger.LogWarning($"Favorite not found for movie {movieSlug} by user {Guid.Parse(userId)}.");
+                    _logger.LogWarning($"Favorite not found for movie {movieSlug} by user {userId}.");
                     return NotFound($"Favorite not found for movie {movieSlug}.");
                 }
 
                 _context.UserFavorites.Remove(favorite);
 
-                // Cập nhật số lượng yêu thích trong MovieStatistic
-                var statistic = await _context.MovieStatistics.FirstOrDefaultAsync(s => s.MovieSlug == movieSlug);
-                if (statistic != null)
-                {
-                    statistic.FavoriteCount--;
-                    statistic.LastUpdated = DateTime.UtcNow;
-                    _context.MovieStatistics.Update(statistic);
-                }
+                // Update favorite count in MovieStatistic
+                await UpdateMovieStatistics(movieSlug, incrementFavorites: false);
 
                 await _context.SaveChangesAsync();
+                _logger.LogInformation($"Removed movie {movieSlug} from favorites for user {userId}");
+
                 return NoContent();
             }
             catch (Exception ex)
@@ -170,6 +160,27 @@ namespace WebAppApiPhim.Controllers
                 _logger.LogError(ex, $"Error removing favorite for movie with slug {movieSlug}");
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while removing the favorite.");
             }
+        }
+
+        private async Task UpdateMovieStatistics(string movieSlug, bool incrementFavorites)
+        {
+            var statistic = await _context.MovieStatistics.FirstOrDefaultAsync(s => s.MovieSlug == movieSlug);
+            if (statistic != null)
+            {
+                if (incrementFavorites)
+                    statistic.FavoriteCount++;
+                else
+                    statistic.FavoriteCount = Math.Max(0, statistic.FavoriteCount - 1);
+
+                statistic.LastUpdated = DateTime.UtcNow;
+                _context.MovieStatistics.Update(statistic);
+            }
+        }
+
+        private string? GetUserIdFromClaims()
+        {
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                   ?? User.FindFirst("sub")?.Value;
         }
     }
 }

@@ -1,16 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using WebAppApiPhim.Data;
 using WebAppApiPhim.Models;
-using System.Threading.Tasks;
-using System;
+using System.Security.Claims;
 
 namespace WebAppApiPhim.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class RatingsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -26,9 +26,10 @@ namespace WebAppApiPhim.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<MovieRating>> RateMovie(
-    [FromQuery] string movieSlug,
-    [FromQuery] double rating)
+            [FromQuery] string movieSlug,
+            [FromQuery] double rating)
         {
             if (string.IsNullOrWhiteSpace(movieSlug) || rating < 0 || rating > 10)
             {
@@ -38,7 +39,7 @@ namespace WebAppApiPhim.Controllers
 
             try
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userId = GetUserIdFromClaims();
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     return Unauthorized("User not authenticated.");
@@ -54,9 +55,11 @@ namespace WebAppApiPhim.Controllers
                 var existingRating = await _context.MovieRatings
                     .FirstOrDefaultAsync(r => r.UserId == Guid.Parse(userId) && r.MovieSlug == movieSlug);
 
+                MovieRating movieRating;
+
                 if (existingRating == null)
                 {
-                    var newRating = new MovieRating
+                    movieRating = new MovieRating
                     {
                         Id = Guid.NewGuid().ToString(),
                         UserId = Guid.Parse(userId),
@@ -64,31 +67,23 @@ namespace WebAppApiPhim.Controllers
                         Rating = rating,
                         CreatedAt = DateTime.UtcNow
                     };
-                    _context.MovieRatings.Add(newRating);
-                    await _context.SaveChangesAsync();
-                    return CreatedAtAction(nameof(GetRating), new { movieSlug }, newRating);
+                    _context.MovieRatings.Add(movieRating);
+                    _logger.LogInformation($"Created new rating {rating} for movie {movieSlug} by user {userId}");
                 }
                 else
                 {
                     existingRating.Rating = rating;
                     existingRating.CreatedAt = DateTime.UtcNow;
                     _context.MovieRatings.Update(existingRating);
-                    await _context.SaveChangesAsync();
-                    return CreatedAtAction(nameof(GetRating), new { movieSlug }, existingRating);
+                    movieRating = existingRating;
+                    _logger.LogInformation($"Updated rating to {rating} for movie {movieSlug} by user {userId}");
                 }
 
-                // Cập nhật trung bình đánh giá trong MovieStatistic
-                var statistic = await _context.MovieStatistics.FirstOrDefaultAsync(s => s.MovieSlug == movieSlug);
-                if (statistic != null)
-                {
-                    var avgRating = await _context.MovieRatings
-                        .Where(r => r.MovieSlug == movieSlug)
-                        .AverageAsync(r => r.Rating);
-                    statistic.AverageRating = avgRating;
-                    statistic.LastUpdated = DateTime.UtcNow;
-                    _context.MovieStatistics.Update(statistic);
-                    await _context.SaveChangesAsync();
-                }
+                // Update average rating in MovieStatistic
+                await UpdateMovieAverageRating(movieSlug);
+
+                await _context.SaveChangesAsync();
+                return CreatedAtAction(nameof(GetRating), new { movieSlug }, movieRating);
             }
             catch (Exception ex)
             {
@@ -101,6 +96,7 @@ namespace WebAppApiPhim.Controllers
         [HttpGet("{movieSlug}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<MovieRating>> GetRating(string movieSlug)
         {
             if (string.IsNullOrWhiteSpace(movieSlug))
@@ -111,7 +107,7 @@ namespace WebAppApiPhim.Controllers
 
             try
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userId = GetUserIdFromClaims();
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     return Unauthorized("User not authenticated.");
@@ -123,7 +119,7 @@ namespace WebAppApiPhim.Controllers
 
                 if (rating == null)
                 {
-                    _logger.LogWarning($"No rating found for movie {movieSlug} by user {userId}.");
+                    _logger.LogInformation($"No rating found for movie {movieSlug} by user {userId}.");
                     return NotFound($"No rating found for movie {movieSlug}.");
                 }
 
@@ -134,6 +130,61 @@ namespace WebAppApiPhim.Controllers
                 _logger.LogError(ex, $"Error retrieving rating for movie {movieSlug}");
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the rating.");
             }
+        }
+
+        // GET: api/ratings/{movieSlug}/average
+        [HttpGet("{movieSlug}/average")]
+        [AllowAnonymous]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<ActionResult<object>> GetAverageRating(string movieSlug)
+        {
+            if (string.IsNullOrWhiteSpace(movieSlug))
+            {
+                return BadRequest("MovieSlug is required.");
+            }
+
+            try
+            {
+                var ratings = await _context.MovieRatings
+                    .Where(r => r.MovieSlug == movieSlug)
+                    .ToListAsync();
+
+                if (!ratings.Any())
+                {
+                    return Ok(new { averageRating = 0.0, totalRatings = 0 });
+                }
+
+                var averageRating = ratings.Average(r => r.Rating);
+                var totalRatings = ratings.Count;
+
+                return Ok(new { averageRating = Math.Round(averageRating, 1), totalRatings });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving average rating for movie {movieSlug}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the average rating.");
+            }
+        }
+
+        private async Task UpdateMovieAverageRating(string movieSlug)
+        {
+            var avgRating = await _context.MovieRatings
+                .Where(r => r.MovieSlug == movieSlug)
+                .AverageAsync(r => r.Rating);
+
+            var statistic = await _context.MovieStatistics.FirstOrDefaultAsync(s => s.MovieSlug == movieSlug);
+            if (statistic != null)
+            {
+                statistic.AverageRating = avgRating;
+                statistic.LastUpdated = DateTime.UtcNow;
+                _context.MovieStatistics.Update(statistic);
+            }
+        }
+
+        private string? GetUserIdFromClaims()
+        {
+            return User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                   ?? User.FindFirst("sub")?.Value;
         }
     }
 }

@@ -17,6 +17,7 @@ using FluentValidation.AspNetCore;
 using System.Threading.RateLimiting;
 using HealthChecks.Redis;
 using WebAppApiPhim.BackgroundServices;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,8 +78,8 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
 // JWT Authentication
 var jwtSecret = builder.Configuration["JwtSettings:Secret"]
     ?? throw new ArgumentException("JWT Secret is not configured.");
-builder.Services.AddAuthentication("Bearer")
-    .AddJwtBearer("Bearer", options =>
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters
         {

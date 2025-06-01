@@ -1,18 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using WebAppApiPhim.Data;
 using WebAppApiPhim.Models;
-using System.Threading.Tasks;
-using System.Linq;
 using System.Security.Claims;
-using StackExchange.Redis;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace WebAppApiPhim.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public class WatchHistoryController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -26,17 +25,32 @@ namespace WebAppApiPhim.Controllers
 
         // GET: api/watchhistory
         [HttpGet]
+        [AllowAnonymous]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<List<UserMovie>>> GetWatchHistory()
         {
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                // Debug: Log authentication info
+                _logger.LogInformation($"User.Identity.IsAuthenticated: {User.Identity?.IsAuthenticated}");
+                _logger.LogInformation($"User.Identity.AuthenticationType: {User.Identity?.AuthenticationType}");
+                _logger.LogInformation($"Claims count: {User.Claims.Count()}");
+
+                // Log all claims for debugging
+                foreach (var claim in User.Claims)
+                {
+                    _logger.LogInformation($"Claim: {claim.Type} = {claim.Value}");
+                }
+
+                var userId = GetUserIdFromClaims();
                 if (string.IsNullOrWhiteSpace(userId))
                 {
+                    _logger.LogWarning("User ID not found in claims");
                     return Unauthorized("User not authenticated.");
                 }
+
+                _logger.LogInformation($"Processing request for user: {userId}");
 
                 var watchHistory = await _context.UserMovies
                     .AsNoTracking()
@@ -45,12 +59,7 @@ namespace WebAppApiPhim.Controllers
                     .OrderByDescending(um => um.AddedAt)
                     .ToListAsync();
 
-                if (!watchHistory.Any())
-                {
-                    _logger.LogWarning($"No watch history found for user {userId}.");
-                    return NotFound($"No watch history found for user {userId}.");
-                }
-
+                _logger.LogInformation($"Retrieved {watchHistory.Count} watch history items for user {userId}");
                 return Ok(watchHistory);
             }
             catch (Exception ex)
@@ -64,6 +73,7 @@ namespace WebAppApiPhim.Controllers
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<ActionResult<UserMovie>> AddToWatchHistory([FromQuery] string movieSlug)
         {
             if (string.IsNullOrWhiteSpace(movieSlug))
@@ -74,7 +84,7 @@ namespace WebAppApiPhim.Controllers
 
             try
             {
-                var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                var userId = GetUserIdFromClaims();
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     return Unauthorized("User not authenticated.");
@@ -95,7 +105,8 @@ namespace WebAppApiPhim.Controllers
                     existingEntry.AddedAt = DateTime.UtcNow;
                     _context.UserMovies.Update(existingEntry);
                     await _context.SaveChangesAsync();
-                    return CreatedAtAction(nameof(GetWatchHistory), new { }, existingEntry);
+                    _logger.LogInformation($"Updated watch history for movie {movieSlug} by user {userId}");
+                    return Ok(existingEntry);
                 }
                 else
                 {
@@ -108,6 +119,7 @@ namespace WebAppApiPhim.Controllers
                     };
                     _context.UserMovies.Add(newEntry);
                     await _context.SaveChangesAsync();
+                    _logger.LogInformation($"Added movie {movieSlug} to watch history for user {userId}");
                     return CreatedAtAction(nameof(GetWatchHistory), new { }, newEntry);
                 }
             }
@@ -117,10 +129,12 @@ namespace WebAppApiPhim.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while adding to watch history.");
             }
         }
+
         // DELETE: api/watchhistory/{movieSlug}
         [HttpDelete("{movieSlug}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RemoveFromWatchHistory(string movieSlug)
         {
             if (string.IsNullOrWhiteSpace(movieSlug))
@@ -131,7 +145,7 @@ namespace WebAppApiPhim.Controllers
 
             try
             {
-                var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userId = GetUserIdFromClaims();
                 if (string.IsNullOrWhiteSpace(userId))
                 {
                     return Unauthorized("User not authenticated.");
@@ -148,6 +162,7 @@ namespace WebAppApiPhim.Controllers
 
                 _context.UserMovies.Remove(entry);
                 await _context.SaveChangesAsync();
+                _logger.LogInformation($"Removed movie {movieSlug} from watch history for user {userId}");
                 return NoContent();
             }
             catch (Exception ex)
@@ -155,6 +170,33 @@ namespace WebAppApiPhim.Controllers
                 _logger.LogError(ex, $"Error removing movie from watch history with slug {movieSlug}");
                 return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while removing from watch history.");
             }
+        }
+
+        private string? GetUserIdFromClaims()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                       ?? User.FindFirst("sub")?.Value
+                       ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+            _logger.LogInformation($"Extracted user ID: {userId}");
+            return userId;
+        }
+
+        // Debug endpoint to test authentication
+        [HttpGet("debug")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult Debug()
+        {
+            var authInfo = new
+            {
+                IsAuthenticated = User.Identity?.IsAuthenticated,
+                AuthenticationType = User.Identity?.AuthenticationType,
+                Name = User.Identity?.Name,
+                Claims = User.Claims.Select(c => new { c.Type, c.Value }).ToList(),
+                UserId = GetUserIdFromClaims()
+            };
+
+            return Ok(authInfo);
         }
     }
 }

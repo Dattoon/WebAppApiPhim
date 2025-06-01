@@ -45,6 +45,21 @@ namespace WebAppApiPhim.Controllers
 
             try
             {
+                // Kiểm tra user đã tồn tại chưa
+                var existingUser = await _userManager.FindByEmailAsync(email);
+                if (existingUser != null)
+                {
+                    _logger.LogWarning($"Registration failed: Email {email} already exists.");
+                    return BadRequest("Email already exists.");
+                }
+
+                var existingUsername = await _userManager.FindByNameAsync(username);
+                if (existingUsername != null)
+                {
+                    _logger.LogWarning($"Registration failed: Username {username} already exists.");
+                    return BadRequest("Username already exists.");
+                }
+
                 var user = new ApplicationUser
                 {
                     UserName = username,
@@ -148,25 +163,45 @@ namespace WebAppApiPhim.Controllers
         {
             var claims = new List<Claim>
             {
-               new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName),
-                new Claim(ClaimTypes.Email, user.Email)
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.UserName ?? string.Empty), // Null safety
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty),   // Null safety
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                new Claim(JwtRegisteredClaimNames.Iat,
+                    new DateTimeOffset(DateTime.UtcNow).ToUnixTimeSeconds().ToString(),
+                    ClaimValueTypes.Integer64)
             };
 
             var roles = await _userManager.GetRolesAsync(user);
             claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
+            // SỬA: Sử dụng JwtSettings thay vì Jwt
+            var jwtSecret = _configuration["JwtSettings:Secret"] ?? _configuration["Jwt:Key"];
+            var jwtIssuer = _configuration["JwtSettings:Issuer"] ?? _configuration["Jwt:Issuer"];
+            var jwtAudience = _configuration["JwtSettings:Audience"] ?? _configuration["Jwt:Audience"];
+
+            if (string.IsNullOrEmpty(jwtSecret))
+            {
+                _logger.LogError("JWT Secret not found in configuration");
+                throw new InvalidOperationException("JWT Secret is not configured");
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _configuration["Jwt:Issuer"],
-                audience: _configuration["Jwt:Audience"],
+                issuer: jwtIssuer,
+                audience: jwtAudience,
                 claims: claims,
-                expires: DateTime.Now.AddHours(1),
+                expires: DateTime.UtcNow.AddHours(24),
                 signingCredentials: creds);
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+            _logger.LogInformation($"JWT token generated for user {user.UserName} with expiry {DateTime.UtcNow.AddHours(24)}");
+
+            return tokenString;
         }
     }
 }
